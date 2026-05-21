@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { clearSessionCookie, getCurrentSession, setSessionCookie } from "@/lib/auth";
+import { clearSessionCookie, getCurrentSession, setSessionCookie, verifyInviteToken } from "@/lib/auth";
 import { getGroupContext, login, storeErrorResponse } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -19,6 +19,20 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
+    if (typeof body.inviteToken === "string") {
+      const invite = await verifyInviteToken(body.inviteToken);
+      if (!invite) return NextResponse.json({ error: "Invite link is expired or invalid." }, { status: 401 });
+      const context = await getGroupContext(invite.groupId, invite.memberId);
+      if (!context) return NextResponse.json({ error: "Invite member no longer exists." }, { status: 404 });
+      await setSessionCookie({ groupId: context.group.id, memberId: context.member.id, role: context.member.role });
+      return NextResponse.json({
+        authenticated: true,
+        group: context.group,
+        member: context.member,
+        members: context.members,
+      });
+    }
+
     const { group, member } = await login({
       groupCode: typeof body.groupCode === "string" ? body.groupCode : "",
       memberName: typeof body.memberName === "string" ? body.memberName : "",

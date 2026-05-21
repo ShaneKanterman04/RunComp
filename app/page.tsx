@@ -57,10 +57,12 @@ export default function Home() {
   const [form, setForm] = useState({ miles: "", date: todayInput(), note: "" });
   const [memberForm, setMemberForm] = useState({ name: "", password: "" });
   const [inviteUrl, setInviteUrl] = useState("");
+  const [memberInviteUrls, setMemberInviteUrls] = useState<Record<string, string>>({});
   const [checkingSession, setCheckingSession] = useState(true);
   const [loadingRuns, setLoadingRuns] = useState(false);
   const [saving, setSaving] = useState(false);
   const [memberSaving, setMemberSaving] = useState(false);
+  const [inviteSavingId, setInviteSavingId] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export default function Home() {
   useEffect(() => {
     if (!session) {
       setInviteUrl("");
+      setMemberInviteUrls({});
       return;
     }
     setInviteUrl(buildInviteUrl(session.group.code));
@@ -201,10 +204,49 @@ export default function Home() {
   async function copyInviteLink() {
     if (!inviteUrl) return;
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await copyText(inviteUrl);
       setMessage("Invite link copied. It fills the group code only.");
     } catch {
       setMessage(`Invite link: ${inviteUrl}`);
+    }
+  }
+
+  async function createMemberInvite(member: Member) {
+    if (!session || session.member.role !== "owner" || inviteSavingId) return;
+    const existingUrl = memberInviteUrls[member.id];
+    if (existingUrl) {
+      try {
+        await copyText(existingUrl);
+        setMessage(`${member.name}'s login link copied to clipboard.`);
+      } catch {
+        setMessage(`Clipboard blocked. ${member.name}'s login link: ${existingUrl}`);
+      }
+      return;
+    }
+
+    setInviteSavingId(member.id);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId: member.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not create login link.");
+      const url = buildMemberInviteUrl(data.token);
+      setMemberInviteUrls((current) => ({ ...current, [member.id]: url }));
+      try {
+        await copyText(url);
+        setMessage(`${member.name}'s login link copied to clipboard.`);
+      } catch {
+        setMessage(`Clipboard blocked. ${member.name}'s login link: ${url}`);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not create login link.");
+    } finally {
+      setInviteSavingId("");
     }
   }
 
@@ -229,7 +271,7 @@ export default function Home() {
         <Brand eyebrow={session.group.name} />
         <div className="headToHead" aria-label="Current standings">
           {standings.map((member, index) => (
-            <span key={member.id}>
+            <span className="standItem" key={member.id}>
               {index + 1}. {member.name} {formatMiles(stats[member.id]?.total || 0)}
             </span>
           ))}
@@ -339,11 +381,18 @@ export default function Home() {
           <div className="memberList">
             {members.map((member) => (
               <div className="memberPill" key={member.id}>
-                <span className="runnerBadge" style={runnerStyle(member, members)}>{member.name.slice(0, 1)}</span>
-                <div>
-                  <strong>{member.name}</strong>
-                  <span>{member.role === "owner" ? "Group owner" : "Runner"}</span>
+                <div className="memberIdentity">
+                  <span className="runnerBadge" style={runnerStyle(member, members)}>{member.name.slice(0, 1)}</span>
+                  <div>
+                    <strong>{member.name}</strong>
+                    <span>{member.role === "owner" ? "Group owner" : "Runner"}</span>
+                  </div>
                 </div>
+                {session.member.role === "owner" && (
+                  <button className="miniButton" type="button" onClick={() => createMemberInvite(member)} disabled={Boolean(inviteSavingId)}>
+                    {inviteSavingId === member.id ? "Creating..." : memberInviteUrls[member.id] ? "Copy login" : "Login link"}
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -427,7 +476,7 @@ export default function Home() {
               const member = members.find((row) => row.id === run.memberId);
               return (
                 <article className="runRow" key={run.id}>
-                  <span className="runnerBadge" style={member ? runnerStyle(member, members) : undefined}>{run.runner.slice(0, 1)}</span>
+                  <span className="runnerBadge runBadge" style={member ? runnerStyle(member, members) : undefined}>{run.runner.slice(0, 1)}</span>
                   <div className="runDetails">
                     <div>
                       <strong>{run.runner}</strong>
@@ -459,12 +508,38 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
   const [localMessage, setLocalMessage] = useState(message);
 
   useEffect(() => {
+    const inviteToken = inviteTokenFromUrl();
+    if (inviteToken) {
+      redeemInvite(inviteToken);
+      return;
+    }
+
     const groupCode = inviteGroupCodeFromUrl();
     if (!groupCode) return;
     setMode("login");
     setLoginForm((current) => ({ ...current, groupCode }));
     setLocalMessage("Group code filled from invite link. Enter your name and password.");
   }, []);
+
+  async function redeemInvite(inviteToken: string) {
+    setBusy(true);
+    setLocalMessage("Opening login link...");
+
+    try {
+      const response = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteToken }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not use login link.");
+      onAuthenticated(data);
+    } catch (error) {
+      setLocalMessage(error instanceof Error ? error.message : "Could not use login link.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -569,10 +644,50 @@ function buildInviteUrl(groupCode: string) {
   return url.toString();
 }
 
+function buildMemberInviteUrl(token: string) {
+  if (typeof window === "undefined") return "";
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("invite", token);
+  return url.toString();
+}
+
 function inviteGroupCodeFromUrl() {
   if (typeof window === "undefined") return "";
   const params = new URLSearchParams(window.location.search);
   return (params.get("group") || params.get("g") || "").trim();
+}
+
+function inviteTokenFromUrl() {
+  if (typeof window === "undefined") return "";
+  const params = new URLSearchParams(window.location.search);
+  return (params.get("invite") || params.get("i") || "").trim();
+}
+
+async function copyText(value: string) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "true");
+  input.style.position = "fixed";
+  input.style.left = "-9999px";
+  input.style.top = "0";
+  document.body.appendChild(input);
+  input.focus();
+  input.select();
+
+  try {
+    if (!document.execCommand("copy")) {
+      throw new Error("Copy command failed.");
+    }
+  } finally {
+    document.body.removeChild(input);
+  }
 }
 
 function RunnerCard({ member, members, stats }: { member: Member; members: Member[]; stats: RunnerStats }) {

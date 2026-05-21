@@ -14,9 +14,17 @@ export type SessionClaims = {
   exp: number;
 };
 
+export type InviteClaims = {
+  groupId: string;
+  memberId: string;
+  role: MemberRole;
+  exp: number;
+};
+
 const dataDir = process.env.DATA_DIR || path.join(process.cwd(), ".data");
 const secretFile = path.join(dataDir, "session-secret");
 const sessionTtlMs = 1000 * 60 * 60 * 24 * 30;
+const inviteTtlMs = 1000 * 60 * 60 * 24 * 14;
 
 export async function setSessionCookie(input: { groupId: string; memberId: string; role: MemberRole }) {
   const exp = Date.now() + sessionTtlMs;
@@ -34,6 +42,15 @@ export async function setSessionCookie(input: { groupId: string; memberId: strin
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
+}
+
+export async function createInviteToken(input: { groupId: string; memberId: string; role: MemberRole }) {
+  const exp = Date.now() + inviteTtlMs;
+  return signInvite({ ...input, exp });
+}
+
+export async function verifyInviteToken(token: string): Promise<InviteClaims | null> {
+  return verifyInvite(token);
 }
 
 export async function getCurrentSession() {
@@ -73,6 +90,12 @@ async function signSession(claims: SessionClaims) {
   return `${payload}.${signature}`;
 }
 
+async function signInvite(claims: InviteClaims) {
+  const payload = Buffer.from(JSON.stringify({ ...claims, kind: "invite" })).toString("base64url");
+  const signature = createHmac("sha256", await getSecret()).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
 async function verifySession(token: string): Promise<SessionClaims | null> {
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return null;
@@ -91,6 +114,30 @@ async function verifySession(token: string): Promise<SessionClaims | null> {
       return null;
     }
     return claims as SessionClaims;
+  } catch {
+    return null;
+  }
+}
+
+async function verifyInvite(token: string): Promise<InviteClaims | null> {
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
+  const expected = createHmac("sha256", await getSecret()).update(payload).digest("base64url");
+  if (signature !== expected) return null;
+
+  try {
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Partial<InviteClaims> & { kind?: string };
+    if (
+      claims.kind !== "invite" ||
+      typeof claims.groupId !== "string" ||
+      typeof claims.memberId !== "string" ||
+      (claims.role !== "owner" && claims.role !== "member") ||
+      typeof claims.exp !== "number" ||
+      claims.exp < Date.now()
+    ) {
+      return null;
+    }
+    return claims as InviteClaims;
   } catch {
     return null;
   }

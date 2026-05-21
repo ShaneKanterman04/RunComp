@@ -36,7 +36,14 @@ select {
   font: inherit;
 }
 
+input,
+textarea,
 button {
+  touch-action: manipulation;
+}
+
+button {
+  min-height: 44px;
   cursor: pointer;
 }
 
@@ -46,28 +53,33 @@ button:disabled {
 }
 
 .app {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 24px));
   margin: 0 auto;
-  padding: 28px 0 44px;
+  padding: clamp(14px, 4vw, 32px) 0 clamp(22px, 4vw, 48px);
 }
 
 .authApp {
   min-height: 100vh;
   display: grid;
   place-items: center;
+  padding: 16px 0;
 }
 
 .authPanel {
   width: min(100%, 480px);
-  padding: 22px;
+  padding: clamp(16px, 4vw, 24px);
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 14px;
   margin-bottom: 24px;
+}
+
+.topbar .eyebrow {
+  letter-spacing: 0.15px;
 }
 
 .brand {
@@ -138,6 +150,12 @@ h2 {
   border-radius: 999px;
   background: #fbfaf6;
   padding: 7px 9px;
+}
+
+.standItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .scoreGrid,
@@ -282,7 +300,7 @@ label {
 input,
 select {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -304,7 +322,7 @@ select:focus {
 .primaryButton,
 .ghostButton,
 .deleteButton {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 9px 12px;
@@ -333,6 +351,9 @@ select:focus {
   padding: 10px 12px;
   font-size: 14px;
   font-weight: 700;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .groupPanel {
@@ -344,6 +365,7 @@ select:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
   margin-bottom: 16px;
   border: 1px solid #ebe4d7;
   border-radius: 8px;
@@ -383,11 +405,29 @@ select:focus {
 .memberPill {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  min-width: 0;
   border: 1px solid #ebe4d7;
   border-radius: 8px;
   background: #fbfaf6;
   padding: 10px;
+}
+
+.memberIdentity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.memberIdentity > div {
+  min-width: 0;
+}
+
+.memberIdentity strong,
+.memberIdentity span:not(.runnerBadge) {
+  overflow-wrap: anywhere;
 }
 
 .memberPill span:not(.runnerBadge) {
@@ -395,6 +435,18 @@ select:focus {
   color: var(--muted);
   font-size: 13px;
   font-weight: 800;
+}
+
+.miniButton {
+  min-height: 36px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .runnerCard {
@@ -467,7 +519,7 @@ select:focus {
 
 .chart {
   display: grid;
-  grid-template-columns: repeat(14, minmax(28px, 1fr));
+  grid-template-columns: repeat(14, minmax(24px, 1fr));
   gap: 10px;
   min-height: 210px;
   align-items: end;
@@ -514,7 +566,10 @@ select:focus {
 
 .runRow {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "badge details miles"
+    "badge action action";
   align-items: center;
   gap: 12px;
   border: 1px solid #ebe4d7;
@@ -544,11 +599,26 @@ select:focus {
 }
 
 .runMiles {
+  grid-area: miles;
+  justify-self: end;
   white-space: nowrap;
 }
 
+.runRow .deleteButton {
+  grid-area: action;
+  width: 100%;
+}
+
+.runRow .runDetails {
+  grid-area: details;
+}
+
+.runRow .runBadge {
+  grid-area: badge;
+}
+
 .deleteButton {
-  min-height: 34px;
+  min-height: 44px;
   color: #9b2f36;
 }
 
@@ -564,13 +634,11 @@ select:focus {
 
 @media (max-width: 860px) {
   .topbar,
-  .headToHead,
   .showdown {
     align-items: stretch;
   }
 
   .topbar,
-  .headToHead,
   .showdown,
   .scoreGrid,
   .runnerGrid,
@@ -584,19 +652,56 @@ select:focus {
     display: grid;
   }
 
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headToHead {
+    width: 100%;
+  }
+
   .chart {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chart::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .chart::-webkit-scrollbar-thumb {
+    background: #ddd2b9;
+    border-radius: 999px;
   }
 
   .dayGroup {
-    min-width: 34px;
+    min-width: 30px;
   }
 }
 
 @media (max-width: 560px) {
   .app {
-    width: min(100% - 20px, 1180px);
-    padding-top: 16px;
+    width: min(100% - 16px, 1180px);
+    padding-top: 12px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 11vw, 42px);
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .panel,
+  .panel.showdown,
+  .panel.logPanel,
+  .panel.groupPanel,
+  .panel.runnerCard,
+  .panel.chartPanel,
+  .panel.feedPanel {
+    padding: 14px;
   }
 
   .brandMark {
@@ -604,11 +709,24 @@ select:focus {
     height: 56px;
   }
 
+  .eyebrow {
+    font-size: 11px;
+  }
+
   .runForm,
   .memberForm,
+  .groupActions,
   .inviteBox,
   .runRow {
     grid-template-columns: 1fr;
+  }
+
+  .groupActions {
+    width: 100%;
+  }
+
+  .memberForm .primaryButton {
+    min-height: 48px;
   }
 
   .inviteBox {
@@ -616,7 +734,102 @@ select:focus {
     flex-direction: column;
   }
 
+  .memberPill {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .miniButton {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .headToHead {
+    gap: 8px;
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .standItem {
+    flex: 1 1 100%;
+  }
+
+  .showdown {
+    gap: 16px;
+  }
+
+  .sectionHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .runMiles {
-    font-size: 22px;
+    font-size: 20px;
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .deleteButton {
+    min-height: 44px;
+  }
+
+  .runList {
+    gap: 8px;
+  }
+
+  .chart {
+    grid-template-columns: repeat(14, minmax(16px, 1fr));
+    padding: 12px 10px 8px;
+    gap: 8px;
+  }
+
+  .dayLabel {
+    font-size: 10px;
+  }
+
+  .bars {
+    gap: 2px;
+  }
+
+  .bar {
+    width: min(9px, 20%);
+  }
+
+  .runnerCard {
+    padding-bottom: 12px;
+  }
+
+  .runnerCard .sectionHead {
+    gap: 10px;
+  }
+
+  .statRow {
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .authPanel {
+    width: 100%;
+    margin: 0 4px;
+  }
+
+  .authForm .primaryButton {
+    min-height: 48px;
+  }
+
+  .modeTabs {
+    margin-top: 14px;
+  }
+
+  .modeTabs button {
+    min-height: 42px;
+  }
+
+  .runForm {
+    gap: 10px;
+  }
+
+  .notice {
+    font-size: 13px;
   }
 }
