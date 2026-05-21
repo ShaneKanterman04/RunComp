@@ -6,8 +6,7 @@
   --surface: #ffffff;
   --line: #ded8ca;
   --track: #cf5b46;
-  --shane: #18845d;
-  --molly: #d94f76;
+  --runner-color: #18845d;
   --sky: #d7e8ee;
   --gold: #e9b84a;
 }
@@ -50,6 +49,17 @@ button:disabled {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
   padding: 28px 0 44px;
+}
+
+.authApp {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.authPanel {
+  width: min(100%, 480px);
+  padding: 22px;
 }
 
 .topbar {
@@ -106,6 +116,7 @@ h2 {
 
 .headToHead {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   min-height: 44px;
@@ -123,6 +134,12 @@ h2 {
   color: var(--track);
 }
 
+.headToHead span {
+  border-radius: 999px;
+  background: #fbfaf6;
+  padding: 7px 9px;
+}
+
 .scoreGrid,
 .runnerGrid {
   display: grid;
@@ -132,7 +149,7 @@ h2 {
 }
 
 .runnerGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .panel {
@@ -144,6 +161,7 @@ h2 {
 
 .showdown,
 .logPanel,
+.groupPanel,
 .runnerCard,
 .chartPanel,
 .feedPanel {
@@ -197,18 +215,7 @@ h2 {
   display: block;
   height: 100%;
   border-radius: inherit;
-}
-
-.meterFill.shane,
-.bar.shane,
-.runnerBadge.shane {
-  background: var(--shane);
-}
-
-.meterFill.molly,
-.bar.molly,
-.runnerBadge.molly {
-  background: var(--molly);
+  background: var(--runner-color);
 }
 
 .sectionHead {
@@ -219,10 +226,49 @@ h2 {
   margin-bottom: 16px;
 }
 
-.runForm {
+.groupActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.runForm,
+.authForm,
+.memberForm {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.authForm {
+  grid-template-columns: 1fr;
+  margin-top: 16px;
+}
+
+.modeTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 20px;
+  border-radius: 8px;
+  background: #ece5d7;
+  padding: 4px;
+}
+
+.modeTabs button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.modeTabs .activeTab {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 8px 18px rgba(75, 52, 33, 0.08);
 }
 
 label {
@@ -247,7 +293,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: var(--shane);
+  border-color: #18845d;
   box-shadow: 0 0 0 3px rgba(24, 132, 93, 0.16);
 }
 
@@ -289,12 +335,70 @@ select:focus {
   font-weight: 700;
 }
 
-.runnerCard.shane {
-  border-top: 4px solid var(--shane);
+.groupPanel {
+  margin-bottom: 18px;
 }
 
-.runnerCard.molly {
-  border-top: 4px solid var(--molly);
+.inviteBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 10px;
+}
+
+.inviteBox div {
+  min-width: 0;
+}
+
+.inviteBox strong,
+.inviteBox span {
+  display: block;
+}
+
+.inviteBox span {
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+}
+
+.memberGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 18px;
+}
+
+.memberList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.memberPill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 10px;
+}
+
+.memberPill span:not(.runnerBadge) {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.runnerCard {
+  border-top: 4px solid var(--runner-color);
 }
 
 .runnerBadge {
@@ -303,6 +407,7 @@ select:focus {
   height: 42px;
   place-items: center;
   border-radius: 8px;
+  background: var(--runner-color);
   color: white;
   font-weight: 900;
 }
@@ -357,14 +462,7 @@ select:focus {
   width: 10px;
   height: 10px;
   border-radius: 999px;
-}
-
-.shaneDot {
-  background: var(--shane);
-}
-
-.mollyDot {
-  background: var(--molly);
+  background: var(--runner-color);
 }
 
 .chart {
@@ -396,9 +494,10 @@ select:focus {
 }
 
 .bar {
-  width: min(16px, 42%);
+  width: min(12px, 30%);
   min-height: 3px;
   border-radius: 6px 6px 0 0;
+  background: var(--runner-color);
 }
 
 .dayLabel {
@@ -474,7 +573,8 @@ select:focus {
   .headToHead,
   .showdown,
   .scoreGrid,
-  .runnerGrid {
+  .runnerGrid,
+  .memberGrid {
     grid-template-columns: 1fr;
     flex-direction: column;
   }
@@ -505,8 +605,15 @@ select:focus {
   }
 
   .runForm,
+  .memberForm,
+  .inviteBox,
   .runRow {
     grid-template-columns: 1fr;
+  }
+
+  .inviteBox {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .runMiles {
