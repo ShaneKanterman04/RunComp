@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="RunComp track mark">
+  <rect width="120" height="120" rx="14" fill="#f7f4ec"/>
+  <path d="M26 84c18 16 49 16 68 0 19-17 19-45 0-62-19-16-50-16-68 0-19 17-19 45 0 62Z" fill="#cf5b46"/>
+  <path d="M37 73c12 10 34 10 47 0 13-11 13-29 0-40-13-10-35-10-47 0-13 11-13 29 0 40Z" fill="#f7f4ec"/>
+  <path d="M46 64c8 6 22 6 30 0 8-7 8-17 0-24-8-6-22-6-30 0-8 7-8 17 0 24Z" fill="#d7e8ee"/>
+  <path d="M21 61h78" stroke="#f7f4ec" stroke-width="5" stroke-linecap="round"/>
+  <path d="M61 29v62" stroke="#f7f4ec" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="39" cy="61" r="8" fill="#18845d"/>
+  <circle cx="80" cy="61" r="8" fill="#d94f76"/>
+  <path d="M34 45 47 77M86 45 73 77" stroke="#17201b" stroke-width="3" stroke-linecap="round" opacity=".18"/>
+</svg>
