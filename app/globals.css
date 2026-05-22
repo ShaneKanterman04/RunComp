@@ -167,6 +167,7 @@ body {
 
 button,
 input,
+textarea,
 select {
   font: inherit;
 }
@@ -693,6 +694,7 @@ label {
 }
 
 input,
+textarea,
 select {
   width: 100%;
   min-height: 44px;
@@ -700,12 +702,14 @@ select {
   border-radius: 8px;
   background: var(--surface);
   color: var(--ink);
+  font-size: 16px;
   padding: 9px 10px;
   outline: none;
   transition: border-color var(--anim-fast) var(--ease-smooth), box-shadow var(--anim-fast) var(--ease-smooth), transform var(--anim-fast) var(--ease-smooth);
 }
 
 input:focus,
+textarea:focus,
 select:focus {
   border-color: #18845d;
   box-shadow: 0 0 0 3px rgba(24, 132, 93, 0.16);
