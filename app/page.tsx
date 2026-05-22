@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, FormEvent, ReactNode } from "react";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Confetti } from "./components/Confetti";
 import { ToastContainer, type ToastMessage } from "./components/Toast";
 import { AnimatedMiles } from "./components/AnimatedCounter";
@@ -84,6 +84,7 @@ const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793
 const recentGroupsKey = "runcomp:recent-groups";
 const pwaInstallSeenKey = "runcomp:pwa-install-seen";
 const appVersion = packageInfo.version;
+const runPollMs = 8000;
 const mobileTabs: Array<{ id: MobileTab; label: string }> = [
   { id: "home", label: "Home" },
   { id: "log", label: "Log" },
@@ -112,6 +113,7 @@ export default function Home() {
   const [memberCopySuccess, setMemberCopySuccess] = useState<Record<string, boolean>>({});
   const [pushStatus, setPushStatus] = useState<PushStatus>("checking");
   const [mobileTab, setMobileTab] = useState<MobileTab>("home");
+  const pollingRunsRef = useRef(false);
 
   useEffect(() => {
     bootstrap();
@@ -143,6 +145,34 @@ export default function Home() {
     return () => {
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const pollRuns = async () => {
+      if (document.visibilityState !== "visible" || pollingRunsRef.current) return;
+      pollingRunsRef.current = true;
+      try {
+        await loadRuns({ silent: true });
+      } finally {
+        pollingRunsRef.current = false;
+      }
+    };
+
+    const pollWhenVisible = () => {
+      if (document.visibilityState === "visible") void pollRuns();
+    };
+
+    const interval = window.setInterval(() => void pollRuns(), runPollMs);
+    document.addEventListener("visibilitychange", pollWhenVisible);
+    window.addEventListener("focus", pollWhenVisible);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", pollWhenVisible);
+      window.removeEventListener("focus", pollWhenVisible);
     };
   }, [session]);
 
@@ -217,18 +247,25 @@ export default function Home() {
     await loadRuns();
   }
 
-  async function loadRuns() {
-    setLoadingRuns(true);
-    setMessage("");
+  async function loadRuns(options: { silent?: boolean } = {}) {
+    const silent = options.silent === true;
+    if (!silent) {
+      setLoadingRuns(true);
+      setMessage("");
+    }
     try {
       const response = await fetch("/api/runs", { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load runs.");
-      setRuns(data.runs);
+      setRuns((current) => (sameRunList(current, data.runs) ? current : data.runs));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not load runs.");
+      if (silent) {
+        console.warn("Could not refresh runs", error);
+      } else {
+        setMessage(error instanceof Error ? error.message : "Could not load runs.");
+      }
     } finally {
-      setLoadingRuns(false);
+      if (!silent) setLoadingRuns(false);
     }
   }
 
@@ -645,7 +682,7 @@ export default function Home() {
                 <p className="eyebrow">Log miles</p>
                 <h2>{session.member.name}'s run</h2>
               </div>
-              <button className="ghostButton" type="button" onClick={loadRuns} disabled={loadingRuns}>
+              <button className="ghostButton" type="button" onClick={() => void loadRuns()} disabled={loadingRuns}>
                 Refresh
               </button>
             </div>
@@ -1645,6 +1682,33 @@ function emptyReactions(): RunReaction[] {
     count: 0,
     reactedByMe: false,
   }));
+}
+
+function sameRunList(current: RunEntry[], next: RunEntry[]) {
+  if (current.length !== next.length) return false;
+  return current.every((run, index) => sameRun(run, next[index]));
+}
+
+function sameRun(current: RunEntry, next: RunEntry) {
+  return (
+    current.id === next.id &&
+    current.memberId === next.memberId &&
+    current.runner === next.runner &&
+    current.miles === next.miles &&
+    current.durationSeconds === next.durationSeconds &&
+    current.date === next.date &&
+    current.note === next.note &&
+    current.createdAt === next.createdAt &&
+    sameReactions(current.reactions || emptyReactions(), next.reactions || emptyReactions())
+  );
+}
+
+function sameReactions(current: RunReaction[], next: RunReaction[]) {
+  if (current.length !== next.length) return false;
+  return current.every((reaction, index) => {
+    const nextReaction = next[index];
+    return reaction.type === nextReaction.type && reaction.count === nextReaction.count && reaction.reactedByMe === nextReaction.reactedByMe;
+  });
 }
 
 function BadgeStrip({ badges }: { badges: AchievementBadge[] }) {
