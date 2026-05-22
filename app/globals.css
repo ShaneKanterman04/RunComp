@@ -769,6 +769,12 @@ input:invalid:not(:placeholder-shown) {
   color: var(--ink);
 }
 
+.alertButtonOn {
+  border-color: #9dd0b8;
+  background: #e8f5ee;
+  color: #0d5c3d;
+}
+
 .notice {
   margin: 14px 0 0;
   border: 1px solid #d8c27a;
@@ -781,6 +787,112 @@ input:invalid:not(:placeholder-shown) {
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.notificationPanel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border-color: #9dd0b8;
+  background:
+    linear-gradient(135deg, rgba(232, 245, 238, 0.96), rgba(255, 255, 255, 0.92)),
+    var(--surface);
+}
+
+.notificationPanel--denied {
+  border-color: #ebb2c0;
+  background:
+    linear-gradient(135deg, rgba(255, 240, 243, 0.96), rgba(255, 255, 255, 0.92)),
+    var(--surface);
+}
+
+.notificationPanel--unsupported {
+  border-color: #d8c27a;
+  background:
+    linear-gradient(135deg, rgba(255, 247, 215, 0.96), rgba(255, 255, 255, 0.92)),
+    var(--surface);
+}
+
+.notificationIcon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--ink);
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.notificationPanel--denied .notificationIcon {
+  background: #9b2f36;
+}
+
+.notificationPanel--unsupported .notificationIcon {
+  background: #b27920;
+}
+
+.notificationCopy {
+  min-width: 0;
+}
+
+.notificationCopy h2 {
+  margin-bottom: 6px;
+}
+
+.notificationCopy .muted {
+  margin-bottom: 0;
+}
+
+.notificationActions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  min-width: 188px;
+}
+
+.notificationStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid #9dd0b8;
+  border-radius: 999px;
+  background: #f3fbf6;
+  color: #0d5c3d;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.notificationStatus--denied {
+  border-color: #ebb2c0;
+  background: #fff0f3;
+  color: #8a1e3a;
+}
+
+.notificationStatus--unsupported {
+  border-color: #d8c27a;
+  background: #fff7d7;
+  color: #6e5520;
+}
+
+.notificationButton {
+  width: 100%;
+}
+
+.notificationSteps {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .groupPanel {
@@ -1477,9 +1589,20 @@ input:invalid:not(:placeholder-shown) {
   .showdown,
   .scoreGrid,
   .runnerGrid,
+  .notificationPanel,
   .memberGrid {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .notificationIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .notificationActions {
+    justify-items: stretch;
+    min-width: 0;
   }
 
   .scoreGrid,

@@ -122,6 +122,22 @@ export default function Home() {
     refreshPushStatus();
   }, [session]);
 
+  useEffect(() => {
+    if (!session) return;
+    const refresh = () => {
+      void refreshPushStatus();
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [session]);
+
   const members = session?.members || [];
   const stats = useMemo(() => buildStats(runs, members), [runs, members]);
   const chartDays = useMemo(() => buildChartDays(runs, members), [runs, members]);
@@ -642,6 +658,10 @@ export default function Home() {
           </section>
         </section>
 
+        {pushStatus !== "subscribed" && (
+          <NotificationPrompt status={pushStatus} groupName={session.group.name} onToggle={togglePushNotifications} />
+        )}
+
         <WeeklyRecapPanel recap={weeklyRecap} />
 
         <section className="panel groupPanel">
@@ -658,7 +678,12 @@ export default function Home() {
                 </button>
               )}
               {pushStatus !== "unsupported" && (
-                <button className="ghostButton" type="button" onClick={togglePushNotifications} disabled={pushStatus === "busy" || pushStatus === "checking" || pushStatus === "denied"}>
+                <button
+                  className={`ghostButton alertButton ${pushStatus === "subscribed" ? "alertButtonOn" : ""}`}
+                  type="button"
+                  onClick={togglePushNotifications}
+                  disabled={pushStatus === "busy" || pushStatus === "checking" || pushStatus === "denied"}
+                >
                   {pushButtonLabel(pushStatus)}
                 </button>
               )}
@@ -1111,6 +1136,92 @@ function AppFooter() {
   );
 }
 
+function NotificationPrompt({ status, groupName, onToggle }: { status: PushStatus; groupName: string; onToggle: () => void }) {
+  const copy = notificationPromptCopy(status, groupName);
+  const canToggle = status === "off";
+  const isWorking = status === "busy" || status === "checking";
+
+  return (
+    <section className={`panel notificationPanel notificationPanel--${status}`}>
+      <div className="notificationIcon" aria-hidden="true">
+        {status === "denied" ? "!" : status === "unsupported" ? "i" : "On"}
+      </div>
+      <div className="notificationCopy">
+        <p className="eyebrow">{copy.eyebrow}</p>
+        <h2>{copy.title}</h2>
+        <p className="muted">{copy.body}</p>
+        {copy.steps && (
+          <ol className="notificationSteps">
+            {copy.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        )}
+      </div>
+      <div className="notificationActions">
+        <span className={`notificationStatus notificationStatus--${status}`}>{copy.status}</span>
+        <button className="primaryButton notificationButton" type="button" onClick={onToggle} disabled={!canToggle || isWorking}>
+          {copy.action}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function notificationPromptCopy(status: PushStatus, groupName: string) {
+  if (status === "checking") {
+    return {
+      eyebrow: "Run alerts",
+      title: "Checking this device",
+      body: "RunComp is checking whether this device can receive group run notifications.",
+      status: "Checking",
+      action: "Checking...",
+    };
+  }
+
+  if (status === "busy") {
+    return {
+      eyebrow: "Run alerts",
+      title: "Turning alerts on",
+      body: "Approve the browser prompt to get notified when your group logs runs.",
+      status: "Working",
+      action: "Turning on...",
+    };
+  }
+
+  if (status === "denied") {
+    return {
+      eyebrow: "Run alerts",
+      title: "Notifications are blocked",
+      body: "RunComp cannot ask again from here. Allow notifications for this site in device or browser settings, then return to this screen.",
+      status: "Blocked",
+      action: "Blocked in settings",
+    };
+  }
+
+  if (status === "unsupported") {
+    const onIosBrowser = isIosDevice() && !isStandaloneApp();
+    return {
+      eyebrow: "Run alerts",
+      title: onIosBrowser ? "Open RunComp from your Home Screen" : "Notifications are not available here",
+      body: onIosBrowser
+        ? "iPhone push alerts work from the installed Home Screen app. Add RunComp there, open that icon, then enable alerts."
+        : "This browser or device does not expose web push notifications to RunComp.",
+      status: onIosBrowser ? "Home Screen needed" : "Unavailable",
+      action: onIosBrowser ? "Needs Home Screen app" : "Unavailable",
+      steps: onIosBrowser ? ["Tap Share in Safari.", "Choose Add to Home Screen.", "Open RunComp from the new icon."] : undefined,
+    };
+  }
+
+  return {
+    eyebrow: "Run alerts",
+    title: "Turn on group notifications",
+    body: `Get a notification on this device when anyone in ${groupName} logs a run.`,
+    status: "Off",
+    action: "Turn on notifications",
+  };
+}
+
 function buildInviteUrl(groupCode: string) {
   if (typeof window === "undefined") return "";
   const url = new URL(window.location.href);
@@ -1185,7 +1296,7 @@ function pushButtonLabel(status: PushStatus) {
     case "denied":
       return "Alerts blocked";
     default:
-      return "Enable alerts";
+      return "Turn on alerts";
   }
 }
 
