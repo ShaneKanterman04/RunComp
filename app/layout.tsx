@@ -11,9 +11,12 @@ export const metadata: Metadata = {
     title: "RunComp",
   },
   icons: {
-    icon: "/track-mark.svg",
-    shortcut: "/track-mark.svg",
-    apple: "/track-mark.svg",
+    icon: [
+      { url: "/runcomp-icon.png", sizes: "1254x1254", type: "image/png" },
+      { url: "/track-mark.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/runcomp-icon.png",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "1254x1254", type: "image/png" }],
   },
 };
 

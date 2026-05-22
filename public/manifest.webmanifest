@@ -9,6 +9,12 @@
   "theme_color": "#f7f4ec",
   "icons": [
     {
+      "src": "/runcomp-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/track-mark.svg",
       "sizes": "120x120",
       "type": "image/svg+xml",
