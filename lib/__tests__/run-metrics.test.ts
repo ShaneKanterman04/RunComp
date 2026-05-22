@@ -52,6 +52,26 @@ describe("run metrics", () => {
     expect(stats.molly.total).toBe(4);
   });
 
+  it("returns stable empty stats, recaps, comeback targets, and feed events for a new group", () => {
+    const stats = buildStats([], members, now);
+    const recap = buildWeeklyRecap([], members, now);
+    const targets = buildComebackTargets([], members);
+
+    expect(stats.shane).toMatchObject({ total: 0, week: 0, month: 0, runCount: 0, average: 0, averagePace: null, bestPace: null, streak: 0 });
+    expect(recap).toMatchObject({
+      weekLabel: "5/18-5/24",
+      totalMiles: 0,
+      runCount: 0,
+      activeRunnerCount: 0,
+      headline: "The starting line is quiet this week.",
+    });
+    expect(targets).toEqual([
+      { memberId: "shane", name: "Shane", total: 0, rank: 1, leaderGap: 0, isLeader: true },
+      { memberId: "molly", name: "Molly", total: 0, rank: 2, targetName: "Shane", milesToPass: 0.01, leaderGap: 0, isLeader: false },
+    ]);
+    expect(buildFeedEvents([], members)).toEqual([]);
+  });
+
   it("counts a streak through today or yesterday only", () => {
     expect(
       currentStreak(
@@ -209,6 +229,24 @@ describe("run metrics", () => {
     expect(recap.bestStreak).toEqual({ name: "Shane", days: 1 });
   });
 
+  it("keeps weekly recap inside Monday-Sunday boundaries", () => {
+    const recap = buildWeeklyRecap(
+      [
+        { id: "before", memberId: "shane", miles: 99, date: "2026-05-17", createdAt: "2026-05-17T12:00:00Z" },
+        { id: "start", memberId: "shane", miles: 3, date: "2026-05-18", createdAt: "2026-05-18T12:00:00Z" },
+        { id: "end", memberId: "molly", miles: 4, date: "2026-05-24", createdAt: "2026-05-24T12:00:00Z" },
+        { id: "after", memberId: "molly", miles: 99, date: "2026-05-25", createdAt: "2026-05-25T12:00:00Z" },
+      ],
+      members,
+      now,
+    );
+
+    expect(recap.weekLabel).toBe("5/18-5/24");
+    expect(recap.totalMiles).toBe(7);
+    expect(recap.runCount).toBe(2);
+    expect(recap.biggestRun).toEqual({ runner: "Molly", miles: 4, note: "" });
+  });
+
   it("builds comeback targets", () => {
     const targets = buildComebackTargets(
       [
@@ -220,6 +258,19 @@ describe("run metrics", () => {
 
     expect(targets[0]).toMatchObject({ memberId: "shane", rank: 1, isLeader: true, leaderGap: 0 });
     expect(targets[1]).toMatchObject({ memberId: "molly", rank: 2, targetName: "Shane", milesToPass: 2.51, leaderGap: 2.5 });
+  });
+
+  it("orders comeback targets deterministically when totals are tied", () => {
+    const targets = buildComebackTargets(
+      [
+        { id: "1", memberId: "molly", miles: 5, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+        { id: "2", memberId: "shane", miles: 5, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+      ],
+      members,
+    );
+
+    expect(targets.map((target) => target.memberId)).toEqual(["shane", "molly"]);
+    expect(targets[1]).toMatchObject({ targetName: "Shane", milesToPass: 0.01, leaderGap: 0 });
   });
 
   it("builds feed events for milestones, lead changes, and achievements", () => {
@@ -237,6 +288,20 @@ describe("run metrics", () => {
     expect(events.some((event) => event.type === "lead-change" && event.title === "Molly took the lead")).toBe(true);
     expect(events.some((event) => event.type === "achievement" && event.title === "Molly unlocked First 5K")).toBe(true);
     expect(events.some((event) => event.type === "achievement" && event.title === "Family goal week unlocked")).toBe(true);
+  });
+
+  it("emits family-week achievement only once per week", () => {
+    const events = buildFeedEvents(
+      [
+        { id: "1", memberId: "shane", miles: 2, date: "2026-05-19", createdAt: "2026-05-19T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 2, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: 2, date: "2026-05-21", createdAt: "2026-05-21T12:00:00Z" },
+        { id: "4", memberId: "molly", miles: 2, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+      ],
+      members,
+    );
+
+    expect(events.filter((event) => event.title === "Family goal week unlocked")).toHaveLength(1);
   });
 
   it("builds streak strips and heatmaps", () => {

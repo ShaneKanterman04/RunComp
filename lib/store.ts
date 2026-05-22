@@ -385,7 +385,7 @@ function cleanPushKey(value: string) {
 }
 
 function cleanGoalMiles(value: number | undefined) {
-  const goal = Number(value || 100);
+  const goal = Number(value ?? 100);
   if (!Number.isFinite(goal) || goal < 1 || goal > 10000) {
     throw new StoreError("Goal miles must be between 1 and 10000.", 400);
   }

@@ -62,6 +62,31 @@ describe("file-backed store", () => {
     expect(second.group.code).not.toBe(first.group.code);
   });
 
+  it("validates names, passwords, and goal limits before writing", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    await expect(store.createGroup({ groupName: " ", ownerName: "Shane", password: "password123" })).rejects.toMatchObject({ status: 400 });
+    await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "short" })).rejects.toMatchObject({ status: 400 });
+    await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123", goalMiles: 0 })).rejects.toMatchObject({ status: 400 });
+    await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123", goalMiles: 10001 })).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("rejects password-only login when multiple runners share a password", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "sharedpass" });
+    await store.addMember(group.id, { name: "Molly", password: "sharedpass" });
+
+    await expect(store.login({ groupCode: group.code, memberName: "", password: "sharedpass" })).rejects.toMatchObject({ status: 401 });
+    await expect(store.login({ groupCode: group.code, memberName: "Molly", password: "sharedpass" })).resolves.toMatchObject({
+      member: { name: "Molly" },
+    });
+  });
+
   it("updates a group's race goal", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
@@ -122,5 +147,43 @@ describe("file-backed store", () => {
 
     reacted = await store.toggleRunReaction(group.id, molly.id, run.id, "nice");
     expect(reacted.reactions.find((reaction) => reaction.type === "nice")).toMatchObject({ count: 0, reactedByMe: false });
+  });
+
+  it("rejects unsupported reactions and missing runs", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+
+    await expect(store.toggleRunReaction(group.id, member.id, "missing", "fire")).rejects.toMatchObject({ status: 404 });
+    await expect(store.toggleRunReaction(group.id, member.id, "missing", "sparkle" as never)).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("upserts, lists, removes, and validates push subscriptions", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    const endpoint = "https://push.example.test/subscription/1";
+
+    await expect(
+      store.savePushSubscription(group.id, member.id, { endpoint: "http://bad.example.test", keys: { p256dh: "key", auth: "auth" } }),
+    ).rejects.toMatchObject({ status: 400 });
+    await store.savePushSubscription(group.id, member.id, { endpoint, keys: { p256dh: "key-one", auth: "auth-one" } });
+    await store.savePushSubscription(group.id, member.id, { endpoint, keys: { p256dh: "key-two", auth: "auth-two" } });
+
+    expect(await store.listPushSubscriptions(group.id)).toMatchObject([{ endpoint, keys: { p256dh: "key-two", auth: "auth-two" } }]);
+    await expect(store.removePushSubscription(group.id, endpoint)).resolves.toEqual({ removed: 1 });
+    await expect(store.listPushSubscriptions(group.id)).resolves.toHaveLength(0);
   });
 });
