@@ -37,4 +37,6 @@ Set `DATA_DIR` to a mounted persistent path if you want groups, passwords, sessi
 
 Set `RUNCOMP_SECRET` to a long random value if you want login sessions to survive container replacement. If you serve the app only over HTTPS, set `RUNCOMP_SECURE_COOKIES=true`; leave it false for plain LAN HTTP.
 
+Push alerts use generated VAPID keys stored in `DATA_DIR` by default. For production, you can set `VAPID_SUBJECT` to a contact URI like `mailto:you@example.com` or `https://your-runcomp-host.example.com`; iOS rejects local-only subjects.
+
 Invite links are built from the current browser URL with `?group=<group-code>`, so they work from LAN addresses, Hostlet routes, and tunnel domains without hard-coded host settings.

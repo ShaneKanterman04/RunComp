@@ -11,6 +11,7 @@ type VapidKeys = {
 
 const dataDir = process.env.DATA_DIR || path.join(process.cwd(), ".data");
 const vapidFile = path.join(dataDir, "vapid.json");
+const fallbackVapidSubject = "mailto:runcomp@shanekanterman.dev";
 let cachedKeys: VapidKeys | null = null;
 
 export async function getVapidPublicKey() {
@@ -53,7 +54,24 @@ export async function notifyRunLogged(groupId: string, run: PublicRunEntry) {
 
 async function configureWebPush() {
   const keys = await getVapidKeys();
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:runcomp@localhost", keys.publicKey, keys.privateKey);
+  webpush.setVapidDetails(getVapidSubject(), keys.publicKey, keys.privateKey);
+}
+
+export function getVapidSubject() {
+  const configuredSubject = process.env.VAPID_SUBJECT?.trim();
+  if (configuredSubject) return normalizeVapidSubject(configuredSubject);
+
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.PUBLIC_APP_URL?.trim();
+  if (configuredUrl) return normalizeVapidSubject(configuredUrl);
+
+  return fallbackVapidSubject;
+}
+
+function normalizeVapidSubject(subject: string) {
+  if (subject.startsWith("mailto:") || subject.startsWith("https://")) return subject;
+  if (subject.startsWith("http://")) return subject.replace(/^http:\/\//, "https://");
+  if (subject.includes(".")) return `https://${subject}`;
+  return fallbackVapidSubject;
 }
 
 async function getVapidKeys(): Promise<VapidKeys> {
