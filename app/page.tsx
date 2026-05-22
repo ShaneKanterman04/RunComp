@@ -85,7 +85,14 @@ const recentGroupsKey = "runcomp:recent-groups";
 const pwaInstallSeenKey = "runcomp:pwa-install-seen";
 const appVersion = packageInfo.version;
 const runPollMs = 8000;
-const quickMileOptions = ["1", "2", "3.1", "4", "5", "6.2"];
+const quickMileOptions = [
+  { label: "1 mi", value: "1" },
+  { label: "2 mi", value: "2" },
+  { label: "5K", value: "3.1" },
+  { label: "4 mi", value: "4" },
+  { label: "5 mi", value: "5" },
+  { label: "10K", value: "6.2" },
+];
 const runNoteOptions = ["easy", "tempo", "trail", "treadmill", "long run", "walk break"];
 const mobileTabs: Array<{ id: MobileTab; label: string }> = [
   { id: "home", label: "Home" },
@@ -771,9 +778,9 @@ export default function Home() {
                 />
               </label>
               <div className="quickChips wideField" aria-label="Quick mile choices">
-                {quickMileOptions.map((miles) => (
-                  <button className={form.miles === miles ? "selectedChip" : ""} type="button" key={miles} onClick={() => applyQuickMiles(miles)}>
-                    {miles}
+                {quickMileOptions.map((option) => (
+                  <button className={form.miles === option.value ? "selectedChip" : ""} type="button" key={option.value} onClick={() => applyQuickMiles(option.value)}>
+                    {option.label}
                   </button>
                 ))}
                 {latestOwnRun && (
