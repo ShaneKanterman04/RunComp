@@ -78,11 +78,18 @@ type RunReaction = {
 
 type AuthPayload = SessionData | { authenticated: false; error?: string };
 type PushStatus = "checking" | "unsupported" | "off" | "subscribed" | "denied" | "busy";
+type MobileTab = "home" | "log" | "feed" | "group";
 
 const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793", "#a94632", "#587443"];
 const recentGroupsKey = "runcomp:recent-groups";
 const pwaInstallSeenKey = "runcomp:pwa-install-seen";
 const appVersion = packageInfo.version;
+const mobileTabs: Array<{ id: MobileTab; label: string }> = [
+  { id: "home", label: "Home" },
+  { id: "log", label: "Log" },
+  { id: "feed", label: "Feed" },
+  { id: "group", label: "Group" },
+];
 
 export default function Home() {
   const [session, setSession] = useState<SessionData | null>(null);
@@ -104,6 +111,7 @@ export default function Home() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [memberCopySuccess, setMemberCopySuccess] = useState<Record<string, boolean>>({});
   const [pushStatus, setPushStatus] = useState<PushStatus>("checking");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("home");
 
   useEffect(() => {
     bootstrap();
@@ -176,6 +184,13 @@ export default function Home() {
       ? "No miles logged yet. Share login links or add the first run yourself."
       : "No miles logged yet. Add another runner or log your first run."
     : "No miles logged yet. Log your first run and your group will see it here.";
+
+  function switchMobileTab(tab: MobileTab) {
+    setMobileTab(tab);
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate?.(8);
+    }
+  }
 
   async function bootstrap() {
     setCheckingSession(true);
@@ -551,7 +566,23 @@ export default function Home() {
         </header>
 
         <section className="scoreGrid">
-          <section className="panel showdown">
+          <div className={`mobilePane mobilePane--home ${mobileTab === "home" ? "isActive" : ""}`}>
+            <section className="panel mobileHeroPanel">
+              <div>
+                <p className="eyebrow">This week</p>
+                <h2>{weekLeader ? `${weekLeader.name} has ${formatMiles(stats[weekLeader.id]?.week || 0)}` : "Fresh week"}</h2>
+                <p className="muted">
+                  {hasRuns
+                    ? `${runs.length} run${runs.length === 1 ? "" : "s"} logged in ${session.group.name}.`
+                    : "Log the first run and the family feed starts here."}
+                </p>
+              </div>
+              <button className="primaryButton mobileHeroAction" type="button" onClick={() => switchMobileTab("log")}>
+                Log a run
+              </button>
+            </section>
+
+            <section className="panel showdown">
             <div>
               <p className="eyebrow">Current race</p>
               <h2>{leader && second ? `${leader.name} leads by ${formatMiles(gap)}` : "Group is ready"}</h2>
@@ -577,9 +608,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </section>
+            </section>
 
-          <section className="panel weeklyPanel">
+            <section className="panel weeklyPanel">
             <div>
               <p className="eyebrow">Weekly battle</p>
               <h2>{weekLeader && weekSecond ? `${weekLeader.name} up ${formatMiles(weekGap)}` : "Fresh week"}</h2>
@@ -605,9 +636,11 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </section>
+            </section>
+          </div>
 
-          <section className="panel logPanel">
+          <div className={`mobilePane mobilePane--log ${mobileTab === "log" ? "isActive" : ""}`}>
+            <section className="panel logPanel">
             <div className="sectionHead">
               <div>
                 <p className="eyebrow">Log miles</p>
@@ -655,16 +688,20 @@ export default function Home() {
               </button>
             </form>
             {message && <p className="notice">{message}</p>}
-          </section>
+            </section>
+          </div>
         </section>
 
-        {pushStatus !== "subscribed" && (
-          <NotificationPrompt status={pushStatus} groupName={session.group.name} onToggle={togglePushNotifications} />
-        )}
+        <div className={`mobilePane mobilePane--home ${mobileTab === "home" ? "isActive" : ""}`}>
+          {pushStatus !== "subscribed" && (
+            <NotificationPrompt status={pushStatus} groupName={session.group.name} onToggle={togglePushNotifications} />
+          )}
 
-        <WeeklyRecapPanel recap={weeklyRecap} />
+          <WeeklyRecapPanel recap={weeklyRecap} />
+        </div>
 
-        <section className="panel groupPanel">
+        <div className={`mobilePane mobilePane--group ${mobileTab === "group" ? "isActive" : ""}`}>
+          <section className="panel groupPanel">
           <div className="sectionHead">
             <div>
               <p className="eyebrow">Run group</p>
@@ -779,9 +816,11 @@ export default function Home() {
               </div>
             )}
           </div>
-        </section>
+          </section>
+        </div>
 
-        <section className="runnerGrid">
+        <div className={`mobilePane mobilePane--group ${mobileTab === "group" ? "isActive" : ""}`}>
+          <section className="runnerGrid">
           {members.map((member) => (
             <RunnerCard
               key={member.id}
@@ -793,9 +832,11 @@ export default function Home() {
               isCurrentUser={member.id === session.member.id}
             />
           ))}
-        </section>
+          </section>
+        </div>
 
-        <section className="panel chartPanel">
+        <div className={`mobilePane mobilePane--feed ${mobileTab === "feed" ? "isActive" : ""}`}>
+          <section className="panel chartPanel">
           <div className="sectionHead">
             <div>
               <p className="eyebrow">Last 14 days</p>
@@ -824,9 +865,9 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </section>
+          </section>
 
-        <section className="panel feedPanel">
+          <section className="panel feedPanel">
           <div className="sectionHead">
             <div>
               <p className="eyebrow">Recent activity</p>
@@ -870,7 +911,9 @@ export default function Home() {
               })}
             </div>
           )}
-        </section>
+          </section>
+        </div>
+        <MobileTabBar activeTab={mobileTab} onChange={switchMobileTab} />
         <AppFooter />
       </main>
     </>
@@ -1133,6 +1176,51 @@ function AppFooter() {
     <footer className="appFooter">
       <span>RunComp v{appVersion}</span>
     </footer>
+  );
+}
+
+function MobileTabBar({ activeTab, onChange }: { activeTab: MobileTab; onChange: (tab: MobileTab) => void }) {
+  return (
+    <nav className="mobileTabBar" aria-label="RunComp sections">
+      {mobileTabs.map((tab) => (
+        <button className={activeTab === tab.id ? "activeMobileTab" : ""} type="button" key={tab.id} onClick={() => onChange(tab.id)}>
+          <MobileTabIcon tab={tab.id} />
+          <span>{tab.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+function MobileTabIcon({ tab }: { tab: MobileTab }) {
+  if (tab === "log") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    );
+  }
+
+  if (tab === "feed") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 7h12M6 12h12M6 17h7" />
+      </svg>
+    );
+  }
+
+  if (tab === "group") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM4 19c.5-3 2-5 4-5s3.5 2 4 5M12 19c.5-3 2-5 4-5s3.5 2 4 5" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 12 12 5l8 7M6 11v8h12v-8" />
+    </svg>
   );
 }
 
