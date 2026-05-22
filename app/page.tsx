@@ -247,6 +247,7 @@ export default function Home() {
   const myComeback = session ? comebackTargets.find((target) => target.memberId === session.member.id) : undefined;
   const latestOwnRun = session ? runs.find((run) => run.memberId === session.member.id) : null;
   const rivalry = weekLeader && weekSecond ? { leader: weekLeader, chaser: weekSecond, gap: weekGap } : null;
+  const groupNeedsFirstRun = !hasRuns;
   const previewDurationSeconds = parseDurationInput(form.duration);
   const previewMiles = Number(form.miles);
   const previewPace = Number.isFinite(previewMiles) && previewMiles > 0 && previewDurationSeconds ? formatPace(previewDurationSeconds / previewMiles) : "";
@@ -727,18 +728,29 @@ export default function Home() {
               </div>
             </section>
 
-            <section className="panel homeRecentPanel">
-              <div>
-                <p className="eyebrow">Latest run</p>
-                <h2>{latestRun ? `${latestRun.runner} · ${formatMiles(latestRun.miles)}` : "No runs yet"}</h2>
-                <p className="muted">
-                  {latestRun
-                    ? `${formatDate(latestRun.date)}${latestRun.durationSeconds ? ` · ${formatPace(latestRun.durationSeconds / latestRun.miles)}` : ""}`
-                    : "Be the first one on the board."}
-                </p>
-              </div>
-              {latestRun?.note && <p className="homeRunNote">{latestRun.note}</p>}
-            </section>
+            {groupNeedsFirstRun ? (
+              <FirstRunEmptyState
+                groupName={session.group.name}
+                memberName={session.member.name}
+                memberCount={members.length}
+                isOwner={isOwner}
+                onLog={() => switchMobileTab("log")}
+                onGroup={() => switchMobileTab("group")}
+              />
+            ) : (
+              <section className="panel homeRecentPanel">
+                <div>
+                  <p className="eyebrow">Latest run</p>
+                  <h2>{latestRun ? `${latestRun.runner} · ${formatMiles(latestRun.miles)}` : "No runs yet"}</h2>
+                  <p className="muted">
+                    {latestRun
+                      ? `${formatDate(latestRun.date)}${latestRun.durationSeconds ? ` · ${formatPace(latestRun.durationSeconds / latestRun.miles)}` : ""}`
+                      : "Be the first one on the board."}
+                  </p>
+                </div>
+                {latestRun?.note && <p className="homeRunNote">{latestRun.note}</p>}
+              </section>
+            )}
 
             {lastUpdatedAt && (
               <p className="syncStatus" aria-live="polite">
@@ -746,7 +758,7 @@ export default function Home() {
               </p>
             )}
 
-            {myComeback && (
+            {!groupNeedsFirstRun && myComeback && (
               <section className="panel comebackPanel">
                 <p className="eyebrow">Comeback meter</p>
                 <h2>{comebackTitle(myComeback)}</h2>
@@ -754,7 +766,7 @@ export default function Home() {
               </section>
             )}
 
-            <section className="panel freezePanel">
+            {!groupNeedsFirstRun && <section className="panel freezePanel">
               <p className="eyebrow">Streak freeze</p>
               <h2>{streakFreezeUsed ? "Freeze used this month" : "Monthly freeze ready"}</h2>
               <p className="muted">
@@ -765,7 +777,7 @@ export default function Home() {
               <button className="ghostButton" type="button" onClick={useStreakFreeze} disabled={streakFreezeUsed}>
                 {streakFreezeUsed ? "Already used" : "Use freeze"}
               </button>
-            </section>
+            </section>}
 
             <section className="panel showdown">
             <div>
@@ -795,7 +807,7 @@ export default function Home() {
             </div>
             </section>
 
-            <section className="panel weeklyPanel">
+            {!groupNeedsFirstRun && <section className="panel weeklyPanel">
             <div>
               <p className="eyebrow">Weekly battle</p>
               <h2>{weekLeader && weekSecond ? `${weekLeader.name} up ${formatMiles(weekGap)}` : "Fresh week"}</h2>
@@ -821,9 +833,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            </section>
+            </section>}
 
-            {rivalry && (
+            {!groupNeedsFirstRun && rivalry && (
               <section className="panel rivalryPanel">
                 <p className="eyebrow">Rivalry of the week</p>
                 <h2>{rivalry.leader.name} vs {rivalry.chaser.name}</h2>
@@ -1151,7 +1163,13 @@ export default function Home() {
           {loadingRuns ? (
             <p className="empty">Loading runs...</p>
           ) : runs.length === 0 ? (
-            <p className="empty">{feedEmptyCopy}</p>
+            <div className="feedEmptyState">
+              <strong>Nothing in the family feed yet</strong>
+              <p>{feedEmptyCopy}</p>
+              <button className="primaryButton" type="button" onClick={() => switchMobileTab("log")}>
+                Log first run
+              </button>
+            </div>
           ) : (
             <div className="feedStack">
               {feedEvents.length > 0 && <FeedEventList events={feedEvents} />}
@@ -1506,6 +1524,50 @@ function HomeStat({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+function FirstRunEmptyState({
+  groupName,
+  memberName,
+  memberCount,
+  isOwner,
+  onLog,
+  onGroup,
+}: {
+  groupName: string;
+  memberName: string;
+  memberCount: number;
+  isOwner: boolean;
+  onLog: () => void;
+  onGroup: () => void;
+}) {
+  return (
+    <section className="panel firstRunPanel">
+      <div className="firstRunBadge" aria-hidden="true">0.0</div>
+      <div className="firstRunCopy">
+        <p className="eyebrow">New group</p>
+        <h2>{groupName} is at the starting line</h2>
+        <p className="muted">
+          {memberName}, log the first run to unlock the feed, weekly recap, runner cards, reactions, and race standings.
+        </p>
+      </div>
+      <div className="firstRunSteps" aria-label="Start checklist">
+        <span className="isReady">Group created</span>
+        <span className={memberCount > 1 ? "isReady" : ""}>{memberCount > 1 ? `${memberCount} runners added` : "Add family runners"}</span>
+        <span>First run waiting</span>
+      </div>
+      <div className="firstRunActions">
+        <button className="primaryButton" type="button" onClick={onLog}>
+          Log first run
+        </button>
+        {isOwner && (
+          <button className="ghostButton" type="button" onClick={onGroup}>
+            Invite runners
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -2049,7 +2111,10 @@ function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
           {recap.bestStreak && <RecapCard label="Best streak" value={`${recap.bestStreak.name} · ${recap.bestStreak.days}`} detail="Current streak leader" />}
         </div>
       ) : (
-        <p className="empty">Log the first run this week and the recap will fill itself in.</p>
+        <div className="recapEmpty">
+          <strong>Weekly recap unlocks after the first run</strong>
+          <p>Once somebody logs miles, this turns into the family highlight reel for {recap.weekLabel}.</p>
+        </div>
       )}
     </section>
   );
