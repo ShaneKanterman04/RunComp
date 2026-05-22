@@ -152,11 +152,14 @@
 
 html {
   background: var(--paper);
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   background:
     linear-gradient(180deg, rgba(215, 232, 238, 0.68), transparent 340px),
     var(--paper);
@@ -199,6 +202,7 @@ button:not(:disabled):hover {
 
 .app {
   width: min(1180px, calc(100% - 24px));
+  min-width: 0;
   margin: 0 auto;
   padding: clamp(14px, 4vw, 32px) 0 clamp(22px, 4vw, 48px);
 }
@@ -484,6 +488,7 @@ h2 {
 }
 
 .panel {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.86);
@@ -1257,7 +1262,9 @@ input:invalid:not(:placeholder-shown) {
 
 .chartPanel,
 .feedPanel {
+  min-width: 0;
   margin-bottom: 18px;
+  overflow: hidden;
 }
 
 .legend {
@@ -1315,14 +1322,22 @@ input:invalid:not(:placeholder-shown) {
   display: grid;
   grid-template-columns: repeat(14, minmax(34px, 1fr));
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 250px;
   align-items: end;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid #ebe4d7;
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(23, 32, 27, 0.06) 1px, transparent 1px) 0 0 / 100% 25%,
     linear-gradient(180deg, #fffdf8, #fbfaf6);
   padding: 16px 12px 10px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
 }
 
 .activityDay {
@@ -1827,11 +1842,6 @@ input:invalid:not(:placeholder-shown) {
     stroke-width: 2.2;
   }
 
-  .activityChart {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
   .activityChart::-webkit-scrollbar {
     height: 6px;
   }
@@ -1961,22 +1971,8 @@ input:invalid:not(:placeholder-shown) {
     gap: 8px;
   }
 
-  .chart {
-    grid-template-columns: repeat(14, minmax(16px, 1fr));
-    padding: 12px 10px 8px;
-    gap: 8px;
-  }
-
   .dayLabel {
     font-size: 10px;
-  }
-
-  .bars {
-    gap: 2px;
-  }
-
-  .bar {
-    width: min(9px, 20%);
   }
 
   .runnerCard {
