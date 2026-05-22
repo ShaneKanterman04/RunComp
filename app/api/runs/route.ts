@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
-import { addRun, deleteRun, listRuns, storeErrorResponse } from "@/lib/store";
+import { addRun, deleteRun, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const session = await requireSession();
-    const runs = await listRuns(session.group.id);
+    const runs = await listRuns(session.group.id, session.member.id);
     return NextResponse.json({ runs });
   } catch (error) {
     return errorResponse(error);
@@ -21,6 +21,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const payload = body as Record<string, unknown>;
     const miles = typeof payload.miles === "number" ? payload.miles : Number(payload.miles);
+    const durationSeconds =
+      typeof payload.durationSeconds === "number"
+        ? payload.durationSeconds
+        : typeof payload.durationSeconds === "string" && payload.durationSeconds.trim()
+          ? Number(payload.durationSeconds)
+          : undefined;
     const date = typeof payload.date === "string" ? payload.date : "";
     const note = typeof payload.note === "string" ? payload.note : "";
 
@@ -30,13 +36,36 @@ export async function POST(request: Request) {
     if (!isValidDate(date)) {
       return NextResponse.json({ error: "Date must be a valid YYYY-MM-DD value." }, { status: 400 });
     }
+    if (durationSeconds !== undefined && (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 172800)) {
+      return NextResponse.json({ error: "Run time must be between 1 second and 48 hours." }, { status: 400 });
+    }
 
-    const run = await addRun(session.group.id, session.member.id, { miles, date, note });
+    const run = await addRun(session.group.id, session.member.id, { miles, date, note, durationSeconds });
     return NextResponse.json({ run }, { status: 201 });
   } catch (error) {
     if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     return errorResponse(error);
   }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const session = await requireSession();
+    const body = (await request.json()) as Record<string, unknown>;
+    const id = typeof body.id === "string" ? body.id : "";
+    const reaction = typeof body.reaction === "string" ? body.reaction : "";
+    if (!id) return NextResponse.json({ error: "Missing run id." }, { status: 400 });
+    if (!isReactionType(reaction)) return NextResponse.json({ error: "Reaction is not supported." }, { status: 400 });
+    const run = await toggleRunReaction(session.group.id, session.member.id, id, reaction);
+    return NextResponse.json({ run });
+  } catch (error) {
+    if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
+    return errorResponse(error);
+  }
+}
+
+function isReactionType(value: string): value is ReactionType {
+  return value === "fire" || value === "nice" || value === "brutal" || value === "sus";
 }
 
 export async function DELETE(request: Request) {

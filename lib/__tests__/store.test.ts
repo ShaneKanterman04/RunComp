@@ -1,0 +1,126 @@
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+type StoreModule = typeof import("../store");
+
+async function loadStore() {
+  const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "runcomp-store-"));
+  jest.resetModules();
+  process.env.DATA_DIR = dataDir;
+  const store = await import("../store");
+  return { store, dataDir };
+}
+
+describe("file-backed store", () => {
+  let dataDir: string | null = null;
+
+  afterEach(async () => {
+    if (dataDir) await fs.rm(dataDir, { recursive: true, force: true });
+    delete process.env.DATA_DIR;
+    jest.resetModules();
+    dataDir = null;
+  });
+
+  it("creates a group, hashes credentials, and logs in by trail code", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member } = await store.createGroup({
+      groupName: "Shane vs Molly",
+      ownerName: "Shane",
+      password: "password123",
+      goalMiles: 150,
+    });
+    const login = await store.login({ groupCode: group.code, memberName: " shane ", password: "password123" });
+    const passwordOnlyLogin = await store.login({ groupCode: group.code, memberName: "", password: "password123" });
+    const raw = JSON.parse(await fs.readFile(path.join(dataDir, "runcomp.json"), "utf8"));
+
+    expect(group.code).toMatch(/^\d{3}$/);
+    expect(group.goalMiles).toBe(150);
+    expect(login.member.id).toBe(member.id);
+    expect(passwordOnlyLogin.member.id).toBe(member.id);
+    expect(raw.groups[0].members[0].passwordHash).not.toBe("password123");
+    expect(raw.groups[0].members[0]).not.toHaveProperty("password");
+  });
+
+  it("keeps group codes unique and rejects duplicate member names", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const first = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const second = await store.createGroup({ groupName: "Run Group", ownerName: "Molly", password: "password456" });
+    await store.addMember(first.group.id, { name: "Mom", password: "password789" });
+
+    await expect(store.addMember(first.group.id, { name: " mom ", password: "password000" })).rejects.toMatchObject({
+      status: 409,
+    });
+    expect(first.group.code).toMatch(/^\d{3}$/);
+    expect(second.group.code).toMatch(/^\d{3}$/);
+    expect(second.group.code).not.toBe(first.group.code);
+  });
+
+  it("updates a group's race goal", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const updated = await store.updateGroupGoal(group.id, 250);
+    const context = await store.getGroupContext(group.id, group.id);
+
+    expect(updated.goalMiles).toBe(250);
+    expect((await store.login({ groupCode: group.code, memberName: "Shane", password: "password123" })).group.goalMiles).toBe(250);
+    expect(context).toBeNull();
+  });
+
+  it("sorts runs and enforces runner delete ownership", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const ownerRun = await store.addRun(group.id, owner.id, { miles: 3.257, durationSeconds: 1561.4, date: "2026-05-21", note: " tempo " });
+    const mollyRun = await store.addRun(group.id, molly.id, { miles: 4, date: "2026-05-22", note: "trail" });
+    const runs = await store.listRuns(group.id, owner.id);
+
+    expect(ownerRun.miles).toBe(3.26);
+    expect(ownerRun.durationSeconds).toBe(1561);
+    expect(ownerRun.note).toBe("tempo");
+    expect(ownerRun.reactions).toHaveLength(4);
+    expect(runs.map((run) => run.id)).toEqual([mollyRun.id, ownerRun.id]);
+    await expect(store.deleteRun(group.id, molly.id, "member", ownerRun.id)).rejects.toMatchObject({ status: 403 });
+    await expect(store.deleteRun(group.id, owner.id, "owner", mollyRun.id)).resolves.toBe(true);
+  });
+
+  it("toggles one reaction per member per run", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const run = await store.addRun(group.id, owner.id, { miles: 3, date: "2026-05-22" });
+
+    let reacted = await store.toggleRunReaction(group.id, molly.id, run.id, "fire");
+    expect(reacted.reactions.find((reaction) => reaction.type === "fire")).toMatchObject({ count: 1, reactedByMe: true });
+
+    reacted = await store.toggleRunReaction(group.id, molly.id, run.id, "nice");
+    expect(reacted.reactions.find((reaction) => reaction.type === "fire")).toMatchObject({ count: 0, reactedByMe: false });
+    expect(reacted.reactions.find((reaction) => reaction.type === "nice")).toMatchObject({ count: 1, reactedByMe: true });
+
+    reacted = await store.toggleRunReaction(group.id, molly.id, run.id, "nice");
+    expect(reacted.reactions.find((reaction) => reaction.type === "nice")).toMatchObject({ count: 0, reactedByMe: false });
+  });
+});

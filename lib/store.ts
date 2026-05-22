@@ -28,19 +28,31 @@ export type RunEntry = {
   id: string;
   memberId: string;
   miles: number;
+  durationSeconds?: number;
   date: string;
   note: string;
+  reactions?: Record<string, ReactionType>;
   createdAt: string;
 };
 
-export type PublicRunEntry = RunEntry & {
+export type PublicRunEntry = Omit<RunEntry, "reactions"> & {
   runner: string;
+  reactions: PublicReaction[];
+};
+
+export type ReactionType = "fire" | "nice" | "brutal" | "sus";
+
+export type PublicReaction = {
+  type: ReactionType;
+  count: number;
+  reactedByMe: boolean;
 };
 
 export type Group = {
   id: string;
   name: string;
   code: string;
+  goalMiles?: number;
   createdAt: string;
   members: Member[];
   runs: RunEntry[];
@@ -50,6 +62,7 @@ export type PublicGroup = {
   id: string;
   name: string;
   code: string;
+  goalMiles: number;
   createdAt: string;
 };
 
@@ -62,19 +75,21 @@ const dataDir = process.env.DATA_DIR || path.join(process.cwd(), ".data");
 const dataFile = path.join(dataDir, "runcomp.json");
 let storeQueue = Promise.resolve();
 
-export async function createGroup(input: { groupName: string; ownerName: string; password: string }) {
+export async function createGroup(input: { groupName: string; ownerName: string; password: string; goalMiles?: number }) {
   const groupName = cleanName(input.groupName, 64);
   const ownerName = cleanName(input.ownerName, 48);
   validatePassword(input.password);
+  const goalMiles = cleanGoalMiles(input.goalMiles);
 
   return withStoreLock(async () => {
     const store = await readStore();
-    const code = uniqueGroupCode(store, groupName);
+    const code = uniqueTrailCode(store);
     const owner = await createMemberRecord({ name: ownerName, password: input.password, role: "owner" });
     const group: Group = {
       id: randomUUID(),
       name: groupName,
       code,
+      goalMiles,
       createdAt: new Date().toISOString(),
       members: [owner],
       runs: [],
@@ -105,20 +120,44 @@ export async function addMember(groupId: string, input: { name: string; password
   });
 }
 
+export async function updateGroupGoal(groupId: string, goalMiles: number) {
+  const nextGoal = cleanGoalMiles(goalMiles);
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    group.goalMiles = nextGoal;
+    await writeStore(store);
+    return publicGroup(group);
+  });
+}
+
 export async function login(input: { groupCode: string; memberName: string; password: string }) {
   const groupCode = normalizeCode(input.groupCode);
   const memberName = normalizeName(input.memberName);
-  if (!groupCode || !memberName || !input.password) {
-    throw new StoreError("Enter your group, name, and password.", 400);
+  if (!groupCode || !input.password) {
+    throw new StoreError("Enter your trail code and password.", 400);
   }
 
   const store = await readStore();
   const group = store.groups.find((row) => row.code === groupCode || normalizeName(row.name) === groupCode);
   if (!group) throw new StoreError("Run group not found.", 401);
-  const member = group.members.find((row) => row.nameKey === memberName);
-  if (!member) throw new StoreError("Name or password is incorrect.", 401);
-  const valid = await verifyPassword(input.password, member);
-  if (!valid) throw new StoreError("Name or password is incorrect.", 401);
+
+  if (memberName) {
+    const member = group.members.find((row) => row.nameKey === memberName);
+    if (!member) throw new StoreError("Name or password is incorrect.", 401);
+    const valid = await verifyPassword(input.password, member);
+    if (!valid) throw new StoreError("Name or password is incorrect.", 401);
+    return { group: publicGroup(group), member: publicMember(member) };
+  }
+
+  const matches = [];
+  for (const member of group.members) {
+    if (await verifyPassword(input.password, member)) matches.push(member);
+  }
+  if (matches.length !== 1) throw new StoreError("Password is incorrect or shared by more than one runner.", 401);
+  const [member] = matches;
   return { group: publicGroup(group), member: publicMember(member) };
 }
 
@@ -134,14 +173,14 @@ export async function getGroupContext(groupId: string, memberId: string) {
   };
 }
 
-export async function listRuns(groupId: string) {
+export async function listRuns(groupId: string, viewerMemberId?: string) {
   const store = await readStore();
   const group = findGroup(store, groupId);
   if (!group) throw new StoreError("Run group not found.", 404);
-  return sortRuns(group.runs).map((run) => publicRun(group, run));
+  return sortRuns(group.runs).map((run) => publicRun(group, run, viewerMemberId));
 }
 
-export async function addRun(groupId: string, memberId: string, input: { miles: number; date: string; note?: string }) {
+export async function addRun(groupId: string, memberId: string, input: { miles: number; date: string; note?: string; durationSeconds?: number }) {
   return withStoreLock(async () => {
     const store = await readStore();
     const group = findGroup(store, groupId);
@@ -152,13 +191,34 @@ export async function addRun(groupId: string, memberId: string, input: { miles: 
       id: randomUUID(),
       memberId,
       miles: roundMiles(input.miles),
+      ...(input.durationSeconds ? { durationSeconds: roundDurationSeconds(input.durationSeconds) } : {}),
       date: input.date,
       note: (input.note || "").trim().slice(0, 180),
       createdAt: new Date().toISOString(),
     };
     group.runs.push(run);
     await writeStore(store);
-    return publicRun(group, run);
+    return publicRun(group, run, memberId);
+  });
+}
+
+export async function toggleRunReaction(groupId: string, memberId: string, runId: string, type: ReactionType) {
+  validateReactionType(type);
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    const run = group.runs.find((row) => row.id === runId);
+    if (!run) throw new StoreError("Run not found.", 404);
+    run.reactions ||= {};
+    if (run.reactions[memberId] === type) {
+      delete run.reactions[memberId];
+    } else {
+      run.reactions[memberId] = type;
+    }
+    await writeStore(store);
+    return publicRun(group, run, memberId);
   });
 }
 
@@ -184,6 +244,7 @@ export function publicGroup(group: Group): PublicGroup {
     id: group.id,
     name: group.name,
     code: group.code,
+    goalMiles: group.goalMiles || 100,
     createdAt: group.createdAt,
   };
 }
@@ -243,6 +304,14 @@ function validatePassword(password: string) {
   if (password.length < 8) throw new StoreError("Passwords need at least 8 characters.", 400);
 }
 
+function cleanGoalMiles(value: number | undefined) {
+  const goal = Number(value || 100);
+  if (!Number.isFinite(goal) || goal < 1 || goal > 10000) {
+    throw new StoreError("Goal miles must be between 1 and 10000.", 400);
+  }
+  return Math.round(goal * 100) / 100;
+}
+
 function cleanName(value: string, maxLength: number) {
   const cleaned = value.trim().replace(/\s+/g, " ").slice(0, maxLength);
   if (!cleaned) throw new StoreError("Name is required.", 400);
@@ -257,15 +326,12 @@ function normalizeCode(value: string) {
   return value.trim().toLowerCase().replace(/[^a-z0-9- ]/g, "").replace(/\s+/g, "-");
 }
 
-function uniqueGroupCode(store: Store, groupName: string) {
-  const base = normalizeCode(groupName).replace(/^-+|-+$/g, "") || "run-group";
-  let code = base;
-  let suffix = 2;
-  while (store.groups.some((group) => group.code === code)) {
-    code = `${base}-${suffix}`;
-    suffix += 1;
+function uniqueTrailCode(store: Store) {
+  for (let attempt = 0; attempt < 1000; attempt += 1) {
+    const code = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
+    if (!store.groups.some((group) => group.code === code)) return code;
   }
-  return code;
+  throw new StoreError("No trail codes are available. Try again.", 409);
 }
 
 async function withStoreLock<T>(operation: () => Promise<T>) {
@@ -308,15 +374,37 @@ function sortRuns(runs: RunEntry[]) {
   });
 }
 
-function publicRun(group: Group, run: RunEntry): PublicRunEntry {
+function publicRun(group: Group, run: RunEntry, viewerMemberId?: string): PublicRunEntry {
   return {
     ...run,
+    reactions: publicReactions(run, viewerMemberId),
     runner: group.members.find((member) => member.id === run.memberId)?.name || "Unknown",
   };
 }
 
 function roundMiles(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function roundDurationSeconds(value: number) {
+  return Math.round(value);
+}
+
+function publicReactions(run: RunEntry, viewerMemberId?: string): PublicReaction[] {
+  const reactions = run.reactions || {};
+  return reactionTypes.map((type) => ({
+    type,
+    count: Object.values(reactions).filter((reaction) => reaction === type).length,
+    reactedByMe: viewerMemberId ? reactions[viewerMemberId] === type : false,
+  }));
+}
+
+const reactionTypes = ["fire", "nice", "brutal", "sus"] as const;
+
+function validateReactionType(value: string): asserts value is ReactionType {
+  if (!reactionTypes.includes(value as ReactionType)) {
+    throw new StoreError("Reaction is not supported.", 400);
+  }
 }
 
 function isStore(value: unknown): value is Store {
@@ -332,6 +420,7 @@ function isGroup(value: unknown): value is Group {
     typeof group.id === "string" &&
     typeof group.name === "string" &&
     typeof group.code === "string" &&
+    (typeof group.goalMiles === "undefined" || (typeof group.goalMiles === "number" && Number.isFinite(group.goalMiles))) &&
     typeof group.createdAt === "string" &&
     Array.isArray(group.members) &&
     group.members.every(isMember) &&
@@ -362,8 +451,13 @@ function isRunEntry(value: unknown): value is RunEntry {
     typeof run.memberId === "string" &&
     typeof run.miles === "number" &&
     Number.isFinite(run.miles) &&
+    (typeof run.durationSeconds === "undefined" || (typeof run.durationSeconds === "number" && Number.isFinite(run.durationSeconds) && run.durationSeconds > 0)) &&
     typeof run.date === "string" &&
     typeof run.note === "string" &&
+    (typeof run.reactions === "undefined" ||
+      (typeof run.reactions === "object" &&
+        run.reactions !== null &&
+        Object.entries(run.reactions).every(([memberId, reaction]) => typeof memberId === "string" && reactionTypes.includes(reaction as ReactionType)))) &&
     typeof run.createdAt === "string"
   );
 }
