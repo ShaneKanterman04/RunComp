@@ -85,6 +85,8 @@ const recentGroupsKey = "runcomp:recent-groups";
 const pwaInstallSeenKey = "runcomp:pwa-install-seen";
 const appVersion = packageInfo.version;
 const runPollMs = 8000;
+const quickMileOptions = ["1", "2", "3.1", "4", "5", "6.2"];
+const runNoteOptions = ["easy", "tempo", "trail", "treadmill", "long run", "walk break"];
 const mobileTabs: Array<{ id: MobileTab; label: string }> = [
   { id: "home", label: "Home" },
   { id: "log", label: "Log" },
@@ -216,6 +218,10 @@ export default function Home() {
   const hasRuns = runs.length > 0;
   const hasMultipleMembers = members.length > 1;
   const latestRun = runs[0] || null;
+  const latestOwnRun = session ? runs.find((run) => run.memberId === session.member.id) : null;
+  const previewDurationSeconds = parseDurationInput(form.duration);
+  const previewMiles = Number(form.miles);
+  const previewPace = Number.isFinite(previewMiles) && previewMiles > 0 && previewDurationSeconds ? formatPace(previewDurationSeconds / previewMiles) : "";
   const raceEmptyCopy = isOwner
     ? "Create runner passwords, share invite links, then log the first run."
     : "You are signed in. Log your first run to start the group scoreboard.";
@@ -230,6 +236,31 @@ export default function Home() {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate?.(8);
     }
+  }
+
+  function applyQuickMiles(miles: string) {
+    setForm((current) => ({ ...current, miles }));
+  }
+
+  function repeatLastRun() {
+    if (!latestOwnRun) return;
+    setForm({
+      miles: String(latestOwnRun.miles),
+      duration: latestOwnRun.durationSeconds ? formatDurationForInput(latestOwnRun.durationSeconds) : "",
+      date: todayInput(),
+      note: latestOwnRun.note,
+    });
+  }
+
+  function toggleNoteChip(note: string) {
+    setForm((current) => {
+      const notes = current.note
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const exists = notes.includes(note);
+      return { ...current, note: exists ? notes.filter((item) => item !== note).join(", ") : [...notes, note].join(", ") };
+    });
   }
 
   async function bootstrap() {
@@ -725,8 +756,8 @@ export default function Home() {
               </button>
             </div>
             <form className="runForm" onSubmit={submitRun}>
-              <label>
-                Miles
+              <label className="milesField">
+                <span className="fieldLabel">Miles</span>
                 <input
                   inputMode="decimal"
                   min="0.01"
@@ -739,8 +770,20 @@ export default function Home() {
                   placeholder="3.2"
                 />
               </label>
+              <div className="quickChips wideField" aria-label="Quick mile choices">
+                {quickMileOptions.map((miles) => (
+                  <button className={form.miles === miles ? "selectedChip" : ""} type="button" key={miles} onClick={() => applyQuickMiles(miles)}>
+                    {miles}
+                  </button>
+                ))}
+                {latestOwnRun && (
+                  <button type="button" onClick={repeatLastRun}>
+                    Repeat last
+                  </button>
+                )}
+              </div>
               <label>
-                Time
+                <span className="fieldLabel">Time</span>
                 <input
                   inputMode="numeric"
                   type="text"
@@ -750,13 +793,26 @@ export default function Home() {
                 />
               </label>
               <label>
-                Date
+                <span className="fieldLabel">Date</span>
                 <input required type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} />
               </label>
               <label className="wideField">
-                Note
+                <span className="fieldLabel">Note</span>
                 <input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="trail, treadmill, tempo..." />
               </label>
+              <div className="quickChips wideField" aria-label="Quick note choices">
+                {runNoteOptions.map((note) => (
+                  <button className={noteIsSelected(form.note, note) ? "selectedChip" : ""} type="button" key={note} onClick={() => toggleNoteChip(note)}>
+                    {note}
+                  </button>
+                ))}
+              </div>
+              {(previewPace || form.duration.trim()) && (
+                <div className={`pacePreview wideField ${form.duration.trim() && !previewPace ? "pacePreviewError" : ""}`}>
+                  <span>{previewPace ? "Pace preview" : "Time format"}</span>
+                  <strong>{previewPace || "Use minutes, mm:ss, or h:mm:ss"}</strong>
+                </div>
+              )}
               <button className="primaryButton" disabled={saving || !form.miles}>
                 {saving ? "Saving..." : "Log run"}
               </button>
@@ -1601,6 +1657,22 @@ function parseDurationInput(value: string) {
   if (minutes >= 60 || seconds >= 60) return undefined;
   const total = hours * 3600 + minutes * 60 + seconds;
   return total > 0 ? total : undefined;
+}
+
+function formatDurationForInput(seconds: number) {
+  const rounded = Math.max(1, Math.round(seconds));
+  const hours = Math.floor(rounded / 3600);
+  const minutes = Math.floor((rounded % 3600) / 60);
+  const remainingSeconds = rounded % 60;
+  if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function noteIsSelected(value: string, note: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .includes(note);
 }
 
 function RunnerCard({

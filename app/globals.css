@@ -711,6 +711,12 @@ label {
   font-weight: 800;
 }
 
+.fieldLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 input,
 textarea,
 select {
@@ -749,6 +755,59 @@ input:invalid:not(:placeholder-shown) {
 
 .wideField {
   grid-column: 1 / -1;
+}
+
+.quickChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quickChips button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fbfaf6;
+  color: var(--muted);
+  padding: 7px 11px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.quickChips .selectedChip {
+  border-color: #9dd0b8;
+  background: #e8f5ee;
+  color: #0d5c3d;
+}
+
+.pacePreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #9dd0b8;
+  border-radius: 8px;
+  background: #f3fbf6;
+  color: #0d5c3d;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.pacePreview span {
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.pacePreview strong {
+  text-align: right;
+}
+
+.pacePreviewError {
+  border-color: #d8c27a;
+  background: #fff7d7;
+  color: #6e5520;
 }
 
 .primaryButton,
@@ -2084,6 +2143,26 @@ input:invalid:not(:placeholder-shown) {
 
   .runForm {
     gap: 10px;
+  }
+
+  .quickChips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .quickChips button {
+    flex: 0 0 auto;
+  }
+
+  .pacePreview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pacePreview strong {
+    text-align: left;
   }
 
   .homeActions {
