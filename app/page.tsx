@@ -202,6 +202,12 @@ export default function Home() {
   );
   const paceLeader = paceStandings[0] || null;
   const maxWeek = Math.max(1, ...members.map((member) => stats[member.id]?.week || 0));
+  const chartTotals = chartDays.map((day) => chartDayTotal(day, members));
+  const chartMaxTotal = Math.max(1, ...chartTotals);
+  const chartTotalMiles = chartTotals.reduce((sum, total) => sum + total, 0);
+  const bestChartDayIndex = chartTotals.indexOf(chartMaxTotal);
+  const bestChartDay = chartMaxTotal > 0 && bestChartDayIndex >= 0 ? chartDays[bestChartDayIndex] : null;
+  const todayKey = todayInput();
   const isOwner = session?.member.role === "owner";
   const hasRuns = runs.length > 0;
   const hasMultipleMembers = members.length > 1;
@@ -877,6 +883,11 @@ export default function Home() {
             <div>
               <p className="eyebrow">Last 14 days</p>
               <h2>Daily mileage</h2>
+              <p className="muted">
+                {chartTotalMiles > 0
+                  ? `${formatMiles(chartTotalMiles)} logged across the last two weeks.`
+                  : "Log runs and this chart will light up."}
+              </p>
             </div>
             <div className="legend">
               {members.map((member) => (
@@ -884,22 +895,47 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="chart" aria-label="Daily mileage chart">
-            {chartDays.map((day) => (
-              <div className="dayGroup" key={day.date}>
-                <div className="bars">
-                  {members.map((member) => (
-                    <span
-                      className="bar"
-                      key={member.id}
-                      title={`${member.name} ${formatMiles(day.totals[member.id] || 0)}`}
-                      style={{ ...runnerStyle(member, members), height: `${day.heights[member.id] || 2}%` }}
-                    />
-                  ))}
+          <div className="chartStats" aria-label="Chart summary">
+            <div>
+              <span>Total</span>
+              <strong>{formatMiles(chartTotalMiles)}</strong>
+            </div>
+            <div>
+              <span>Best day</span>
+              <strong>{bestChartDay ? `${bestChartDay.label} · ${formatMiles(chartMaxTotal)}` : "-"}</strong>
+            </div>
+            <div>
+              <span>Active days</span>
+              <strong>{chartTotals.filter((total) => total > 0).length}/14</strong>
+            </div>
+          </div>
+          <div className="activityChart" aria-label="Stacked daily mileage chart">
+            {chartDays.map((day) => {
+              const total = chartDayTotal(day, members);
+              const height = total > 0 ? Math.max(10, (total / chartMaxTotal) * 100) : 2;
+              return (
+                <div className={`activityDay ${total > 0 ? "hasMiles" : ""} ${day.date === todayKey ? "isToday" : ""}`} key={day.date}>
+                  <div className="activityColumn">
+                    {total > 0 && <span className="dayTotal">{formatMiles(total)}</span>}
+                    <div className="stackedBar" style={{ height: `${height}%` }} title={`${day.label}: ${formatMiles(total)}`}>
+                      {members.map((member) => {
+                        const miles = day.totals[member.id] || 0;
+                        if (miles <= 0) return null;
+                        return (
+                          <span
+                            className="stackSegment"
+                            key={member.id}
+                            style={{ ...runnerStyle(member, members), flexGrow: miles }}
+                            title={`${member.name}: ${formatMiles(miles)}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <span className="dayLabel">{day.label}</span>
                 </div>
-                <span className="dayLabel">{day.label}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
           </section>
 
@@ -1714,6 +1750,10 @@ function sameReactions(current: RunReaction[], next: RunReaction[]) {
     const nextReaction = next[index];
     return reaction.type === nextReaction.type && reaction.count === nextReaction.count && reaction.reactedByMe === nextReaction.reactedByMe;
   });
+}
+
+function chartDayTotal(day: { totals: Record<string, number> }, members: Member[]) {
+  return members.reduce((sum, member) => sum + (day.totals[member.id] || 0), 0);
 }
 
 function BadgeStrip({ badges }: { badges: AchievementBadge[] }) {
