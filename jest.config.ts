@@ -9,6 +9,7 @@ const config: Config = {
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
   },
   testMatch: ["**/__tests__/**/*.test.ts?(x)"],
+  modulePathIgnorePatterns: ["<rootDir>/.next/"],
   transform: {
     "^.+\\.tsx?$": [
       "ts-jest",
