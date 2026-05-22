@@ -483,6 +483,7 @@ h2 {
 }
 
 .mobileHeroPanel,
+.homeRecentPanel,
 .mobileTabBar {
   display: none;
 }
@@ -911,10 +912,80 @@ input:invalid:not(:placeholder-shown) {
 
 .mobileHeroPanel {
   gap: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(232, 245, 238, 0.94), rgba(255, 255, 255, 0.9)),
+    var(--surface);
 }
 
 .mobileHeroAction {
   width: 100%;
+}
+
+.homeProgress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece5d7;
+}
+
+.homeProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--runner-color);
+  transition: width 0.7s var(--ease-out);
+}
+
+.homeStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.homeStat {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border: 1px solid rgba(157, 208, 184, 0.72);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 10px;
+}
+
+.homeStat span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.homeStat strong {
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.homeActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.homeRecentPanel {
+  gap: 10px;
+}
+
+.homeRunNote {
+  margin: 0;
+  border-left: 3px solid var(--track);
+  border-radius: 0 8px 8px 0;
+  background: #fbfaf6;
+  color: var(--muted);
+  padding: 9px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .groupPanel {
@@ -1751,6 +1822,10 @@ input:invalid:not(:placeholder-shown) {
     display: grid;
   }
 
+  .homeRecentPanel {
+    display: grid;
+  }
+
   .topbar {
     position: sticky;
     top: 0;
@@ -1874,6 +1949,8 @@ input:invalid:not(:placeholder-shown) {
   .panel.showdown,
   .panel.weeklyPanel,
   .panel.logPanel,
+  .panel.mobileHeroPanel,
+  .panel.homeRecentPanel,
   .panel.groupPanel,
   .panel.recapPanel,
   .panel.runnerCard,
@@ -2007,6 +2084,10 @@ input:invalid:not(:placeholder-shown) {
 
   .runForm {
     gap: 10px;
+  }
+
+  .homeActions {
+    grid-template-columns: 1fr;
   }
 
   .notice {

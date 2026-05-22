@@ -189,6 +189,9 @@ export default function Home() {
   const gap = leader && second ? Math.abs((stats[leader.id]?.total || 0) - (stats[second.id]?.total || 0)) : 0;
   const goalMiles = session?.group.goalMiles || 100;
   const leaderProgress = leader ? raceProgress(stats[leader.id]?.total || 0, goalMiles) : raceProgress(0, goalMiles);
+  const myStats = session ? stats[session.member.id] || emptyStats() : emptyStats();
+  const myProgress = raceProgress(myStats.total, goalMiles);
+  const myOverallRank = session ? standings.findIndex((member) => member.id === session.member.id) + 1 : 0;
   const weekStandings = useMemo(
     () => [...members].sort((a, b) => (stats[b.id]?.week || 0) - (stats[a.id]?.week || 0)),
     [members, stats],
@@ -196,6 +199,7 @@ export default function Home() {
   const weekLeader = weekStandings[0] || null;
   const weekSecond = weekStandings[1] || null;
   const weekGap = weekLeader && weekSecond ? Math.abs((stats[weekLeader.id]?.week || 0) - (stats[weekSecond.id]?.week || 0)) : 0;
+  const myWeekRank = session ? weekStandings.findIndex((member) => member.id === session.member.id) + 1 : 0;
   const paceStandings = useMemo(
     () => members.filter((member) => stats[member.id]?.averagePace).sort((a, b) => (stats[a.id].averagePace || Infinity) - (stats[b.id].averagePace || Infinity)),
     [members, stats],
@@ -211,6 +215,7 @@ export default function Home() {
   const isOwner = session?.member.role === "owner";
   const hasRuns = runs.length > 0;
   const hasMultipleMembers = members.length > 1;
+  const latestRun = runs[0] || null;
   const raceEmptyCopy = isOwner
     ? "Create runner passwords, share invite links, then log the first run."
     : "You are signed in. Log your first run to start the group scoreboard.";
@@ -611,17 +616,44 @@ export default function Home() {
           <div className={`mobilePane mobilePane--home ${mobileTab === "home" ? "isActive" : ""}`}>
             <section className="panel mobileHeroPanel">
               <div>
-                <p className="eyebrow">This week</p>
-                <h2>{weekLeader ? `${weekLeader.name} has ${formatMiles(stats[weekLeader.id]?.week || 0)}` : "Fresh week"}</h2>
+                <p className="eyebrow">{session.group.name}</p>
+                <h2>Welcome back, {session.member.name}</h2>
                 <p className="muted">
                   {hasRuns
-                    ? `${runs.length} run${runs.length === 1 ? "" : "s"} logged in ${session.group.name}.`
+                    ? `${formatMiles(myProgress.remaining)} left in your first-to-${formatMiles(goalMiles)} race.`
                     : "Log the first run and the family feed starts here."}
                 </p>
               </div>
-              <button className="primaryButton mobileHeroAction" type="button" onClick={() => switchMobileTab("log")}>
-                Log a run
-              </button>
+              <div className="homeProgress">
+                <span style={{ width: `${Math.max(3, myProgress.percent)}%` }} />
+              </div>
+              <div className="homeStatsGrid">
+                <HomeStat label="Your total" value={formatMiles(myStats.total)} />
+                <HomeStat label="This week" value={formatMiles(myStats.week)} />
+                <HomeStat label="Race rank" value={myOverallRank ? `#${myOverallRank}` : "-"} />
+                <HomeStat label="Week rank" value={myWeekRank ? `#${myWeekRank}` : "-"} />
+              </div>
+              <div className="homeActions">
+                <button className="primaryButton mobileHeroAction" type="button" onClick={() => switchMobileTab("log")}>
+                  Log run
+                </button>
+                <button className="ghostButton mobileHeroAction" type="button" onClick={() => switchMobileTab("feed")}>
+                  View feed
+                </button>
+              </div>
+            </section>
+
+            <section className="panel homeRecentPanel">
+              <div>
+                <p className="eyebrow">Latest run</p>
+                <h2>{latestRun ? `${latestRun.runner} · ${formatMiles(latestRun.miles)}` : "No runs yet"}</h2>
+                <p className="muted">
+                  {latestRun
+                    ? `${formatDate(latestRun.date)}${latestRun.durationSeconds ? ` · ${formatPace(latestRun.durationSeconds / latestRun.miles)}` : ""}`
+                    : "Be the first one on the board."}
+                </p>
+              </div>
+              {latestRun?.note && <p className="homeRunNote">{latestRun.note}</p>}
             </section>
 
             <section className="panel showdown">
@@ -1293,6 +1325,15 @@ function MobileTabIcon({ tab }: { tab: MobileTab }) {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M4 12 12 5l8 7M6 11v8h12v-8" />
     </svg>
+  );
+}
+
+function HomeStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="homeStat">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 
