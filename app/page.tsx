@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { Confetti } from "./components/Confetti";
 import { ToastContainer, type ToastMessage } from "./components/Toast";
 import { AnimatedMiles } from "./components/AnimatedCounter";
+import packageInfo from "@/package.json";
 import {
   buildChartDays,
   buildBadges,
@@ -78,6 +79,7 @@ type AuthPayload = SessionData | { authenticated: false; error?: string };
 const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793", "#a94632", "#587443"];
 const recentGroupsKey = "runcomp:recent-groups";
 const pwaInstallSeenKey = "runcomp:pwa-install-seen";
+const appVersion = packageInfo.version;
 
 export default function Home() {
   const [session, setSession] = useState<SessionData | null>(null);
@@ -416,6 +418,7 @@ export default function Home() {
           <Brand />
           <p className="empty">Checking your run group...</p>
         </section>
+        <AppFooter />
       </main>
     );
   }
@@ -756,6 +759,7 @@ export default function Home() {
             </div>
           )}
         </section>
+        <AppFooter />
       </main>
     </>
   );
@@ -892,6 +896,7 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
             <div className="welcomeProgress" aria-hidden="true"><span /></div>
           )}
         </section>
+        <AppFooter />
       </main>
     );
   }
@@ -994,6 +999,7 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
         </form>
         {localMessage && <p className="notice">{localMessage}</p>}
       </section>
+      <AppFooter />
     </main>
   );
 }
@@ -1007,6 +1013,14 @@ function Brand({ eyebrow = "Homelab mileage rivalry" }: { eyebrow?: string }) {
         <h1>RunComp</h1>
       </div>
     </div>
+  );
+}
+
+function AppFooter() {
+  return (
+    <footer className="appFooter">
+      <span>RunComp v{appVersion}</span>
+    </footer>
   );
 }
 

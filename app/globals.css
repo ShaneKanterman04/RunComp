@@ -206,7 +206,9 @@ button:not(:disabled):hover {
 .authApp {
   min-height: 100vh;
   display: grid;
+  align-content: center;
   place-items: center;
+  gap: 14px;
   padding: 16px 0;
 }
 
@@ -1305,6 +1307,19 @@ input:invalid:not(:placeholder-shown) {
   background: linear-gradient(135deg, #fff0f3 0%, #ffd4de 100%);
   border: 1px solid #d94f76;
   color: #8a1e3a;
+}
+
+.appFooter {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.authApp .appFooter {
+  margin-top: 0;
 }
 
 .shimmer {
