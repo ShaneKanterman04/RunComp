@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
+import { notifyRunLogged } from "@/lib/push";
 import { addRun, deleteRun, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
     }
 
     const run = await addRun(session.group.id, session.member.id, { miles, date, note, durationSeconds });
+    notifyRunLogged(session.group.id, run).catch((error) => console.warn("Could not send run notification", error));
     return NextResponse.json({ run }, { status: 201 });
   } catch (error) {
     if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });

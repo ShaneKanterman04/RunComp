@@ -491,6 +491,7 @@ h2 {
 .weeklyPanel,
 .logPanel,
 .groupPanel,
+.recapPanel,
 .runnerCard,
 .chartPanel,
 .feedPanel {
@@ -784,6 +785,59 @@ input:invalid:not(:placeholder-shown) {
 
 .groupPanel {
   margin-bottom: 18px;
+}
+
+.recapPanel {
+  margin-bottom: 18px;
+}
+
+.recapRibbon {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid #d8c27a;
+  border-radius: 999px;
+  background: #fff7d7;
+  color: #6e5520;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.recapGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.recapCard {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 12px;
+}
+
+.recapCard span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.recapCard strong {
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+
+.recapCard small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .inviteBox {
@@ -1488,6 +1542,7 @@ input:invalid:not(:placeholder-shown) {
   .panel.weeklyPanel,
   .panel.logPanel,
   .panel.groupPanel,
+  .panel.recapPanel,
   .panel.runnerCard,
   .panel.chartPanel,
   .panel.feedPanel {

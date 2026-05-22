@@ -12,6 +12,7 @@ import {
   buildHeatmapWeeks,
   buildStats,
   buildStreakStrip,
+  buildWeeklyRecap,
   emptyStats,
   formatDate,
   formatDuration,
@@ -21,6 +22,7 @@ import {
   todayInput,
   type AchievementBadge,
   type RunnerStats,
+  type WeeklyRecap,
 } from "@/lib/run-metrics";
 
 type MemberRole = "owner" | "member";
@@ -75,6 +77,7 @@ type RunReaction = {
 };
 
 type AuthPayload = SessionData | { authenticated: false; error?: string };
+type PushStatus = "checking" | "unsupported" | "off" | "subscribed" | "denied" | "busy";
 
 const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793", "#a94632", "#587443"];
 const recentGroupsKey = "runcomp:recent-groups";
@@ -100,6 +103,7 @@ export default function Home() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [copySuccess, setCopySuccess] = useState(false);
   const [memberCopySuccess, setMemberCopySuccess] = useState<Record<string, boolean>>({});
+  const [pushStatus, setPushStatus] = useState<PushStatus>("checking");
 
   useEffect(() => {
     bootstrap();
@@ -109,16 +113,19 @@ export default function Home() {
     if (!session) {
       setInviteUrl("");
       setMemberInviteUrls({});
+      setPushStatus("checking");
       return;
     }
     setInviteUrl(buildInviteUrl(session.group.code));
     setGoalForm(String(session.group.goalMiles || 100));
     rememberRecentGroup(session);
+    refreshPushStatus();
   }, [session]);
 
   const members = session?.members || [];
   const stats = useMemo(() => buildStats(runs, members), [runs, members]);
   const chartDays = useMemo(() => buildChartDays(runs, members), [runs, members]);
+  const weeklyRecap = useMemo(() => buildWeeklyRecap(runs, members), [runs, members]);
   const standings = useMemo(
     () => [...members].sort((a, b) => (stats[b.id]?.total || 0) - (stats[a.id]?.total || 0)),
     [members, stats],
@@ -356,6 +363,79 @@ export default function Home() {
     setMessage(nextMessage);
   }
 
+  async function refreshPushStatus() {
+    if (!supportsPushNotifications()) {
+      setPushStatus("unsupported");
+      return;
+    }
+    if (Notification.permission === "denied") {
+      setPushStatus("denied");
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.getRegistration("/sw.js").catch(() => null);
+    const subscription = await registration?.pushManager.getSubscription().catch(() => null);
+    setPushStatus(subscription ? "subscribed" : "off");
+  }
+
+  async function togglePushNotifications() {
+    if (pushStatus === "busy") return;
+    if (!supportsPushNotifications()) {
+      setPushStatus("unsupported");
+      setMessage("Push alerts need an installed web app or a browser with notification support.");
+      return;
+    }
+
+    setPushStatus("busy");
+    setMessage("");
+
+    try {
+      if (Notification.permission !== "granted") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          setPushStatus(permission === "denied" ? "denied" : "off");
+          setMessage("Notifications were not enabled. You can turn them on later from this button.");
+          return;
+        }
+      }
+
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      const existing = await registration.pushManager.getSubscription();
+
+      if (existing) {
+        await fetch("/api/push", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: existing.endpoint }),
+        });
+        await existing.unsubscribe();
+        setPushStatus("off");
+        addToast("Family alerts turned off.", "success");
+        return;
+      }
+
+      const keyResponse = await fetch("/api/push", { cache: "no-store" });
+      const keyData = (await keyResponse.json()) as { publicKey?: string; error?: string };
+      if (!keyResponse.ok || !keyData.publicKey) throw new Error(keyData.error || "Could not set up notifications.");
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey),
+      });
+      const response = await fetch("/api/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not save notification subscription.");
+      setPushStatus("subscribed");
+      addToast("Family run alerts are on.", "success");
+    } catch (error) {
+      setPushStatus("off");
+      setMessage(error instanceof Error ? error.message : "Could not enable notifications.");
+    }
+  }
+
   async function copyInviteLink() {
     if (!inviteUrl) return;
     try {
@@ -562,6 +642,8 @@ export default function Home() {
           </section>
         </section>
 
+        <WeeklyRecapPanel recap={weeklyRecap} />
+
         <section className="panel groupPanel">
           <div className="sectionHead">
             <div>
@@ -573,6 +655,11 @@ export default function Home() {
               {session.member.role === "owner" && (
                 <button className={`ghostButton ${copySuccess ? "copySuccess" : ""}`} type="button" onClick={copyInviteLink} disabled={!inviteUrl}>
                   {copySuccess ? "Copied!" : "Copy invite"}
+                </button>
+              )}
+              {pushStatus !== "unsupported" && (
+                <button className="ghostButton" type="button" onClick={togglePushNotifications} disabled={pushStatus === "busy" || pushStatus === "checking" || pushStatus === "denied"}>
+                  {pushButtonLabel(pushStatus)}
                 </button>
               )}
               <button className="ghostButton" type="button" onClick={() => logout("Pick a saved group or enter another trail code.")}>
@@ -1083,6 +1170,36 @@ function isStandaloneApp() {
   return window.matchMedia("(display-mode: standalone)").matches || standaloneNavigator.standalone === true;
 }
 
+function supportsPushNotifications() {
+  return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+
+function pushButtonLabel(status: PushStatus) {
+  switch (status) {
+    case "checking":
+      return "Checking alerts...";
+    case "busy":
+      return "Updating alerts...";
+    case "subscribed":
+      return "Alerts on";
+    case "denied":
+      return "Alerts blocked";
+    default:
+      return "Enable alerts";
+  }
+}
+
+function urlBase64ToUint8Array(value: string) {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = `${value}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let index = 0; index < raw.length; index += 1) {
+    output[index] = raw.charCodeAt(index);
+  }
+  return output;
+}
+
 function readRecentGroups(): RecentGroup[] {
   if (typeof window === "undefined") return [];
 
@@ -1189,7 +1306,7 @@ function RunnerCard({
   goalMiles: number;
   isCurrentUser: boolean;
 }) {
-  const badges = buildBadges(stats);
+  const badges = buildBadges(stats, runs, member.id);
   const progress = raceProgress(stats.total, goalMiles);
   const strip = buildStreakStrip(runs, member.id);
   const heatmap = buildHeatmapWeeks(runs, member.id);
@@ -1235,6 +1352,59 @@ function RunnerCard({
       <BadgeStrip badges={badges} />
       <p className="lastRun">{stats.lastRun ? `Last run: ${formatDate(stats.lastRun)}` : "No runs logged yet"}</p>
     </section>
+  );
+}
+
+function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
+  const hasRuns = recap.runCount > 0;
+  return (
+    <section className="panel recapPanel">
+      <div className="sectionHead">
+        <div>
+          <p className="eyebrow">Weekly recap</p>
+          <h2>{hasRuns ? `${formatMiles(recap.totalMiles)} as a family` : "Fresh week"}</h2>
+          <p className="muted">
+            {hasRuns
+              ? `${recap.runCount} run${recap.runCount === 1 ? "" : "s"} from ${recap.activeRunnerCount} runner${recap.activeRunnerCount === 1 ? "" : "s"} · ${recap.weekLabel}`
+              : `No runs logged yet for ${recap.weekLabel}.`}
+          </p>
+        </div>
+        {recap.topRunner && <span className="recapRibbon">{recap.topRunner.name} owns the week</span>}
+      </div>
+      {hasRuns ? (
+        <div className="recapGrid">
+          <RecapCard label="Top runner" value={recap.topRunner ? `${recap.topRunner.name} · ${formatMiles(recap.topRunner.miles)}` : "-"} detail="Most miles this week" />
+          <RecapCard
+            label="Biggest run"
+            value={recap.biggestRun ? `${recap.biggestRun.runner} · ${formatMiles(recap.biggestRun.miles)}` : "-"}
+            detail={recap.biggestRun?.note || "Single-run high score"}
+          />
+          <RecapCard
+            label="Most consistent"
+            value={recap.mostConsistent ? `${recap.mostConsistent.name} · ${recap.mostConsistent.runCount}` : "-"}
+            detail={`run${recap.mostConsistent?.runCount === 1 ? "" : "s"} logged`}
+          />
+          <RecapCard
+            label="Crowd favorite"
+            value={recap.crowdFavorite ? `${recap.crowdFavorite.runner} · ${recap.crowdFavorite.reactionCount}` : "-"}
+            detail={recap.crowdFavorite?.note || "No reactions yet"}
+          />
+          {recap.fastestPace && <RecapCard label="Fastest pace" value={`${recap.fastestPace.name} · ${formatPace(recap.fastestPace.secondsPerMile)}`} detail="Timed runs only" />}
+        </div>
+      ) : (
+        <p className="empty">Log the first run this week and the recap will fill itself in.</p>
+      )}
+    </section>
+  );
+}
+
+function RecapCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="recapCard">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{detail}</small>
+    </div>
   );
 }
 

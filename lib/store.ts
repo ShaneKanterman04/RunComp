@@ -48,6 +48,17 @@ export type PublicReaction = {
   reactedByMe: boolean;
 };
 
+export type PushSubscriptionRecord = {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+  memberId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Group = {
   id: string;
   name: string;
@@ -56,6 +67,7 @@ export type Group = {
   createdAt: string;
   members: Member[];
   runs: RunEntry[];
+  pushSubscriptions?: PushSubscriptionRecord[];
 };
 
 export type PublicGroup = {
@@ -239,6 +251,58 @@ export async function deleteRun(groupId: string, memberId: string, memberRole: M
   });
 }
 
+export async function savePushSubscription(groupId: string, memberId: string, input: { endpoint: string; keys: { p256dh: string; auth: string } }) {
+  const endpoint = cleanEndpoint(input.endpoint);
+  const p256dh = cleanPushKey(input.keys?.p256dh);
+  const auth = cleanPushKey(input.keys?.auth);
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    if (!group.members.some((member) => member.id === memberId)) throw new StoreError("Member not found.", 404);
+    const now = new Date().toISOString();
+    group.pushSubscriptions ||= [];
+    const existing = group.pushSubscriptions.find((subscription) => subscription.endpoint === endpoint);
+    if (existing) {
+      existing.memberId = memberId;
+      existing.keys = { p256dh, auth };
+      existing.updatedAt = now;
+    } else {
+      group.pushSubscriptions.push({
+        endpoint,
+        keys: { p256dh, auth },
+        memberId,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    await writeStore(store);
+    return { ok: true };
+  });
+}
+
+export async function listPushSubscriptions(groupId: string) {
+  const store = await readStore();
+  const group = findGroup(store, groupId);
+  if (!group) throw new StoreError("Run group not found.", 404);
+  return [...(group.pushSubscriptions || [])];
+}
+
+export async function removePushSubscription(groupId: string, endpoint: string) {
+  const clean = cleanEndpoint(endpoint);
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    const before = group.pushSubscriptions?.length || 0;
+    group.pushSubscriptions = (group.pushSubscriptions || []).filter((subscription) => subscription.endpoint !== clean);
+    await writeStore(store);
+    return { removed: before - group.pushSubscriptions.length };
+  });
+}
+
 export function publicGroup(group: Group): PublicGroup {
   return {
     id: group.id,
@@ -302,6 +366,22 @@ async function hashPassword(password: string, salt: string) {
 
 function validatePassword(password: string) {
   if (password.length < 8) throw new StoreError("Passwords need at least 8 characters.", 400);
+}
+
+function cleanEndpoint(value: string) {
+  const endpoint = String(value || "").trim();
+  if (!endpoint || endpoint.length > 2048 || !/^https:\/\//.test(endpoint)) {
+    throw new StoreError("Push subscription endpoint is invalid.", 400);
+  }
+  return endpoint;
+}
+
+function cleanPushKey(value: string) {
+  const key = String(value || "").trim();
+  if (!key || key.length > 512) {
+    throw new StoreError("Push subscription key is invalid.", 400);
+  }
+  return key;
 }
 
 function cleanGoalMiles(value: number | undefined) {
@@ -425,7 +505,8 @@ function isGroup(value: unknown): value is Group {
     Array.isArray(group.members) &&
     group.members.every(isMember) &&
     Array.isArray(group.runs) &&
-    group.runs.every(isRunEntry)
+    group.runs.every(isRunEntry) &&
+    (typeof group.pushSubscriptions === "undefined" || (Array.isArray(group.pushSubscriptions) && group.pushSubscriptions.every(isPushSubscription)))
   );
 }
 
@@ -459,5 +540,20 @@ function isRunEntry(value: unknown): value is RunEntry {
         run.reactions !== null &&
         Object.entries(run.reactions).every(([memberId, reaction]) => typeof memberId === "string" && reactionTypes.includes(reaction as ReactionType)))) &&
     typeof run.createdAt === "string"
+  );
+}
+
+function isPushSubscription(value: unknown): value is PushSubscriptionRecord {
+  if (!value || typeof value !== "object") return false;
+  const subscription = value as Partial<PushSubscriptionRecord>;
+  return (
+    typeof subscription.endpoint === "string" &&
+    typeof subscription.memberId === "string" &&
+    typeof subscription.createdAt === "string" &&
+    typeof subscription.updatedAt === "string" &&
+    typeof subscription.keys === "object" &&
+    subscription.keys !== null &&
+    typeof subscription.keys.p256dh === "string" &&
+    typeof subscription.keys.auth === "string"
   );
 }

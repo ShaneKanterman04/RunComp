@@ -4,6 +4,7 @@ import {
   buildHeatmapWeeks,
   buildStats,
   buildStreakStrip,
+  buildWeeklyRecap,
   currentStreak,
   formatDuration,
   formatMiles,
@@ -128,13 +129,76 @@ describe("run metrics", () => {
 
     expect(badges.map((badge) => badge.id)).toEqual([
       "first-run",
+      "five-k",
       "ten-mile-week",
       "ten-k-pr",
+      "main-character",
       "twenty-five",
       "fifty",
+      "consistent",
       "three-streak",
       "seven-streak",
     ]);
+  });
+
+  it("adds note, pace, weekend, and comeback achievements", () => {
+    const badges = buildBadges(
+      {
+        total: 12,
+        week: 5,
+        month: 12,
+        runCount: 3,
+        average: 4,
+        longest: 5,
+        timedRunCount: 1,
+        timedMiles: 3,
+        totalSeconds: 1380,
+        averagePace: 460,
+        bestPace: 460,
+        streak: 1,
+        lastRun: "2026-05-22",
+      },
+      [
+        { id: "1", memberId: "shane", miles: 3, durationSeconds: 1380, date: "2026-05-09", note: "treadmill", createdAt: "2026-05-09T12:00:00Z" },
+        { id: "2", memberId: "shane", miles: 4, date: "2026-05-17", note: "morning trail", createdAt: "2026-05-17T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: 5, date: "2026-05-22", note: "bridge route", createdAt: "2026-05-22T12:00:00Z" },
+      ],
+      "shane",
+    );
+
+    expect(badges.map((badge) => badge.id)).toEqual([
+      "first-run",
+      "five-k",
+      "suspiciously-fast",
+      "weekend-warrior",
+      "touched-grass",
+      "hamster-wheel",
+      "early-bird",
+      "we-are-back",
+    ]);
+  });
+
+  it("builds a weekly family recap", () => {
+    const recap = buildWeeklyRecap(
+      [
+        { id: "1", memberId: "shane", miles: 3, durationSeconds: 1500, date: "2026-05-19", note: "tempo", reactions: [{ count: 1 }], createdAt: "2026-05-19T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 6, durationSeconds: 2700, date: "2026-05-20", note: "closing the gap", reactions: [{ count: 3 }], createdAt: "2026-05-20T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: 4, date: "2026-05-21", note: "steady", reactions: [], createdAt: "2026-05-21T12:00:00Z" },
+        { id: "4", memberId: "molly", miles: 9, date: "2026-05-10", note: "last week", createdAt: "2026-05-10T12:00:00Z" },
+      ],
+      members,
+      now,
+    );
+
+    expect(recap.weekLabel).toBe("5/18-5/24");
+    expect(recap.totalMiles).toBe(13);
+    expect(recap.runCount).toBe(3);
+    expect(recap.activeRunnerCount).toBe(2);
+    expect(recap.topRunner).toEqual({ name: "Shane", miles: 7 });
+    expect(recap.biggestRun).toEqual({ runner: "Molly", miles: 6, note: "closing the gap" });
+    expect(recap.mostConsistent).toEqual({ name: "Shane", runCount: 2 });
+    expect(recap.fastestPace).toEqual({ name: "Molly", secondsPerMile: 450 });
+    expect(recap.crowdFavorite).toEqual({ runner: "Molly", reactionCount: 3, note: "closing the gap" });
   });
 
   it("builds streak strips and heatmaps", () => {
