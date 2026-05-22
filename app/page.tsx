@@ -171,7 +171,6 @@ export default function Home() {
     [members, stats],
   );
   const paceLeader = paceStandings[0] || null;
-  const maxTotal = Math.max(1, ...members.map((member) => stats[member.id]?.total || 0));
   const maxWeek = Math.max(1, ...members.map((member) => stats[member.id]?.week || 0));
   const isOwner = session?.member.role === "owner";
   const hasRuns = runs.length > 0;
@@ -602,7 +601,7 @@ export default function Home() {
                   <div className="meter">
                     <span
                       className="meterFill"
-                      style={{ ...runnerStyle(member, members), width: `${Math.max(4, ((stats[member.id]?.total || 0) / maxTotal) * 100)}%` }}
+                      style={{ ...runnerStyle(member, members), width: `${raceProgress(stats[member.id]?.total || 0, goalMiles).percent}%` }}
                     />
                   </div>
                 </div>
