@@ -77,6 +77,7 @@ type AuthPayload = SessionData | { authenticated: false; error?: string };
 
 const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793", "#a94632", "#587443"];
 const recentGroupsKey = "runcomp:recent-groups";
+const pwaInstallSeenKey = "runcomp:pwa-install-seen";
 
 export default function Home() {
   const [session, setSession] = useState<SessionData | null>(null);
@@ -139,6 +140,17 @@ export default function Home() {
   const paceLeader = paceStandings[0] || null;
   const maxTotal = Math.max(1, ...members.map((member) => stats[member.id]?.total || 0));
   const maxWeek = Math.max(1, ...members.map((member) => stats[member.id]?.week || 0));
+  const isOwner = session?.member.role === "owner";
+  const hasRuns = runs.length > 0;
+  const hasMultipleMembers = members.length > 1;
+  const raceEmptyCopy = isOwner
+    ? "Create runner passwords, share invite links, then log the first run."
+    : "You are signed in. Log your first run to start the group scoreboard.";
+  const feedEmptyCopy = isOwner
+    ? hasMultipleMembers
+      ? "No miles logged yet. Share login links or add the first run yourself."
+      : "No miles logged yet. Add another runner or log your first run."
+    : "No miles logged yet. Log your first run and your group will see it here.";
 
   async function bootstrap() {
     setCheckingSession(true);
@@ -419,13 +431,23 @@ export default function Home() {
       <main className="app">
         <header className="topbar">
           <Brand eyebrow={session.group.name} />
-          <div className="headToHead" aria-label="Current standings">
-            {standings.map((member, index) => (
-              <span className="standItem" key={member.id}>
-                {index + 1}. {member.name} {formatMiles(stats[member.id]?.total || 0)}
-                {stats[member.id]?.averagePace && <em>{formatPace(stats[member.id]?.averagePace)}</em>}
+          <div className="topbarMeta">
+            <div className="signedInBadge" aria-label={`Signed in as ${session.member.name}`}>
+              <span className="runnerBadge smallBadge" style={runnerStyle(session.member, members)}>{session.member.name.slice(0, 1)}</span>
+              <span>
+                <strong>{session.member.name}</strong>
+                <small>{session.member.role === "owner" ? "Group owner" : "Runner"}</small>
               </span>
-            ))}
+            </div>
+            <div className="headToHead" aria-label="Current standings">
+              {standings.map((member, index) => (
+                <span className="standItem" key={member.id}>
+                  {index + 1}. {member.name} {formatMiles(stats[member.id]?.total || 0)}
+                  {member.id === session.member.id && <YouBadge />}
+                  {stats[member.id]?.averagePace && <em>{formatPace(stats[member.id]?.averagePace)}</em>}
+                </span>
+              ))}
+            </div>
           </div>
         </header>
 
@@ -435,16 +457,16 @@ export default function Home() {
               <p className="eyebrow">Current race</p>
               <h2>{leader && second ? `${leader.name} leads by ${formatMiles(gap)}` : "Group is ready"}</h2>
               <p className="muted">
-                {leader
+                {hasRuns && leader
                   ? `${formatMiles(leaderProgress.remaining)} left in the first-to-${formatMiles(goalMiles)} race.`
-                  : "Create member passwords, share the trail code, then start logging miles."}
+                  : raceEmptyCopy}
               </p>
             </div>
             <div className="totalBars">
               {members.map((member) => (
-                <div className="totalRow" key={member.id}>
+                <div className={`totalRow ${member.id === session.member.id ? "currentRunnerRow" : ""}`} key={member.id}>
                   <div className="totalLabel">
-                    <span>{member.name}</span>
+                    <span>{member.name}{member.id === session.member.id && <YouBadge />}</span>
                     <strong>{formatMiles(stats[member.id]?.total || 0)}</strong>
                   </div>
                   <div className="meter">
@@ -470,9 +492,9 @@ export default function Home() {
             </div>
             <div className="totalBars compactBars">
               {members.map((member) => (
-                <div className="totalRow" key={member.id}>
+                <div className={`totalRow ${member.id === session.member.id ? "currentRunnerRow" : ""}`} key={member.id}>
                   <div className="totalLabel">
-                    <span>{member.name}</span>
+                    <span>{member.name}{member.id === session.member.id && <YouBadge />}</span>
                     <strong>{formatMiles(stats[member.id]?.week || 0)}</strong>
                   </div>
                   <div className="meter">
@@ -572,11 +594,11 @@ export default function Home() {
           <div className="memberGrid">
             <div className="memberList">
               {members.map((member) => (
-                <div className="memberPill" key={member.id}>
+                <div className={`memberPill ${member.id === session.member.id ? "currentMemberPill" : ""}`} key={member.id}>
                   <div className="memberIdentity">
                     <span className="runnerBadge" style={runnerStyle(member, members)}>{member.name.slice(0, 1)}</span>
                     <div>
-                      <strong>{member.name}</strong>
+                      <strong>{member.name}{member.id === session.member.id && <YouBadge />}</strong>
                       <span>{member.role === "owner" ? "Group owner" : "Runner"}</span>
                     </div>
                   </div>
@@ -646,7 +668,15 @@ export default function Home() {
 
         <section className="runnerGrid">
           {members.map((member) => (
-            <RunnerCard key={member.id} member={member} members={members} runs={runs} stats={stats[member.id] || emptyStats()} goalMiles={goalMiles} />
+            <RunnerCard
+              key={member.id}
+              member={member}
+              members={members}
+              runs={runs}
+              stats={stats[member.id] || emptyStats()}
+              goalMiles={goalMiles}
+              isCurrentUser={member.id === session.member.id}
+            />
           ))}
         </section>
 
@@ -692,17 +722,18 @@ export default function Home() {
           {loadingRuns ? (
             <p className="empty">Loading runs...</p>
           ) : runs.length === 0 ? (
-            <p className="empty">No miles logged yet. Somebody start the scoreboard.</p>
+            <p className="empty">{feedEmptyCopy}</p>
           ) : (
             <div className="runList">
               {runs.map((run, index) => {
                 const member = members.find((row) => row.id === run.memberId);
+                const isMyRun = run.memberId === session.member.id;
                 return (
-                  <article className="runRow" key={run.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                  <article className={`runRow ${isMyRun ? "currentRunRow" : ""}`} key={run.id} style={{ animationDelay: `${index * 0.05}s` }}>
                     <span className="runnerBadge runBadge" style={member ? runnerStyle(member, members) : undefined}>{run.runner.slice(0, 1)}</span>
                     <div className="runDetails">
                       <div>
-                        <strong>{run.runner}</strong>
+                        <strong>{run.runner}{isMyRun && <YouBadge />}</strong>
                         <span>{formatDate(run.date)}</span>
                       </div>
                       {run.note && <p>{run.note}</p>}
@@ -735,6 +766,8 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
   const [loginForm, setLoginForm] = useState({ groupCode: "", memberName: "", password: "" });
   const [createForm, setCreateForm] = useState({ groupName: "Shane vs Molly", ownerName: "Shane", password: "", goalMiles: "100" });
   const [recentGroups, setRecentGroups] = useState<RecentGroup[]>([]);
+  const [welcomeSession, setWelcomeSession] = useState<SessionData | null>(null);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [busy, setBusy] = useState(false);
   const [localMessage, setLocalMessage] = useState(message);
 
@@ -758,6 +791,12 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
     if (message) setLocalMessage(message);
   }, [message]);
 
+  useEffect(() => {
+    if (!welcomeSession || showInstallGuide) return;
+    const timeout = window.setTimeout(() => onAuthenticated(welcomeSession), 1300);
+    return () => window.clearTimeout(timeout);
+  }, [onAuthenticated, showInstallGuide, welcomeSession]);
+
   function useRecentGroup(group: RecentGroup) {
     setMode("login");
     setLoginForm((current) => ({ ...current, groupCode: group.code, memberName: group.memberName }));
@@ -776,7 +815,8 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not use login link.");
-      onAuthenticated(data);
+      setShowInstallGuide(shouldShowIosInstallGuide());
+      setWelcomeSession(data);
     } catch (error) {
       setLocalMessage(error instanceof Error ? error.message : "Could not use login link.");
     } finally {
@@ -804,6 +844,56 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
     } finally {
       setBusy(false);
     }
+  }
+
+  function continueFromWelcome(markInstallSeen: boolean) {
+    if (!welcomeSession) return;
+    if (markInstallSeen) rememberPwaInstallSeen();
+    onAuthenticated(welcomeSession);
+  }
+
+  if (welcomeSession) {
+    return (
+      <main className="app authApp">
+        <section className="panel authPanel welcomePanel">
+          <Brand eyebrow={welcomeSession.group.name} />
+          <div className="welcomeIdentity">
+            <span className="runnerBadge welcomeBadge" style={runnerStyle(welcomeSession.member, welcomeSession.members)}>
+              {welcomeSession.member.name.slice(0, 1)}
+            </span>
+            <div>
+              <p className="eyebrow">Signed in</p>
+              <h2>Welcome, {welcomeSession.member.name}</h2>
+              <p className="muted">{welcomeSession.member.role === "owner" ? "Group owner" : "Runner"} in {welcomeSession.group.name}</p>
+            </div>
+          </div>
+          {showInstallGuide ? (
+            <div className="installGuide" aria-label="Add RunComp to your iPhone Home Screen">
+              <div>
+                <p className="eyebrow">Save RunComp</p>
+                <h3>Add it to your Home Screen</h3>
+                <p className="muted">RunComp will open like an app next time, already signed in as {welcomeSession.member.name}.</p>
+              </div>
+              <ol className="installSteps">
+                <li><span>1</span><strong>Tap Share</strong></li>
+                <li><span>2</span><strong>Add to Home Screen</strong></li>
+                <li><span>3</span><strong>Tap Add</strong></li>
+              </ol>
+              <div className="welcomeActions">
+                <button className="primaryButton" type="button" onClick={() => continueFromWelcome(true)}>
+                  I added it
+                </button>
+                <button className="ghostButton" type="button" onClick={() => continueFromWelcome(true)}>
+                  Continue in browser
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="welcomeProgress" aria-hidden="true"><span /></div>
+          )}
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -950,6 +1040,35 @@ function inviteTokenFromUrl() {
   return (params.get("invite") || params.get("i") || "").trim();
 }
 
+function shouldShowIosInstallGuide() {
+  if (typeof window === "undefined") return false;
+  if (window.localStorage.getItem(pwaInstallSeenKey) === "true") return false;
+  if (isStandaloneApp()) return false;
+  return isIosDevice();
+}
+
+function rememberPwaInstallSeen() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(pwaInstallSeenKey, "true");
+  } catch {
+    // Install guidance is a convenience only.
+  }
+}
+
+function isIosDevice() {
+  if (typeof navigator === "undefined") return false;
+  const platform = navigator.platform || "";
+  const userAgent = navigator.userAgent || "";
+  return /iPad|iPhone|iPod/.test(userAgent) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isStandaloneApp() {
+  if (typeof window === "undefined") return false;
+  const standaloneNavigator = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia("(display-mode: standalone)").matches || standaloneNavigator.standalone === true;
+}
+
 function readRecentGroups(): RecentGroup[] {
   if (typeof window === "undefined") return [];
 
@@ -1041,16 +1160,30 @@ function parseDurationInput(value: string) {
   return total > 0 ? total : undefined;
 }
 
-function RunnerCard({ member, members, runs, stats, goalMiles }: { member: Member; members: Member[]; runs: RunEntry[]; stats: RunnerStats; goalMiles: number }) {
+function RunnerCard({
+  member,
+  members,
+  runs,
+  stats,
+  goalMiles,
+  isCurrentUser,
+}: {
+  member: Member;
+  members: Member[];
+  runs: RunEntry[];
+  stats: RunnerStats;
+  goalMiles: number;
+  isCurrentUser: boolean;
+}) {
   const badges = buildBadges(stats);
   const progress = raceProgress(stats.total, goalMiles);
   const strip = buildStreakStrip(runs, member.id);
   const heatmap = buildHeatmapWeeks(runs, member.id);
   return (
-    <section className="panel runnerCard" style={{ borderTopColor: colorForMember(member, members) }}>
+    <section className={`panel runnerCard ${isCurrentUser ? "currentRunnerCard" : ""}`} style={{ borderTopColor: colorForMember(member, members) }}>
       <div className="sectionHead">
         <div>
-          <p className="eyebrow">{member.name}</p>
+          <p className="eyebrow">{member.name}{isCurrentUser && <YouBadge />}</p>
           <h2><AnimatedMiles value={stats.total} /></h2>
           <p className="muted">{formatMiles(progress.remaining)} to goal</p>
         </div>
@@ -1141,6 +1274,10 @@ function BadgeStrip({ badges }: { badges: AchievementBadge[] }) {
       ))}
     </div>
   );
+}
+
+function YouBadge() {
+  return <span className="youBadge">You</span>;
 }
 
 function StatRow({ label, value }: { label: string; value: string | ReactNode }) {

@@ -215,6 +215,102 @@ button:not(:disabled):hover {
   animation: fadeSlideUp 0.5s var(--ease-out) both;
 }
 
+.welcomePanel {
+  display: grid;
+  gap: 22px;
+}
+
+.welcomeIdentity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.welcomeIdentity h2 {
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.welcomeBadge {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  font-size: 24px;
+}
+
+.welcomeProgress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece5d7;
+}
+
+.welcomeProgress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--track);
+  transform-origin: left center;
+  animation: meterFillIn 1.2s var(--ease-smooth) both;
+}
+
+.installGuide {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 14px;
+}
+
+.installGuide h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.installSteps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.installSteps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 8px 10px;
+}
+
+.installSteps span {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--ink);
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.installSteps strong {
+  font-size: 14px;
+}
+
+.welcomeActions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -225,6 +321,46 @@ button:not(:disabled):hover {
 
 .topbar .eyebrow {
   letter-spacing: 0.15px;
+}
+
+.topbarMeta {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.signedInBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(100%, 360px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 8px 10px;
+  box-shadow: 0 12px 24px rgba(75, 52, 33, 0.08);
+}
+
+.signedInBadge > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.signedInBadge strong,
+.signedInBadge small {
+  overflow-wrap: anywhere;
+}
+
+.signedInBadge strong {
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.signedInBadge small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .brand {
@@ -308,6 +444,21 @@ h2 {
   font-style: normal;
 }
 
+.youBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  border: 1px solid #9dd0b8;
+  border-radius: 999px;
+  background: #e8f5ee;
+  color: #0d5c3d;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .scoreGrid,
 .runnerGrid {
   display: grid;
@@ -386,6 +537,17 @@ h2 {
   gap: 12px;
   margin-bottom: 7px;
   font-size: 14px;
+}
+
+.totalLabel > span {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+}
+
+.currentRunnerRow .meter {
+  box-shadow: 0 0 0 2px rgba(24, 132, 93, 0.14);
 }
 
 .meter {
@@ -677,6 +839,12 @@ input:invalid:not(:placeholder-shown) {
   padding: 10px;
 }
 
+.currentMemberPill,
+.currentRunRow {
+  border-color: #9dd0b8;
+  background: #f3fbf6;
+}
+
 .memberIdentity {
   display: flex;
   align-items: center;
@@ -691,6 +859,12 @@ input:invalid:not(:placeholder-shown) {
 .memberIdentity strong,
 .memberIdentity span:not(.runnerBadge) {
   overflow-wrap: anywhere;
+}
+
+.memberIdentity strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .memberPill span:not(.runnerBadge) {
@@ -714,6 +888,20 @@ input:invalid:not(:placeholder-shown) {
 
 .runnerCard {
   border-top: 4px solid var(--runner-color);
+}
+
+.currentRunnerCard {
+  box-shadow: 0 18px 44px rgba(24, 132, 93, 0.14);
+}
+
+.currentRunnerCard:hover {
+  box-shadow: 0 22px 52px rgba(24, 132, 93, 0.18);
+}
+
+.runnerCard .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .goalMeter {
@@ -743,6 +931,13 @@ input:invalid:not(:placeholder-shown) {
   color: white;
   font-weight: 900;
   transition: transform var(--anim-normal) var(--ease-spring), box-shadow var(--anim-normal) var(--ease-smooth);
+}
+
+.smallBadge {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  font-size: 14px;
 }
 
 .runnerBadge:hover {
@@ -980,6 +1175,7 @@ input:invalid:not(:placeholder-shown) {
 .runDetails > div {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
@@ -1223,6 +1419,14 @@ input:invalid:not(:placeholder-shown) {
     align-items: stretch;
   }
 
+  .topbarMeta {
+    justify-items: stretch;
+  }
+
+  .signedInBadge {
+    width: 100%;
+  }
+
   .headToHead {
     width: 100%;
   }
@@ -1274,6 +1478,16 @@ input:invalid:not(:placeholder-shown) {
   .brandMark {
     width: 56px;
     height: 56px;
+  }
+
+  .welcomeIdentity {
+    align-items: flex-start;
+  }
+
+  .welcomeBadge {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
   }
 
   .eyebrow {
