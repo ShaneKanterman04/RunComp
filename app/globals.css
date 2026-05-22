@@ -1403,15 +1403,34 @@ input:invalid:not(:placeholder-shown) {
 .reactionBar button {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-height: 32px;
+  justify-content: center;
+  gap: 6px;
+  min-width: 42px;
+  min-height: 38px;
   border: 1px solid #ebe4d7;
   border-radius: 999px;
   background: #fff;
   color: var(--muted);
-  padding: 5px 8px;
-  font-size: 11px;
+  padding: 6px 9px;
+  font-size: 12px;
   font-weight: 900;
+}
+
+.reactionEmoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.reactionBar strong {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 999px;
+  background: #f3efe6;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1;
 }
 
 .reactionBar .reacted {
@@ -1419,6 +1438,11 @@ input:invalid:not(:placeholder-shown) {
   background: #fff7d7;
   color: #6e5520;
   animation: popIn 0.2s var(--ease-spring) both;
+}
+
+.reactionBar .reacted strong {
+  background: #f4d986;
+  color: #5d4313;
 }
 
 .runRow .runDetails {

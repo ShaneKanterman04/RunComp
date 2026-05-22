@@ -1651,27 +1651,32 @@ const reactionLabels: Record<ReactionType, string> = {
 };
 
 const reactionIcons: Record<ReactionType, string> = {
-  fire: "Fire",
-  nice: "Nice",
-  brutal: "Hard",
-  sus: "Sus",
+  fire: "🔥",
+  nice: "👏",
+  brutal: "💀",
+  sus: "👀",
 };
 
 function ReactionBar({ reactions, onReact }: { reactions: RunReaction[]; onReact: (reaction: ReactionType) => void }) {
   return (
     <div className="reactionBar" aria-label="Run reactions">
-      {reactions.map((reaction) => (
-        <button
-          className={reaction.reactedByMe ? "reacted" : ""}
-          type="button"
-          key={reaction.type}
-          onClick={() => onReact(reaction.type)}
-          title={reactionLabels[reaction.type]}
-        >
-          <span>{reactionIcons[reaction.type]}</span>
-          {reaction.count > 0 && <strong>{reaction.count}</strong>}
-        </button>
-      ))}
+      {reactions.map((reaction) => {
+        const label = reactionLabels[reaction.type];
+        return (
+          <button
+            className={reaction.reactedByMe ? "reacted" : ""}
+            type="button"
+            key={reaction.type}
+            onClick={() => onReact(reaction.type)}
+            title={label}
+            aria-label={`${label} reaction${reaction.count > 0 ? `, ${reaction.count}` : ""}`}
+            aria-pressed={reaction.reactedByMe}
+          >
+            <span className="reactionEmoji" aria-hidden="true">{reactionIcons[reaction.type]}</span>
+            {reaction.count > 0 && <strong>{reaction.count}</strong>}
+          </button>
+        );
+      })}
     </div>
   );
 }
