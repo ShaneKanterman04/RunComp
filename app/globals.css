@@ -478,6 +478,26 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
+.lineupHeader {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+}
+
+.lineupHeader h2 {
+  margin-bottom: 0;
+}
+
+.lineupHeader > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: right;
+}
+
 .mobilePane {
   display: contents;
 }
@@ -1211,21 +1231,138 @@ input:invalid:not(:placeholder-shown) {
 }
 
 .runnerCard {
-  border-top: 4px solid var(--runner-color);
+  position: relative;
+  display: grid;
+  gap: 14px;
+  overflow: hidden;
+  border-top: 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--runner-color), white 82%), rgba(255, 255, 255, 0.92) 42%),
+    var(--surface);
+}
+
+.runnerCard::after {
+  content: "";
+  position: absolute;
+  right: -54px;
+  top: -54px;
+  width: 132px;
+  height: 132px;
+  border: 18px solid color-mix(in srgb, var(--runner-color), transparent 72%);
+  border-radius: 999px;
+  pointer-events: none;
 }
 
 .currentRunnerCard {
-  box-shadow: 0 18px 44px rgba(24, 132, 93, 0.14);
+  border-color: color-mix(in srgb, var(--runner-color), white 22%);
+  box-shadow: 0 18px 44px color-mix(in srgb, var(--runner-color), transparent 84%);
 }
 
 .currentRunnerCard:hover {
-  box-shadow: 0 22px 52px rgba(24, 132, 93, 0.18);
+  box-shadow: 0 22px 52px color-mix(in srgb, var(--runner-color), transparent 80%);
 }
 
-.runnerCard .eyebrow {
+.playerCardTop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: color-mix(in srgb, var(--runner-color), black 38%);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.playerCardHero {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.playerPortrait {
+  display: grid;
+  width: 86px;
+  height: 104px;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--runner-color), black 12%);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.9), transparent 32%),
+    var(--runner-color);
+  color: white;
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--runner-color), transparent 72%);
+}
+
+.playerPortrait span {
+  font-size: 28px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.playerPortrait strong {
+  align-self: end;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  padding: 7px 0;
+  background: rgba(23, 32, 27, 0.18);
+  font-size: 13px;
+  text-align: center;
+}
+
+.playerIdentity {
+  min-width: 0;
+}
+
+.playerIdentity .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+}
+
+.playerIdentity h2 {
+  margin-bottom: 10px;
+  overflow-wrap: anywhere;
+}
+
+.playerTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.playerTags span {
+  border: 1px solid color-mix(in srgb, var(--runner-color), white 38%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--runner-color), black 42%);
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.cardTotalBlock {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 2px;
+}
+
+.cardTotalBlock span,
+.cardTotalBlock small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cardTotalBlock strong {
+  font-size: 34px;
+  line-height: 0.95;
 }
 
 .goalMeter {
@@ -1233,7 +1370,7 @@ input:invalid:not(:placeholder-shown) {
   overflow: hidden;
   border-radius: 999px;
   background: #ece5d7;
-  margin: 0 0 14px;
+  margin: 0;
 }
 
 .goalMeter span {
@@ -1269,22 +1406,51 @@ input:invalid:not(:placeholder-shown) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.statRows {
+.cardStatGrid {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
-.statRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  border-bottom: 1px solid var(--line);
-  padding: 9px 0;
-  color: var(--muted);
-  font-size: 14px;
+.cardStat {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--runner-color), white 52%);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 8px;
 }
 
-.statRow strong {
+.cardStat span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.cardStat strong {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.cardFinePrint {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cardFinePrint span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cardFinePrint strong {
   color: var(--ink);
 }
 

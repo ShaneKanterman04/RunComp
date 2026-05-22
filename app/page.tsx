@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, FormEvent, ReactNode } from "react";
+import type { CSSProperties, FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Confetti } from "./components/Confetti";
 import { ToastContainer, type ToastMessage } from "./components/Toast";
@@ -958,7 +958,14 @@ export default function Home() {
 
         <div className={`mobilePane mobilePane--group ${mobileTab === "group" ? "isActive" : ""}`}>
           <section className="runnerGrid">
-          {members.map((member) => (
+          <div className="lineupHeader">
+            <div>
+              <p className="eyebrow">Runner cards</p>
+              <h2>Family lineup</h2>
+            </div>
+            <span>{members.length} runner{members.length === 1 ? "" : "s"} · sorted by total miles</span>
+          </div>
+          {standings.map((member, index) => (
             <RunnerCard
               key={member.id}
               member={member}
@@ -967,6 +974,8 @@ export default function Home() {
               stats={stats[member.id] || emptyStats()}
               goalMiles={goalMiles}
               isCurrentUser={member.id === session.member.id}
+              raceRank={index + 1}
+              weekRank={weekStandings.findIndex((row) => row.id === member.id) + 1}
             />
           ))}
           </section>
@@ -1689,6 +1698,8 @@ function RunnerCard({
   stats,
   goalMiles,
   isCurrentUser,
+  raceRank,
+  weekRank,
 }: {
   member: Member;
   members: Member[];
@@ -1696,39 +1707,53 @@ function RunnerCard({
   stats: RunnerStats;
   goalMiles: number;
   isCurrentUser: boolean;
+  raceRank: number;
+  weekRank: number;
 }) {
   const badges = buildBadges(stats, runs, member.id);
   const progress = raceProgress(stats.total, goalMiles);
   const strip = buildStreakStrip(runs, member.id);
   const heatmap = buildHeatmapWeeks(runs, member.id);
+  const cardColor = colorForMember(member, members);
   return (
-    <section className={`panel runnerCard ${isCurrentUser ? "currentRunnerCard" : ""}`} style={{ borderTopColor: colorForMember(member, members) }}>
-      <div className="sectionHead">
-        <div>
-          <p className="eyebrow">{member.name}{isCurrentUser && <YouBadge />}</p>
-          <h2><AnimatedMiles value={stats.total} /></h2>
-          <p className="muted">{formatMiles(progress.remaining)} to goal</p>
+    <section className={`panel runnerCard ${isCurrentUser ? "currentRunnerCard" : ""}`} style={{ "--runner-color": cardColor } as CSSProperties}>
+      <div className="playerCardTop">
+        <span>RC-{String(raceRank).padStart(2, "0")}</span>
+        <span>{member.role === "owner" ? "Owner" : "Runner"}</span>
+      </div>
+      <div className="playerCardHero">
+        <div className="playerPortrait" aria-hidden="true">
+          <span>{initialsForName(member.name)}</span>
+          <strong>#{raceRank}</strong>
         </div>
-        <div className="runnerBadge" style={runnerStyle(member, members)}>{member.name.slice(0, 1)}</div>
+        <div className="playerIdentity">
+          <p className="eyebrow">Race rank #{raceRank}{isCurrentUser && <YouBadge />}</p>
+          <h2>{member.name}</h2>
+          <div className="playerTags">
+            <span>Week #{weekRank || "-"}</span>
+            <span>{stats.streak} day streak</span>
+          </div>
+        </div>
+      </div>
+      <div className="cardTotalBlock">
+        <span>Total miles</span>
+        <strong><AnimatedMiles value={stats.total} /></strong>
+        <small>{formatMiles(progress.remaining)} to goal</small>
       </div>
       <div className="goalMeter" aria-label={`${member.name} race progress`}>
-        <span style={{ ...runnerStyle(member, members), width: `${Math.max(3, progress.percent)}%` }} />
+        <span style={{ width: `${Math.max(3, progress.percent)}%` }} />
       </div>
-      <div className="statRows">
-        <StatRow label="This week" value={formatMiles(stats.week)} />
-        <StatRow label="This month" value={formatMiles(stats.month)} />
-        <StatRow label="Runs logged" value={String(stats.runCount)} />
-        <StatRow label="Average run" value={formatMiles(stats.average)} />
-        <StatRow label="Longest run" value={formatMiles(stats.longest)} />
-        <StatRow label="Average pace" value={formatPace(stats.averagePace)} />
-        <StatRow label="Best pace" value={formatPace(stats.bestPace)} />
-        <StatRow label="Timed runs" value={stats.timedRunCount ? `${stats.timedRunCount} · ${formatMiles(stats.timedMiles)}` : "-"} />
-        <StatRow
-          label="Streak"
-          value={stats.streak >= 3 ? (
-            <span className="streakFire">{stats.streak} day{stats.streak === 1 ? "" : "s"}</span>
-          ) : `${stats.streak} day${stats.streak === 1 ? "" : "s"}`}
-        />
+      <div className="cardStatGrid">
+        <CardStat label="Week" value={formatMiles(stats.week)} />
+        <CardStat label="Month" value={formatMiles(stats.month)} />
+        <CardStat label="Runs" value={String(stats.runCount)} />
+        <CardStat label="Avg" value={formatMiles(stats.average)} />
+        <CardStat label="Long" value={formatMiles(stats.longest)} />
+        <CardStat label="Pace" value={formatPace(stats.averagePace)} />
+      </div>
+      <div className="cardFinePrint">
+        <span>Best pace: <strong>{formatPace(stats.bestPace)}</strong></span>
+        <span>Timed: <strong>{stats.timedRunCount ? `${stats.timedRunCount} · ${formatMiles(stats.timedMiles)}` : "-"}</strong></span>
       </div>
       <div className="streakStrip" aria-label={`${member.name} last 7 days`}>
         {strip.map((day) => (
@@ -1743,6 +1768,15 @@ function RunnerCard({
       <BadgeStrip badges={badges} />
       <p className="lastRun">{stats.lastRun ? `Last run: ${formatDate(stats.lastRun)}` : "No runs logged yet"}</p>
     </section>
+  );
+}
+
+function CardStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="cardStat">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 
@@ -1891,17 +1925,17 @@ function YouBadge() {
   return <span className="youBadge">You</span>;
 }
 
-function StatRow({ label, value }: { label: string; value: string | ReactNode }) {
-  return (
-    <div className="statRow">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
 function runnerStyle(member: Member, members: Member[]) {
   return { "--runner-color": colorForMember(member, members) } as CSSProperties;
+}
+
+function initialsForName(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  return parts
+    .slice(0, 2)
+    .map((part) => part.slice(0, 1).toUpperCase())
+    .join("");
 }
 
 function colorForMember(member: Member, members: Member[]) {
