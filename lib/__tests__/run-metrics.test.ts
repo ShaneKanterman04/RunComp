@@ -1,6 +1,8 @@
 import {
   buildBadges,
   buildChartDays,
+  buildComebackTargets,
+  buildFeedEvents,
   buildHeatmapWeeks,
   buildStats,
   buildStreakStrip,
@@ -130,6 +132,7 @@ describe("run metrics", () => {
     expect(badges.map((badge) => badge.id)).toEqual([
       "first-run",
       "five-k",
+      "first-5k",
       "ten-mile-week",
       "ten-k-pr",
       "main-character",
@@ -169,12 +172,14 @@ describe("run metrics", () => {
     expect(badges.map((badge) => badge.id)).toEqual([
       "first-run",
       "five-k",
+      "first-5k",
       "suspiciously-fast",
       "weekend-warrior",
       "touched-grass",
       "hamster-wheel",
       "early-bird",
       "we-are-back",
+      "new-longest",
     ]);
   });
 
@@ -194,11 +199,44 @@ describe("run metrics", () => {
     expect(recap.totalMiles).toBe(13);
     expect(recap.runCount).toBe(3);
     expect(recap.activeRunnerCount).toBe(2);
+    expect(recap.headline).toBe("Shane made the biggest jump this week.");
     expect(recap.topRunner).toEqual({ name: "Shane", miles: 7 });
     expect(recap.biggestRun).toEqual({ runner: "Molly", miles: 6, note: "closing the gap" });
     expect(recap.mostConsistent).toEqual({ name: "Shane", runCount: 2 });
     expect(recap.fastestPace).toEqual({ name: "Molly", secondsPerMile: 450 });
     expect(recap.crowdFavorite).toEqual({ runner: "Molly", reactionCount: 3, note: "closing the gap" });
+    expect(recap.mostImproved).toEqual({ name: "Shane", deltaMiles: 7 });
+    expect(recap.bestStreak).toEqual({ name: "Shane", days: 1 });
+  });
+
+  it("builds comeback targets", () => {
+    const targets = buildComebackTargets(
+      [
+        { id: "1", memberId: "shane", miles: 10, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 7.5, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+      ],
+      members,
+    );
+
+    expect(targets[0]).toMatchObject({ memberId: "shane", rank: 1, isLeader: true, leaderGap: 0 });
+    expect(targets[1]).toMatchObject({ memberId: "molly", rank: 2, targetName: "Shane", milesToPass: 2.51, leaderGap: 2.5 });
+  });
+
+  it("builds feed events for milestones, lead changes, and achievements", () => {
+    const events = buildFeedEvents(
+      [
+        { id: "1", memberId: "shane", miles: 4, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 6, date: "2026-05-21", createdAt: "2026-05-21T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: 3, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+      ],
+      members,
+      100,
+    );
+
+    expect(events.some((event) => event.type === "milestone" && event.title === "Molly hit 5 total miles")).toBe(true);
+    expect(events.some((event) => event.type === "lead-change" && event.title === "Molly took the lead")).toBe(true);
+    expect(events.some((event) => event.type === "achievement" && event.title === "Molly unlocked First 5K")).toBe(true);
+    expect(events.some((event) => event.type === "achievement" && event.title === "Family goal week unlocked")).toBe(true);
   });
 
   it("builds streak strips and heatmaps", () => {

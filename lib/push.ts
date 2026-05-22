@@ -19,16 +19,32 @@ export async function getVapidPublicKey() {
 }
 
 export async function notifyRunLogged(groupId: string, run: PublicRunEntry) {
+  await sendGroupPush(
+    groupId,
+    JSON.stringify({
+      title: `${run.runner} logged ${formatMiles(run.miles)}`,
+      body: `${run.note || "New family run"}${run.durationSeconds ? ` at ${formatPace(run.durationSeconds / run.miles)}` : ""}`,
+      url: "/",
+      tag: `run-${run.id}`,
+    }),
+  );
+}
+
+export async function notifyLeadChanged(groupId: string, runner: string, totalMiles: number) {
+  await sendGroupPush(
+    groupId,
+    JSON.stringify({
+      title: `${runner} took the lead`,
+      body: `${formatMiles(totalMiles)} total miles. The race is moving.`,
+      url: "/",
+      tag: `lead-${runner}-${Math.round(totalMiles * 100)}`,
+    }),
+  );
+}
+
+async function sendGroupPush(groupId: string, payload: string) {
   const subscriptions = await listPushSubscriptions(groupId);
   if (subscriptions.length === 0) return;
-
-  const pace = run.durationSeconds ? ` at ${formatPace(run.durationSeconds / run.miles)}` : "";
-  const payload = JSON.stringify({
-    title: `${run.runner} logged ${formatMiles(run.miles)}`,
-    body: `${run.note || "New family run"}${pace}`,
-    url: "/",
-    tag: `run-${run.id}`,
-  });
 
   await configureWebPush();
   await Promise.all(

@@ -15,6 +15,18 @@ export type MetricRunEntry = {
   createdAt: string;
 };
 
+export type FeedEvent = {
+  id: string;
+  type: "milestone" | "lead-change" | "streak" | "achievement";
+  title: string;
+  body: string;
+  date: string;
+  createdAt: string;
+  memberId?: string;
+  runId?: string;
+  tone: "gold" | "green" | "rose" | "blue";
+};
+
 export type RunnerStats = {
   total: number;
   week: number;
@@ -42,6 +54,7 @@ export type WeeklyRecap = {
   totalMiles: number;
   runCount: number;
   activeRunnerCount: number;
+  headline: string;
   topRunner?: {
     name: string;
     miles: number;
@@ -64,6 +77,25 @@ export type WeeklyRecap = {
     reactionCount: number;
     note: string;
   };
+  mostImproved?: {
+    name: string;
+    deltaMiles: number;
+  };
+  bestStreak?: {
+    name: string;
+    days: number;
+  };
+};
+
+export type ComebackTarget = {
+  memberId: string;
+  name: string;
+  total: number;
+  rank: number;
+  targetName?: string;
+  milesToPass?: number;
+  leaderGap: number;
+  isLeader: boolean;
 };
 
 export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], memberId?: string): AchievementBadge[] {
@@ -72,12 +104,14 @@ export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], mem
   const notes = runnerRuns.map((run) => run.note?.toLowerCase() || "");
   if (stats.runCount > 0) badges.push({ id: "first-run", label: "First run", tone: "green" });
   if (stats.longest >= 3.1) badges.push({ id: "five-k", label: "5K logged", tone: "green" });
+  if (stats.longest >= 3.1) badges.push({ id: "first-5k", label: "First 5K", tone: "green" });
   if (stats.week >= 10) badges.push({ id: "ten-mile-week", label: "10 mi week", tone: "blue" });
   if (stats.longest >= 6.2) badges.push({ id: "ten-k-pr", label: "10K run", tone: "rose" });
   if (stats.longest >= 7) badges.push({ id: "main-character", label: "Main character run", tone: "gold" });
   if (stats.total >= 25) badges.push({ id: "twenty-five", label: "25 total", tone: "gold" });
   if (stats.total >= 50) badges.push({ id: "fifty", label: "50 total", tone: "gold" });
   if (stats.runCount >= 5) badges.push({ id: "consistent", label: "Keeps showing up", tone: "blue" });
+  if (runnerRuns.filter((run) => parseRunDate(run.date) >= startOfWeek(new Date())).length >= 3) badges.push({ id: "three-run-week", label: "3-run week", tone: "blue" });
   if (stats.streak >= 3) badges.push({ id: "three-streak", label: "3-day streak", tone: "rose" });
   if (stats.streak >= 7) badges.push({ id: "seven-streak", label: "7-day streak", tone: "rose" });
   if (stats.bestPace && stats.bestPace <= 8 * 60) badges.push({ id: "suspiciously-fast", label: "Suspiciously fast", tone: "rose" });
@@ -86,6 +120,7 @@ export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], mem
   if (notes.some((note) => /treadmill|indoor/.test(note))) badges.push({ id: "hamster-wheel", label: "Hamster wheel", tone: "rose" });
   if (notes.some((note) => /morning|sunrise|early/.test(note))) badges.push({ id: "early-bird", label: "Early bird", tone: "gold" });
   if (hasComebackGap(runnerRuns)) badges.push({ id: "we-are-back", label: "We're so back", tone: "green" });
+  if (hasNewLongestRun(runnerRuns)) badges.push({ id: "new-longest", label: "Longest PR", tone: "gold" });
   return badges;
 }
 
@@ -114,12 +149,36 @@ export function buildWeeklyRecap(runs: MetricRunEntry[], members: MetricMember[]
     .map((run) => ({ run, reactionCount: reactionCount(run) }))
     .filter((row) => row.reactionCount > 0)
     .sort((a, b) => b.reactionCount - a.reactionCount || b.run.miles - a.run.miles)[0];
+  const previousWeekStart = new Date(weekStart);
+  previousWeekStart.setDate(weekStart.getDate() - 7);
+  const previousWeekRuns = runs.filter((run) => {
+    const date = parseRunDate(run.date);
+    return date >= previousWeekStart && date < weekStart;
+  });
+  const previousTotals = totalsByMember(previousWeekRuns);
+  const mostImprovedEntry = [...totals.entries()]
+    .map(([memberId, miles]) => ({ memberId, deltaMiles: miles - (previousTotals.get(memberId) || 0) }))
+    .filter((row) => row.deltaMiles > 0)
+    .sort((a, b) => b.deltaMiles - a.deltaMiles)[0];
+  const stats = buildStats(runs, members, now);
+  const bestStreakEntry = members
+    .map((member) => ({ member, days: stats[member.id]?.streak || 0 }))
+    .filter((row) => row.days > 0)
+    .sort((a, b) => b.days - a.days || (stats[b.member.id]?.total || 0) - (stats[a.member.id]?.total || 0))[0];
+  const headline = buildRecapHeadline({
+    totalMiles: sumMiles(weekRuns),
+    runCount: weekRuns.length,
+    topRunner: topRunnerEntry ? memberName.get(topRunnerEntry[0]) || "Unknown" : undefined,
+    biggestRun: biggestRun ? memberName.get(biggestRun.memberId) || biggestRun.runner || "Unknown" : undefined,
+    mostImproved: mostImprovedEntry ? memberName.get(mostImprovedEntry.memberId) || "Unknown" : undefined,
+  });
 
   return {
     weekLabel: `${shortDate(toDateKey(weekStart))}-${shortDate(toDateKey(weekEnd))}`,
     totalMiles: sumMiles(weekRuns),
     runCount: weekRuns.length,
     activeRunnerCount: new Set(weekRuns.map((run) => run.memberId)).size,
+    headline,
     ...(topRunnerEntry
       ? { topRunner: { name: memberName.get(topRunnerEntry[0]) || "Unknown", miles: topRunnerEntry[1] } }
       : {}),
@@ -141,7 +200,146 @@ export function buildWeeklyRecap(runs: MetricRunEntry[], members: MetricMember[]
           },
         }
       : {}),
+    ...(mostImprovedEntry
+      ? { mostImproved: { name: memberName.get(mostImprovedEntry.memberId) || "Unknown", deltaMiles: mostImprovedEntry.deltaMiles } }
+      : {}),
+    ...(bestStreakEntry ? { bestStreak: { name: bestStreakEntry.member.name, days: bestStreakEntry.days } } : {}),
   };
+}
+
+export function buildComebackTargets(runs: MetricRunEntry[], members: MetricMember[]): ComebackTarget[] {
+  const totals = new Map(members.map((member) => [member.id, sumMiles(runs.filter((run) => run.memberId === member.id))]));
+  const standings = [...members].sort((a, b) => (totals.get(b.id) || 0) - (totals.get(a.id) || 0));
+  const leaderTotal = totals.get(standings[0]?.id || "") || 0;
+  return standings.map((member, index) => {
+    const total = totals.get(member.id) || 0;
+    const target = standings[index - 1];
+    const targetTotal = target ? totals.get(target.id) || 0 : undefined;
+    const milesToPass = target && typeof targetTotal === "number" ? Math.max(0.01, targetTotal - total + 0.01) : undefined;
+    return {
+      memberId: member.id,
+      name: member.name,
+      total,
+      rank: index + 1,
+      ...(target ? { targetName: target.name, milesToPass } : {}),
+      leaderGap: Math.max(0, leaderTotal - total),
+      isLeader: index === 0,
+    };
+  });
+}
+
+export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[], goalMiles = 100): FeedEvent[] {
+  const sorted = sortRuns(runs).reverse();
+  const memberName = new Map(members.map((member) => [member.id, member.name]));
+  const totals = new Map<string, number>();
+  const streakDates = new Map<string, Set<string>>();
+  const weeklyMembers = new Map<string, Set<string>>();
+  const familyWeekEmitted = new Set<string>();
+  const events: FeedEvent[] = [];
+  let leaderId = "";
+
+  for (const run of sorted) {
+    const name = memberName.get(run.memberId) || run.runner || "Runner";
+    const previousTotal = totals.get(run.memberId) || 0;
+    const nextTotal = previousTotal + run.miles;
+    totals.set(run.memberId, nextTotal);
+
+    for (const milestone of [5, 10, 25, 50, 100, 250, 500, 1000]) {
+      if (previousTotal < milestone && nextTotal >= milestone) {
+        events.push({
+          id: `milestone-${run.id}-${milestone}`,
+          type: "milestone",
+          title: `${name} hit ${milestone} total miles`,
+          body: `${formatMiles(run.miles)} pushed ${name} over the mark.`,
+          date: run.date,
+          createdAt: run.createdAt,
+          memberId: run.memberId,
+          runId: run.id,
+          tone: "gold",
+        });
+      }
+    }
+
+    const achievement = achievementForRun(run, previousTotal);
+    if (achievement) {
+      events.push({
+        id: `achievement-${run.id}-${achievement.id}`,
+        type: "achievement",
+        title: `${name} unlocked ${achievement.label}`,
+        body: achievement.body,
+        date: run.date,
+        createdAt: run.createdAt,
+        memberId: run.memberId,
+        runId: run.id,
+        tone: achievement.tone,
+      });
+    }
+
+    const week = weekKey(run.date);
+    const weekSet = weeklyMembers.get(week) || new Set<string>();
+    weekSet.add(run.memberId);
+    weeklyMembers.set(week, weekSet);
+    if (members.length > 1 && weekSet.size === members.length && !familyWeekEmitted.has(week)) {
+      familyWeekEmitted.add(week);
+      events.push({
+        id: `achievement-family-week-${run.id}`,
+        type: "achievement",
+        title: "Family goal week unlocked",
+        body: "Every runner has miles on the board this week.",
+        date: run.date,
+        createdAt: run.createdAt,
+        memberId: run.memberId,
+        runId: run.id,
+        tone: "blue",
+      });
+    }
+
+    const currentLeader = [...totals.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+    if (currentLeader && currentLeader !== leaderId && leaderId) {
+      events.push({
+        id: `lead-${run.id}`,
+        type: "lead-change",
+        title: `${name} took the lead`,
+        body: `${formatMiles(nextTotal)} total in the first-to-${formatMiles(goalMiles)} race.`,
+        date: run.date,
+        createdAt: run.createdAt,
+        memberId: run.memberId,
+        runId: run.id,
+        tone: "green",
+      });
+    }
+    leaderId = currentLeader || leaderId;
+
+    const days = streakDates.get(run.memberId) || new Set<string>();
+    days.add(run.date);
+    streakDates.set(run.memberId, days);
+    const streak = currentStreak([...days].map((date) => ({ ...run, id: `${run.id}-${date}`, date })), parseRunDate(run.date));
+    if ([3, 7, 14, 30].includes(streak)) {
+      events.push({
+        id: `streak-${run.id}-${streak}`,
+        type: "streak",
+        title: `${name} is on a ${streak}-day streak`,
+        body: "The consistency card is getting stronger.",
+        date: run.date,
+        createdAt: run.createdAt,
+        memberId: run.memberId,
+        runId: run.id,
+        tone: "rose",
+      });
+    }
+  }
+
+  return sortRuns(events).slice(0, 20);
+}
+
+function achievementForRun(run: MetricRunEntry, previousTotal: number): { id: string; label: string; body: string; tone: FeedEvent["tone"] } | null {
+  const note = run.note?.toLowerCase() || "";
+  if (run.miles >= 6.2) return { id: "ten-k", label: "10K Run", body: `${formatMiles(run.miles)} in one go.`, tone: "rose" };
+  if (run.miles >= 3.1 && previousTotal < 3.1) return { id: "first-5k", label: "First 5K", body: "That is a real-deal benchmark run.", tone: "green" };
+  if (isWeekend(run.date)) return { id: "weekend", label: "Weekend Run", body: "Weekend miles count double emotionally.", tone: "blue" };
+  if (/treadmill|indoor/.test(note)) return { id: "treadmill", label: "Treadmill Duty", body: "No weather excuses needed.", tone: "rose" };
+  if (/morning|sunrise|early/.test(note)) return { id: "early", label: "Early Start", body: "Logged before the day got loud.", tone: "gold" };
+  return null;
 }
 
 export function raceProgress(total: number, goalMiles: number) {
@@ -307,6 +505,22 @@ export function sumMiles(runs: Pick<MetricRunEntry, "miles">[]) {
   return runs.reduce((total, run) => total + run.miles, 0);
 }
 
+function totalsByMember(runs: MetricRunEntry[]) {
+  const totals = new Map<string, number>();
+  for (const run of runs) {
+    totals.set(run.memberId, (totals.get(run.memberId) || 0) + run.miles);
+  }
+  return totals;
+}
+
+function buildRecapHeadline(input: { totalMiles: number; runCount: number; topRunner?: string; biggestRun?: string; mostImproved?: string }) {
+  if (input.runCount === 0) return "The starting line is quiet this week.";
+  if (input.totalMiles >= 25 && input.topRunner) return `${input.topRunner} powers a ${formatMiles(input.totalMiles)} family week.`;
+  if (input.mostImproved) return `${input.mostImproved} made the biggest jump this week.`;
+  if (input.biggestRun) return `${input.biggestRun} delivered the week's statement run.`;
+  return `${input.runCount} family run${input.runCount === 1 ? "" : "s"} kept the race moving.`;
+}
+
 function hasRunTime(run: MetricRunEntry): run is MetricRunEntry & { durationSeconds: number } {
   return typeof run.durationSeconds === "number" && Number.isFinite(run.durationSeconds) && run.durationSeconds > 0 && run.miles > 0;
 }
@@ -328,6 +542,22 @@ function hasComebackGap(runs: MetricRunEntry[]) {
     const days = (parseRunDate(run.date).getTime() - parseRunDate(previous.date).getTime()) / 86_400_000;
     return days >= 7;
   });
+}
+
+function hasNewLongestRun(runs: MetricRunEntry[]) {
+  const sorted = sortRuns(runs).reverse();
+  let best = 0;
+  return sorted.some((run, index) => {
+    const isPr = index > 0 && run.miles > best;
+    best = Math.max(best, run.miles);
+    return isPr;
+  });
+}
+
+function weekKey(date: string) {
+  const parsed = parseRunDate(date);
+  const week = startOfWeek(parsed);
+  return toDateKey(week);
 }
 
 export function startOfWeek(date: Date) {

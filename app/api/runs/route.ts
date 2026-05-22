@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
-import { notifyRunLogged } from "@/lib/push";
+import { notifyLeadChanged, notifyRunLogged } from "@/lib/push";
 import { addRun, deleteRun, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -41,8 +41,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Run time must be between 1 second and 48 hours." }, { status: 400 });
     }
 
+    const beforeRuns = await listRuns(session.group.id, session.member.id);
+    const beforeLeader = leaderForRuns(beforeRuns);
     const run = await addRun(session.group.id, session.member.id, { miles, date, note, durationSeconds });
     notifyRunLogged(session.group.id, run).catch((error) => console.warn("Could not send run notification", error));
+    const afterLeader = leaderForRuns(await listRuns(session.group.id, session.member.id));
+    if (afterLeader && beforeLeader && afterLeader.memberId !== beforeLeader.memberId) {
+      notifyLeadChanged(session.group.id, afterLeader.runner, afterLeader.total).catch((error) => console.warn("Could not send lead notification", error));
+    }
     return NextResponse.json({ run }, { status: 201 });
   } catch (error) {
     if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
@@ -66,8 +72,18 @@ export async function PATCH(request: Request) {
   }
 }
 
+function leaderForRuns(runs: Array<{ memberId: string; runner: string; miles: number }>) {
+  const totals = new Map<string, { memberId: string; runner: string; total: number }>();
+  for (const run of runs) {
+    const row = totals.get(run.memberId) || { memberId: run.memberId, runner: run.runner, total: 0 };
+    row.total += run.miles;
+    totals.set(run.memberId, row);
+  }
+  return [...totals.values()].sort((a, b) => b.total - a.total)[0] || null;
+}
+
 function isReactionType(value: string): value is ReactionType {
-  return value === "fire" || value === "nice" || value === "brutal" || value === "sus";
+  return value === "fire" || value === "nice" || value === "brutal" || value === "sus" || value === "respect" || value === "catching" || value === "monster" || value === "suspicious";
 }
 
 export async function DELETE(request: Request) {

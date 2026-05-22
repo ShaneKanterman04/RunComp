@@ -525,6 +525,9 @@ h2 {
 .showdown,
 .weeklyPanel,
 .logPanel,
+.comebackPanel,
+.rivalryPanel,
+.freezePanel,
 .groupPanel,
 .recapPanel,
 .runnerCard,
@@ -1067,6 +1070,58 @@ input:invalid:not(:placeholder-shown) {
   overflow-wrap: anywhere;
 }
 
+.comebackPanel {
+  display: grid;
+  gap: 6px;
+  border-color: #d8c27a;
+  background:
+    linear-gradient(135deg, rgba(255, 247, 215, 0.94), rgba(255, 255, 255, 0.9)),
+    var(--surface);
+}
+
+.comebackPanel h2 {
+  margin-bottom: 0;
+}
+
+.syncStatus,
+.syncInline {
+  margin: -6px 2px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.rivalryPanel {
+  display: grid;
+  gap: 6px;
+  border-color: #b7c8df;
+  background:
+    linear-gradient(135deg, rgba(238, 245, 251, 0.94), rgba(255, 255, 255, 0.9)),
+    var(--surface);
+}
+
+.rivalryPanel h2 {
+  margin-bottom: 0;
+}
+
+.freezePanel {
+  display: grid;
+  gap: 8px;
+  border-color: #9dd0b8;
+  background:
+    linear-gradient(135deg, rgba(232, 245, 238, 0.94), rgba(255, 255, 255, 0.9)),
+    var(--surface);
+}
+
+.freezePanel h2 {
+  margin-bottom: 0;
+}
+
+.freezePanel .ghostButton {
+  justify-self: start;
+}
+
 .groupPanel {
   margin-bottom: 18px;
 }
@@ -1087,6 +1142,13 @@ input:invalid:not(:placeholder-shown) {
   font-size: 12px;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.recapMeta {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .recapGrid {
@@ -1251,6 +1313,20 @@ input:invalid:not(:placeholder-shown) {
   border: 18px solid color-mix(in srgb, var(--runner-color), transparent 72%);
   border-radius: 999px;
   pointer-events: none;
+}
+
+.runnerCard--rare {
+  border-color: #b7c8df;
+}
+
+.runnerCard--epic {
+  border-color: #d3b6e6;
+  box-shadow: 0 18px 44px rgba(92, 68, 128, 0.13);
+}
+
+.runnerCard--legend {
+  border-color: #d8c27a;
+  box-shadow: 0 18px 48px rgba(158, 112, 27, 0.17);
 }
 
 .currentRunnerCard {
@@ -1452,6 +1528,60 @@ input:invalid:not(:placeholder-shown) {
 
 .cardFinePrint strong {
   color: var(--ink);
+}
+
+.cardComeback {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #d8c27a;
+  border-radius: 8px;
+  background: rgba(255, 247, 215, 0.76);
+  padding: 10px;
+}
+
+.cardComeback span,
+.cardComeback small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cardComeback strong {
+  overflow-wrap: anywhere;
+  color: #6e5520;
+  font-size: 15px;
+}
+
+.cardBack {
+  position: relative;
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--runner-color), white 48%);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+}
+
+.cardBack summary {
+  cursor: pointer;
+  color: color-mix(in srgb, var(--runner-color), black 35%);
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.cardBackGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cardBack p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .streakStrip {
@@ -1707,6 +1837,80 @@ input:invalid:not(:placeholder-shown) {
   gap: 10px;
 }
 
+.feedStack {
+  display: grid;
+  gap: 12px;
+}
+
+.eventList {
+  display: grid;
+  gap: 8px;
+}
+
+.eventRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ebe4d7;
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 10px;
+}
+
+.eventRow--gold {
+  border-left-color: #e9b84a;
+}
+
+.eventRow--green {
+  border-left-color: #18845d;
+}
+
+.eventRow--rose {
+  border-left-color: #d94f76;
+}
+
+.eventRow--blue {
+  border-left-color: #3f6fb5;
+}
+
+.eventIcon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--ink);
+  color: white;
+  font-weight: 950;
+}
+
+.eventRow strong,
+.eventRow p {
+  overflow-wrap: anywhere;
+}
+
+.eventRow strong {
+  display: block;
+  line-height: 1.15;
+}
+
+.eventRow p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.eventRow time {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .runRow {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -1818,6 +2022,40 @@ input:invalid:not(:placeholder-shown) {
 .reactionBar .reacted strong {
   background: #f4d986;
   color: #5d4313;
+}
+
+.calledShotBanner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d8c27a;
+  border-radius: 8px;
+  background: #fff7d7;
+  padding: 10px;
+}
+
+.calledShotBanner span {
+  color: #6e5520;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.calledShotBanner strong {
+  color: #5d4313;
+  font-size: 16px;
+}
+
+.calledShotBanner button {
+  min-height: 34px;
+  border: 1px solid rgba(110, 85, 32, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #6e5520;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .runRow .runDetails {
@@ -2176,6 +2414,9 @@ input:invalid:not(:placeholder-shown) {
   .panel.logPanel,
   .panel.mobileHeroPanel,
   .panel.homeRecentPanel,
+  .panel.comebackPanel,
+  .panel.rivalryPanel,
+  .panel.freezePanel,
   .panel.groupPanel,
   .panel.recapPanel,
   .panel.runnerCard,
@@ -2208,6 +2449,7 @@ input:invalid:not(:placeholder-shown) {
   .goalForm,
   .groupActions,
   .inviteBox,
+  .calledShotBanner,
   .runRow {
     grid-template-columns: 1fr;
   }

@@ -40,7 +40,7 @@ export type PublicRunEntry = Omit<RunEntry, "reactions"> & {
   reactions: PublicReaction[];
 };
 
-export type ReactionType = "fire" | "nice" | "brutal" | "sus";
+export type ReactionType = "fire" | "nice" | "brutal" | "sus" | "respect" | "catching" | "monster" | "suspicious";
 
 export type PublicReaction = {
   type: ReactionType;
@@ -479,7 +479,7 @@ function publicReactions(run: RunEntry, viewerMemberId?: string): PublicReaction
   }));
 }
 
-const reactionTypes = ["fire", "nice", "brutal", "sus"] as const;
+const reactionTypes = ["fire", "nice", "brutal", "sus", "respect", "catching", "monster", "suspicious"] as const;
 
 function validateReactionType(value: string): asserts value is ReactionType {
   if (!reactionTypes.includes(value as ReactionType)) {

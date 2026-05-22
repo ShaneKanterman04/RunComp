@@ -9,6 +9,8 @@ import packageInfo from "@/package.json";
 import {
   buildChartDays,
   buildBadges,
+  buildComebackTargets,
+  buildFeedEvents,
   buildHeatmapWeeks,
   buildStats,
   buildStreakStrip,
@@ -21,6 +23,8 @@ import {
   raceProgress,
   todayInput,
   type AchievementBadge,
+  type ComebackTarget,
+  type FeedEvent,
   type RunnerStats,
   type WeeklyRecap,
 } from "@/lib/run-metrics";
@@ -68,7 +72,7 @@ type RunEntry = {
   createdAt: string;
 };
 
-type ReactionType = "fire" | "nice" | "brutal" | "sus";
+type ReactionType = "fire" | "nice" | "brutal" | "sus" | "respect" | "catching" | "monster" | "suspicious";
 
 type RunReaction = {
   type: ReactionType;
@@ -79,10 +83,18 @@ type RunReaction = {
 type AuthPayload = SessionData | { authenticated: false; error?: string };
 type PushStatus = "checking" | "unsupported" | "off" | "subscribed" | "denied" | "busy";
 type MobileTab = "home" | "log" | "feed" | "group";
+type CalledShot = {
+  miles: number;
+  setAt: string;
+};
+
+type CardRarity = "base" | "rare" | "epic" | "legend";
 
 const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793", "#a94632", "#587443"];
 const recentGroupsKey = "runcomp:recent-groups";
 const pwaInstallSeenKey = "runcomp:pwa-install-seen";
+const calledShotKey = "runcomp:called-shot";
+const streakFreezePrefix = "runcomp:streak-freeze:";
 const appVersion = packageInfo.version;
 const runPollMs = 8000;
 const quickMileOptions = [
@@ -122,10 +134,15 @@ export default function Home() {
   const [memberCopySuccess, setMemberCopySuccess] = useState<Record<string, boolean>>({});
   const [pushStatus, setPushStatus] = useState<PushStatus>("checking");
   const [mobileTab, setMobileTab] = useState<MobileTab>("home");
+  const [calledShot, setCalledShot] = useState<CalledShot | null>(null);
+  const [streakFreezeUsed, setStreakFreezeUsed] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const pollingRunsRef = useRef(false);
 
   useEffect(() => {
     bootstrap();
+    setCalledShot(readCalledShot());
+    setStreakFreezeUsed(readStreakFreezeUsed());
   }, []);
 
   useEffect(() => {
@@ -189,6 +206,9 @@ export default function Home() {
   const stats = useMemo(() => buildStats(runs, members), [runs, members]);
   const chartDays = useMemo(() => buildChartDays(runs, members), [runs, members]);
   const weeklyRecap = useMemo(() => buildWeeklyRecap(runs, members), [runs, members]);
+  const comebackTargets = useMemo(() => buildComebackTargets(runs, members), [runs, members]);
+  const goalMiles = session?.group.goalMiles || 100;
+  const feedEvents = useMemo(() => buildFeedEvents(runs, members, goalMiles), [runs, members, goalMiles]);
   const standings = useMemo(
     () => [...members].sort((a, b) => (stats[b.id]?.total || 0) - (stats[a.id]?.total || 0)),
     [members, stats],
@@ -196,7 +216,6 @@ export default function Home() {
   const leader = standings[0] || null;
   const second = standings[1] || null;
   const gap = leader && second ? Math.abs((stats[leader.id]?.total || 0) - (stats[second.id]?.total || 0)) : 0;
-  const goalMiles = session?.group.goalMiles || 100;
   const leaderProgress = leader ? raceProgress(stats[leader.id]?.total || 0, goalMiles) : raceProgress(0, goalMiles);
   const myStats = session ? stats[session.member.id] || emptyStats() : emptyStats();
   const myProgress = raceProgress(myStats.total, goalMiles);
@@ -225,7 +244,9 @@ export default function Home() {
   const hasRuns = runs.length > 0;
   const hasMultipleMembers = members.length > 1;
   const latestRun = runs[0] || null;
+  const myComeback = session ? comebackTargets.find((target) => target.memberId === session.member.id) : undefined;
   const latestOwnRun = session ? runs.find((run) => run.memberId === session.member.id) : null;
+  const rivalry = weekLeader && weekSecond ? { leader: weekLeader, chaser: weekSecond, gap: weekGap } : null;
   const previewDurationSeconds = parseDurationInput(form.duration);
   const previewMiles = Number(form.miles);
   const previewPace = Number.isFinite(previewMiles) && previewMiles > 0 && previewDurationSeconds ? formatPace(previewDurationSeconds / previewMiles) : "";
@@ -270,6 +291,24 @@ export default function Home() {
     });
   }
 
+  function callShot() {
+    const miles = Number(form.miles);
+    if (!Number.isFinite(miles) || miles <= 0) {
+      setMessage("Pick miles first, then call your shot.");
+      return;
+    }
+    const shot = { miles, setAt: new Date().toISOString() };
+    setCalledShot(shot);
+    saveCalledShot(shot);
+    addToast(`Called shot: ${formatMiles(miles)}`, "success");
+  }
+
+  function useStreakFreeze() {
+    saveStreakFreezeUsed();
+    setStreakFreezeUsed(true);
+    addToast("Streak freeze saved for this month.", "success");
+  }
+
   async function bootstrap() {
     setCheckingSession(true);
     setMessage("");
@@ -307,6 +346,7 @@ export default function Home() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load runs.");
       setRuns((current) => (sameRunList(current, data.runs) ? current : data.runs));
+      setLastUpdatedAt(new Date());
     } catch (error) {
       if (silent) {
         console.warn("Could not refresh runs", error);
@@ -386,7 +426,13 @@ export default function Home() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not save run.");
       checkMilestones(data.run, stats);
+      if (calledShot && data.run.memberId === session.member.id && data.run.miles >= calledShot.miles) {
+        addToast(`Called shot hit: ${formatMiles(calledShot.miles)}`, "confetti");
+        setCalledShot(null);
+        saveCalledShot(null);
+      }
       setRuns((current) => [data.run, ...current]);
+      setLastUpdatedAt(new Date());
       setForm((current) => ({ ...current, miles: "", duration: "", note: "" }));
       setMessage(
         `${session.member.name} logged ${formatMiles(data.run.miles)}${data.run.durationSeconds ? ` at ${formatPace(data.run.durationSeconds / data.run.miles)}` : ""}.`,
@@ -694,6 +740,33 @@ export default function Home() {
               {latestRun?.note && <p className="homeRunNote">{latestRun.note}</p>}
             </section>
 
+            {lastUpdatedAt && (
+              <p className="syncStatus" aria-live="polite">
+                Updated {relativeSyncTime(lastUpdatedAt)}
+              </p>
+            )}
+
+            {myComeback && (
+              <section className="panel comebackPanel">
+                <p className="eyebrow">Comeback meter</p>
+                <h2>{comebackTitle(myComeback)}</h2>
+                <p className="muted">{comebackBody(myComeback)}</p>
+              </section>
+            )}
+
+            <section className="panel freezePanel">
+              <p className="eyebrow">Streak freeze</p>
+              <h2>{streakFreezeUsed ? "Freeze used this month" : "Monthly freeze ready"}</h2>
+              <p className="muted">
+                {streakFreezeUsed
+                  ? "Your family mercy rule is marked for this month."
+                  : "Use this when life gets in the way and you want one missed day forgiven."}
+              </p>
+              <button className="ghostButton" type="button" onClick={useStreakFreeze} disabled={streakFreezeUsed}>
+                {streakFreezeUsed ? "Already used" : "Use freeze"}
+              </button>
+            </section>
+
             <section className="panel showdown">
             <div>
               <p className="eyebrow">Current race</p>
@@ -749,6 +822,16 @@ export default function Home() {
               ))}
             </div>
             </section>
+
+            {rivalry && (
+              <section className="panel rivalryPanel">
+                <p className="eyebrow">Rivalry of the week</p>
+                <h2>{rivalry.leader.name} vs {rivalry.chaser.name}</h2>
+                <p className="muted">
+                  {rivalry.chaser.name} needs {formatMiles(rivalry.gap + 0.01)} this week to flip the matchup.
+                </p>
+              </section>
+            )}
           </div>
 
           <div className={`mobilePane mobilePane--log ${mobileTab === "log" ? "isActive" : ""}`}>
@@ -820,6 +903,18 @@ export default function Home() {
                   <strong>{previewPace || "Use minutes, mm:ss, or h:mm:ss"}</strong>
                 </div>
               )}
+              {calledShot && (
+                <div className="calledShotBanner wideField">
+                  <span>Called shot</span>
+                  <strong>{formatMiles(calledShot.miles)}</strong>
+                  <button type="button" onClick={() => { setCalledShot(null); saveCalledShot(null); }}>
+                    Clear
+                  </button>
+                </div>
+              )}
+              <button className="ghostButton wideField" type="button" onClick={callShot} disabled={!form.miles}>
+                Call this run
+              </button>
               <button className="primaryButton" disabled={saving || !form.miles}>
                 {saving ? "Saving..." : "Log run"}
               </button>
@@ -976,6 +1071,7 @@ export default function Home() {
               isCurrentUser={member.id === session.member.id}
               raceRank={index + 1}
               weekRank={weekStandings.findIndex((row) => row.id === member.id) + 1}
+              comeback={comebackTargets.find((target) => target.memberId === member.id)}
             />
           ))}
           </section>
@@ -1050,13 +1146,16 @@ export default function Home() {
               <h2>Run log</h2>
             </div>
             <span className="muted">{runs.length} entries</span>
+            {lastUpdatedAt && <span className="muted syncInline">Updated {relativeSyncTime(lastUpdatedAt)}</span>}
           </div>
           {loadingRuns ? (
             <p className="empty">Loading runs...</p>
           ) : runs.length === 0 ? (
             <p className="empty">{feedEmptyCopy}</p>
           ) : (
-            <div className="runList">
+            <div className="feedStack">
+              {feedEvents.length > 0 && <FeedEventList events={feedEvents} />}
+              <div className="runList">
               {runs.map((run, index) => {
                 const member = members.find((row) => row.id === run.memberId);
                 const isMyRun = run.memberId === session.member.id;
@@ -1085,6 +1184,7 @@ export default function Home() {
                   </article>
                 );
               })}
+              </div>
             </div>
           )}
           </section>
@@ -1532,6 +1632,63 @@ function shouldShowIosInstallGuide() {
   return isIosDevice();
 }
 
+function readCalledShot(): CalledShot | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(calledShotKey) || "null") as Partial<CalledShot> | null;
+    if (!parsed || typeof parsed.miles !== "number" || !Number.isFinite(parsed.miles) || parsed.miles <= 0 || typeof parsed.setAt !== "string") {
+      return null;
+    }
+    return { miles: parsed.miles, setAt: parsed.setAt };
+  } catch {
+    return null;
+  }
+}
+
+function saveCalledShot(shot: CalledShot | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!shot) {
+      window.localStorage.removeItem(calledShotKey);
+      return;
+    }
+    window.localStorage.setItem(calledShotKey, JSON.stringify(shot));
+  } catch {
+    // Called shots are local convenience state only.
+  }
+}
+
+function readStreakFreezeUsed() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(streakFreezeKey()) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function saveStreakFreezeUsed() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(streakFreezeKey(), "true");
+  } catch {
+    // Streak freeze is local fun state only.
+  }
+}
+
+function streakFreezeKey() {
+  const now = new Date();
+  return `${streakFreezePrefix}${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function relativeSyncTime(value: Date) {
+  const seconds = Math.max(0, Math.floor((Date.now() - value.getTime()) / 1000));
+  if (seconds < 10) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m ago`;
+}
+
 function rememberPwaInstallSeen() {
   if (typeof window === "undefined") return;
   try {
@@ -1700,6 +1857,7 @@ function RunnerCard({
   isCurrentUser,
   raceRank,
   weekRank,
+  comeback,
 }: {
   member: Member;
   members: Member[];
@@ -1709,17 +1867,22 @@ function RunnerCard({
   isCurrentUser: boolean;
   raceRank: number;
   weekRank: number;
+  comeback?: ComebackTarget;
 }) {
   const badges = buildBadges(stats, runs, member.id);
   const progress = raceProgress(stats.total, goalMiles);
   const strip = buildStreakStrip(runs, member.id);
   const heatmap = buildHeatmapWeeks(runs, member.id);
   const cardColor = colorForMember(member, members);
+  const nickname = runnerNickname(stats, runs, member.id);
+  const rarity = cardRarity(stats, badges);
+  const runnerRuns = runs.filter((run) => run.memberId === member.id);
+  const biggestWeek = biggestWeeklyTotal(runnerRuns);
   return (
-    <section className={`panel runnerCard ${isCurrentUser ? "currentRunnerCard" : ""}`} style={{ "--runner-color": cardColor } as CSSProperties}>
+    <section className={`panel runnerCard runnerCard--${rarity} ${isCurrentUser ? "currentRunnerCard" : ""}`} style={{ "--runner-color": cardColor } as CSSProperties}>
       <div className="playerCardTop">
         <span>RC-{String(raceRank).padStart(2, "0")}</span>
-        <span>{member.role === "owner" ? "Owner" : "Runner"}</span>
+        <span>{rarityLabel(rarity)}</span>
       </div>
       <div className="playerCardHero">
         <div className="playerPortrait" aria-hidden="true">
@@ -1730,6 +1893,7 @@ function RunnerCard({
           <p className="eyebrow">Race rank #{raceRank}{isCurrentUser && <YouBadge />}</p>
           <h2>{member.name}</h2>
           <div className="playerTags">
+            <span>{nickname}</span>
             <span>Week #{weekRank || "-"}</span>
             <span>{stats.streak} day streak</span>
           </div>
@@ -1755,6 +1919,13 @@ function RunnerCard({
         <span>Best pace: <strong>{formatPace(stats.bestPace)}</strong></span>
         <span>Timed: <strong>{stats.timedRunCount ? `${stats.timedRunCount} · ${formatMiles(stats.timedMiles)}` : "-"}</strong></span>
       </div>
+      {comeback && (
+        <div className="cardComeback">
+          <span>Comeback</span>
+          <strong>{comebackTitle(comeback)}</strong>
+          <small>{comebackBody(comeback)}</small>
+        </div>
+      )}
       <div className="streakStrip" aria-label={`${member.name} last 7 days`}>
         {strip.map((day) => (
           <span className={day.ran ? "ran" : ""} title={day.date} key={day.date}>{day.label}</span>
@@ -1766,9 +1937,63 @@ function RunnerCard({
         ))}
       </div>
       <BadgeStrip badges={badges} />
+      <details className="cardBack">
+        <summary>Card back</summary>
+        <div className="cardBackGrid">
+          <CardStat label="Longest" value={formatMiles(stats.longest)} />
+          <CardStat label="Best pace" value={formatPace(stats.bestPace)} />
+          <CardStat label="Big week" value={formatMiles(biggestWeek)} />
+          <CardStat label="Collection" value={rarityLabel(rarity)} />
+        </div>
+        <p>{member.name}'s title is {nickname}. {badges.length ? `${badges.length} achievement${badges.length === 1 ? "" : "s"} unlocked.` : "First achievement is still waiting."}</p>
+      </details>
       <p className="lastRun">{stats.lastRun ? `Last run: ${formatDate(stats.lastRun)}` : "No runs logged yet"}</p>
     </section>
   );
+}
+
+function runnerNickname(stats: RunnerStats, runs: RunEntry[], memberId: string) {
+  const runnerRuns = runs.filter((run) => run.memberId === memberId);
+  const notes = runnerRuns.map((run) => run.note.toLowerCase()).join(" ");
+  if (stats.bestPace && stats.bestPace <= 8 * 60) return "Pace Menace";
+  if (stats.streak >= 7) return "Streak Captain";
+  if (stats.week >= 10) return "Weekly Closer";
+  if (/treadmill|indoor/.test(notes)) return "Indoor Specialist";
+  if (/trail|park|outside|bridge/.test(notes)) return "Route Scout";
+  if (runnerRuns.some((run) => run.date && [0, 6].includes(new Date(`${run.date}T00:00:00`).getDay()))) return "Weekend Regular";
+  if (stats.runCount >= 5) return "Consistency Merchant";
+  return "Mileage Rookie";
+}
+
+function cardRarity(stats: RunnerStats, badges: AchievementBadge[]): CardRarity {
+  if (stats.total >= 100 || badges.length >= 10) return "legend";
+  if (stats.total >= 50 || badges.length >= 7) return "epic";
+  if (stats.total >= 25 || badges.length >= 4) return "rare";
+  return "base";
+}
+
+function rarityLabel(rarity: CardRarity) {
+  if (rarity === "legend") return "Legend card";
+  if (rarity === "epic") return "Epic card";
+  if (rarity === "rare") return "Rare card";
+  return "Base card";
+}
+
+function biggestWeeklyTotal(runs: RunEntry[]) {
+  const totals = new Map<string, number>();
+  for (const run of runs) {
+    const week = weekKey(run.date);
+    totals.set(week, (totals.get(week) || 0) + run.miles);
+  }
+  return Math.max(0, ...totals.values());
+}
+
+function weekKey(date: string) {
+  const parsed = new Date(`${date}T00:00:00`);
+  const day = parsed.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+  parsed.setDate(parsed.getDate() - diff);
+  return parsed.toISOString().slice(0, 10);
 }
 
 function CardStat({ label, value }: { label: string; value: string }) {
@@ -1790,9 +2015,14 @@ function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
           <h2>{hasRuns ? `${formatMiles(recap.totalMiles)} as a family` : "Fresh week"}</h2>
           <p className="muted">
             {hasRuns
-              ? `${recap.runCount} run${recap.runCount === 1 ? "" : "s"} from ${recap.activeRunnerCount} runner${recap.activeRunnerCount === 1 ? "" : "s"} · ${recap.weekLabel}`
+              ? recap.headline
               : `No runs logged yet for ${recap.weekLabel}.`}
           </p>
+          {hasRuns && (
+            <p className="recapMeta">
+              {recap.runCount} run{recap.runCount === 1 ? "" : "s"} from {recap.activeRunnerCount} runner{recap.activeRunnerCount === 1 ? "" : "s"} · {recap.weekLabel}
+            </p>
+          )}
         </div>
         {recap.topRunner && <span className="recapRibbon">{recap.topRunner.name} owns the week</span>}
       </div>
@@ -1815,6 +2045,8 @@ function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
             detail={recap.crowdFavorite?.note || "No reactions yet"}
           />
           {recap.fastestPace && <RecapCard label="Fastest pace" value={`${recap.fastestPace.name} · ${formatPace(recap.fastestPace.secondsPerMile)}`} detail="Timed runs only" />}
+          {recap.mostImproved && <RecapCard label="Most improved" value={`${recap.mostImproved.name} · +${formatMiles(recap.mostImproved.deltaMiles)}`} detail="Compared with last week" />}
+          {recap.bestStreak && <RecapCard label="Best streak" value={`${recap.bestStreak.name} · ${recap.bestStreak.days}`} detail="Current streak leader" />}
         </div>
       ) : (
         <p className="empty">Log the first run this week and the recap will fill itself in.</p>
@@ -1833,11 +2065,49 @@ function RecapCard({ label, value, detail }: { label: string; value: string; det
   );
 }
 
+function FeedEventList({ events }: { events: FeedEvent[] }) {
+  return (
+    <div className="eventList" aria-label="Family feed events">
+      {events.slice(0, 6).map((event) => (
+        <article className={`eventRow eventRow--${event.tone}`} key={event.id}>
+          <span className="eventIcon" aria-hidden="true">{eventIcon(event.type)}</span>
+          <div>
+            <strong>{event.title}</strong>
+            <p>{event.body}</p>
+          </div>
+          <time>{formatDate(event.date)}</time>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function eventIcon(type: FeedEvent["type"]) {
+  if (type === "lead-change") return "↑";
+  if (type === "streak") return "🔥";
+  if (type === "achievement") return "★";
+  return "🏁";
+}
+
+function comebackTitle(comeback: ComebackTarget) {
+  if (comeback.isLeader) return "Holding first place";
+  return `${formatMiles(comeback.milesToPass || 0.01)} to pass ${comeback.targetName}`;
+}
+
+function comebackBody(comeback: ComebackTarget) {
+  if (comeback.isLeader) return comeback.leaderGap > 0 ? "Protect the lead and make everyone chase." : "Set the pace for the family.";
+  return `${comeback.name} is ${formatMiles(comeback.leaderGap)} behind the leader.`;
+}
+
 const reactionLabels: Record<ReactionType, string> = {
   fire: "Fire",
   nice: "Nice",
   brutal: "Brutal",
   sus: "Sus",
+  respect: "Respect",
+  catching: "Catching up",
+  monster: "Monster run",
+  suspicious: "Suspicious pace",
 };
 
 const reactionIcons: Record<ReactionType, string> = {
@@ -1845,6 +2115,10 @@ const reactionIcons: Record<ReactionType, string> = {
   nice: "👏",
   brutal: "💀",
   sus: "👀",
+  respect: "🫡",
+  catching: "🏃",
+  monster: "💪",
+  suspicious: "🕵️",
 };
 
 function ReactionBar({ reactions, onReact }: { reactions: RunReaction[]; onReact: (reaction: ReactionType) => void }) {
@@ -1872,7 +2146,7 @@ function ReactionBar({ reactions, onReact }: { reactions: RunReaction[]; onReact
 }
 
 function emptyReactions(): RunReaction[] {
-  return (["fire", "nice", "brutal", "sus"] as ReactionType[]).map((type) => ({
+  return (["fire", "nice", "brutal", "sus", "respect", "catching", "monster", "suspicious"] as ReactionType[]).map((type) => ({
     type,
     count: 0,
     reactedByMe: false,

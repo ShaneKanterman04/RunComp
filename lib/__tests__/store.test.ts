@@ -94,7 +94,7 @@ describe("file-backed store", () => {
     expect(ownerRun.miles).toBe(3.26);
     expect(ownerRun.durationSeconds).toBe(1561);
     expect(ownerRun.note).toBe("tempo");
-    expect(ownerRun.reactions).toHaveLength(4);
+    expect(ownerRun.reactions).toHaveLength(8);
     expect(runs.map((run) => run.id)).toEqual([mollyRun.id, ownerRun.id]);
     await expect(store.deleteRun(group.id, molly.id, "member", ownerRun.id)).rejects.toMatchObject({ status: 403 });
     await expect(store.deleteRun(group.id, owner.id, "owner", mollyRun.id)).resolves.toBe(true);
