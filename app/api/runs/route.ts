@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
-import { notifyLeadChanged, notifyRunLogged } from "@/lib/push";
-import { addRun, deleteRun, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
+import { buildComebackTargets, buildFamilyChallenges } from "@/lib/run-metrics";
+import { notifyChallengeCompleted, notifyCloseToPass, notifyLeadChanged, notifyRunLogged } from "@/lib/push";
+import { addRun, claimChallengeCompletions, deleteRun, getGroupContext, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,9 +46,33 @@ export async function POST(request: Request) {
     const beforeLeader = leaderForRuns(beforeRuns);
     const run = await addRun(session.group.id, session.member.id, { miles, date, note, durationSeconds });
     notifyRunLogged(session.group.id, run).catch((error) => console.warn("Could not send run notification", error));
-    const afterLeader = leaderForRuns(await listRuns(session.group.id, session.member.id));
+    const afterRuns = await listRuns(session.group.id, session.member.id);
+    const afterLeader = leaderForRuns(afterRuns);
     if (afterLeader && beforeLeader && afterLeader.memberId !== beforeLeader.memberId) {
       notifyLeadChanged(session.group.id, afterLeader.runner, afterLeader.total).catch((error) => console.warn("Could not send lead notification", error));
+    }
+    const context = await getGroupContext(session.group.id, session.member.id);
+    if (context) {
+      const beforeCloseTarget = buildComebackTargets(beforeRuns, context.members).find((target) => target.memberId === session.member.id);
+      const afterCloseTarget = buildComebackTargets(afterRuns, context.members).find((target) => target.memberId === session.member.id);
+      if (
+        afterCloseTarget &&
+        !afterCloseTarget.isLeader &&
+        afterCloseTarget.targetName &&
+        afterCloseTarget.milesToPass &&
+        afterCloseTarget.milesToPass <= 1 &&
+        (!beforeCloseTarget || beforeCloseTarget.isLeader || !beforeCloseTarget.milesToPass || beforeCloseTarget.milesToPass > 1)
+      ) {
+        notifyCloseToPass(session.group.id, afterCloseTarget.name, afterCloseTarget.targetName, afterCloseTarget.milesToPass).catch((error) =>
+          console.warn("Could not send close-call notification", error),
+        );
+      }
+      const completedChallenges = buildFamilyChallenges(afterRuns, context.members, new Date(), context.group.goalMiles).filter((challenge) => challenge.complete);
+      const freshIds = await claimChallengeCompletions(session.group.id, completedChallenges.map((challenge) => challenge.id));
+      const fresh = new Set(freshIds);
+      for (const challenge of completedChallenges.filter((item) => fresh.has(item.id))) {
+        notifyChallengeCompleted(session.group.id, challenge).catch((error) => console.warn("Could not send challenge notification", error));
+      }
     }
     return NextResponse.json({ run }, { status: 201 });
   } catch (error) {

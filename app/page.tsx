@@ -10,6 +10,7 @@ import {
   buildChartDays,
   buildBadges,
   buildComebackTargets,
+  buildFamilyChallenges,
   buildFeedEvents,
   buildHeatmapWeeks,
   buildStats,
@@ -24,6 +25,7 @@ import {
   todayInput,
   type AchievementBadge,
   type ComebackTarget,
+  type FamilyChallenge,
   type FeedEvent,
   type RunnerStats,
   type WeeklyRecap,
@@ -137,6 +139,8 @@ export default function Home() {
   const [calledShot, setCalledShot] = useState<CalledShot | null>(null);
   const [streakFreezeUsed, setStreakFreezeUsed] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const [profileMemberId, setProfileMemberId] = useState("");
+  const [recapOpen, setRecapOpen] = useState(false);
   const pollingRunsRef = useRef(false);
 
   useEffect(() => {
@@ -203,12 +207,14 @@ export default function Home() {
   }, [session]);
 
   const members = session?.members || [];
+  const goalMiles = session?.group.goalMiles || 100;
   const stats = useMemo(() => buildStats(runs, members), [runs, members]);
   const chartDays = useMemo(() => buildChartDays(runs, members), [runs, members]);
   const weeklyRecap = useMemo(() => buildWeeklyRecap(runs, members), [runs, members]);
+  const challenges = useMemo(() => buildFamilyChallenges(runs, members, new Date(), goalMiles), [runs, members, goalMiles]);
   const comebackTargets = useMemo(() => buildComebackTargets(runs, members), [runs, members]);
-  const goalMiles = session?.group.goalMiles || 100;
   const feedEvents = useMemo(() => buildFeedEvents(runs, members, goalMiles), [runs, members, goalMiles]);
+  const profileMember = members.find((member) => member.id === profileMemberId) || null;
   const standings = useMemo(
     () => [...members].sort((a, b) => (stats[b.id]?.total || 0) - (stats[a.id]?.total || 0)),
     [members, stats],
@@ -674,6 +680,17 @@ export default function Home() {
     <>
       {showConfetti && <Confetti />}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      {profileMember && (
+        <RunnerProfileModal
+          member={profileMember}
+          members={members}
+          runs={runs}
+          stats={stats[profileMember.id] || emptyStats()}
+          goalMiles={goalMiles}
+          onClose={() => setProfileMemberId("")}
+        />
+      )}
+      {recapOpen && <WeeklyRecapModal recap={weeklyRecap} challenges={challenges} events={feedEvents} onClose={() => setRecapOpen(false)} />}
       <main className="app">
         <header className="topbar">
           <Brand eyebrow={session.group.name} />
@@ -751,6 +768,8 @@ export default function Home() {
                 {latestRun?.note && <p className="homeRunNote">{latestRun.note}</p>}
               </section>
             )}
+
+            {!groupNeedsFirstRun && <ChallengeProgressCard challenges={challenges} />}
 
             {lastUpdatedAt && (
               <p className="syncStatus" aria-live="polite">
@@ -941,7 +960,7 @@ export default function Home() {
             <NotificationPrompt status={pushStatus} groupName={session.group.name} onToggle={togglePushNotifications} />
           )}
 
-          <WeeklyRecapPanel recap={weeklyRecap} />
+          <WeeklyRecapPanel recap={weeklyRecap} challenges={challenges} events={feedEvents} onOpenFull={() => setRecapOpen(true)} />
         </div>
 
         <div className={`mobilePane mobilePane--group ${mobileTab === "group" ? "isActive" : ""}`}>
@@ -1084,6 +1103,7 @@ export default function Home() {
               raceRank={index + 1}
               weekRank={weekStandings.findIndex((row) => row.id === member.id) + 1}
               comeback={comebackTargets.find((target) => target.memberId === member.id)}
+              onOpenProfile={() => setProfileMemberId(member.id)}
             />
           ))}
           </section>
@@ -1920,6 +1940,7 @@ function RunnerCard({
   raceRank,
   weekRank,
   comeback,
+  onOpenProfile,
 }: {
   member: Member;
   members: Member[];
@@ -1930,6 +1951,7 @@ function RunnerCard({
   raceRank: number;
   weekRank: number;
   comeback?: ComebackTarget;
+  onOpenProfile: () => void;
 }) {
   const badges = buildBadges(stats, runs, member.id);
   const progress = raceProgress(stats.total, goalMiles);
@@ -1999,6 +2021,9 @@ function RunnerCard({
         ))}
       </div>
       <BadgeStrip badges={badges} />
+      <button className="ghostButton profileButton" type="button" onClick={onOpenProfile}>
+        View profile
+      </button>
       <details className="cardBack">
         <summary>Card back</summary>
         <div className="cardBackGrid">
@@ -2010,6 +2035,43 @@ function RunnerCard({
         <p>{member.name}'s title is {nickname}. {badges.length ? `${badges.length} achievement${badges.length === 1 ? "" : "s"} unlocked.` : "First achievement is still waiting."}</p>
       </details>
       <p className="lastRun">{stats.lastRun ? `Last run: ${formatDate(stats.lastRun)}` : "No runs logged yet"}</p>
+    </section>
+  );
+}
+
+function ChallengeProgressCard({ challenges }: { challenges: FamilyChallenge[] }) {
+  const completeCount = challenges.filter((challenge) => challenge.complete).length;
+  const featured = challenges.find((challenge) => !challenge.complete) || challenges[0];
+  if (!featured) return null;
+
+  return (
+    <section className="panel challengePanel">
+      <div className="sectionHead">
+        <div>
+          <p className="eyebrow">Family challenges</p>
+          <h2>{completeCount}/{challenges.length} complete this week</h2>
+          <p className="muted">{featured.complete ? "Everything active is checked off. Keep stacking miles." : featured.body}</p>
+        </div>
+        <span className={`challengeStatus ${featured.complete ? "isComplete" : ""}`}>{featured.complete ? "Complete" : "Active"}</span>
+      </div>
+      <div className="challengeList">
+        {challenges.map((challenge) => (
+          <article className={`challengeItem challengeItem--${challenge.tone} ${challenge.complete ? "isComplete" : ""}`} key={challenge.id}>
+            <div>
+              <strong>{challenge.title}</strong>
+              <span>{challenge.winner ? `${challenge.winner} leads` : challenge.label}</span>
+            </div>
+            <div className="challengeMeter" aria-label={`${challenge.title} progress`}>
+              <span style={{ width: `${Math.max(4, challenge.progress)}%` }} />
+            </div>
+            <small>
+              {challenge.type === "weekly-mileage" || challenge.type === "beat-last-week"
+                ? `${formatMiles(challenge.value)} / ${formatMiles(challenge.target)}`
+                : `${challenge.value} / ${challenge.target}`}
+            </small>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }
@@ -2067,10 +2129,22 @@ function CardStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
+function WeeklyRecapPanel({
+  recap,
+  challenges,
+  events,
+  onOpenFull,
+}: {
+  recap: WeeklyRecap;
+  challenges: FamilyChallenge[];
+  events: FeedEvent[];
+  onOpenFull: () => void;
+}) {
   const hasRuns = recap.runCount > 0;
+  const completedChallenges = challenges.filter((challenge) => challenge.complete);
+  const recapEvents = events.filter((event) => event.type === "challenge" || event.type === "lead-change" || event.type === "achievement").slice(0, 4);
   return (
-    <section className="panel recapPanel">
+    <section className="panel recapPanel recapScreen">
       <div className="sectionHead">
         <div>
           <p className="eyebrow">Weekly recap</p>
@@ -2086,7 +2160,12 @@ function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
             </p>
           )}
         </div>
-        {recap.topRunner && <span className="recapRibbon">{recap.topRunner.name} owns the week</span>}
+        <div className="recapActions">
+          {recap.topRunner && <span className="recapRibbon">{recap.topRunner.name} owns the week</span>}
+          <button className="ghostButton" type="button" onClick={onOpenFull}>
+            Open recap
+          </button>
+        </div>
       </div>
       {hasRuns ? (
         <div className="recapGrid">
@@ -2109,6 +2188,7 @@ function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
           {recap.fastestPace && <RecapCard label="Fastest pace" value={`${recap.fastestPace.name} · ${formatPace(recap.fastestPace.secondsPerMile)}`} detail="Timed runs only" />}
           {recap.mostImproved && <RecapCard label="Most improved" value={`${recap.mostImproved.name} · +${formatMiles(recap.mostImproved.deltaMiles)}`} detail="Compared with last week" />}
           {recap.bestStreak && <RecapCard label="Best streak" value={`${recap.bestStreak.name} · ${recap.bestStreak.days}`} detail="Current streak leader" />}
+          <RecapCard label="Challenges" value={`${completedChallenges.length}/${challenges.length}`} detail={completedChallenges[0]?.title || "No challenge winners yet"} />
         </div>
       ) : (
         <div className="recapEmpty">
@@ -2116,7 +2196,60 @@ function WeeklyRecapPanel({ recap }: { recap: WeeklyRecap }) {
           <p>Once somebody logs miles, this turns into the family highlight reel for {recap.weekLabel}.</p>
         </div>
       )}
+      {hasRuns && recapEvents.length > 0 && (
+        <div className="recapMoments">
+          <p className="eyebrow">Recap moments</p>
+          <FeedEventList events={recapEvents} limit={4} />
+        </div>
+      )}
     </section>
+  );
+}
+
+function WeeklyRecapModal({
+  recap,
+  challenges,
+  events,
+  onClose,
+}: {
+  recap: WeeklyRecap;
+  challenges: FamilyChallenge[];
+  events: FeedEvent[];
+  onClose: () => void;
+}) {
+  const completedChallenges = challenges.filter((challenge) => challenge.complete);
+  const moments = events.filter((event) => event.type !== "weekly-recap").slice(0, 8);
+
+  return (
+    <div className="modalLayer" role="dialog" aria-modal="true" aria-labelledby="weekly-recap-title">
+      <section className="weeklyRecapModal">
+        <div className="sectionHead">
+          <div>
+            <p className="eyebrow">Weekly recap</p>
+            <h2 id="weekly-recap-title">{recap.runCount > 0 ? recap.headline : "Fresh week"}</h2>
+            <p className="muted">{recap.weekLabel} · {recap.runCount} run{recap.runCount === 1 ? "" : "s"} · {formatMiles(recap.totalMiles)}</p>
+          </div>
+          <button className="ghostButton" type="button" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <div className="recapGrid">
+          <RecapCard label="Family total" value={formatMiles(recap.totalMiles)} detail={`${recap.activeRunnerCount} active runner${recap.activeRunnerCount === 1 ? "" : "s"}`} />
+          <RecapCard label="Top runner" value={recap.topRunner ? `${recap.topRunner.name} · ${formatMiles(recap.topRunner.miles)}` : "-"} detail="Most miles this week" />
+          <RecapCard label="Biggest run" value={recap.biggestRun ? `${recap.biggestRun.runner} · ${formatMiles(recap.biggestRun.miles)}` : "-"} detail={recap.biggestRun?.note || "Single-run high score"} />
+          <RecapCard label="Challenges" value={`${completedChallenges.length}/${challenges.length}`} detail={completedChallenges.map((challenge) => challenge.title).join(", ") || "No challenge winners yet"} />
+          {recap.mostImproved && <RecapCard label="Most improved" value={`${recap.mostImproved.name} · +${formatMiles(recap.mostImproved.deltaMiles)}`} detail="Compared with last week" />}
+          {recap.bestStreak && <RecapCard label="Best streak" value={`${recap.bestStreak.name} · ${recap.bestStreak.days}`} detail="Current streak leader" />}
+          {recap.crowdFavorite && <RecapCard label="Crowd favorite" value={`${recap.crowdFavorite.runner} · ${recap.crowdFavorite.reactionCount}`} detail={recap.crowdFavorite.note || "Most reactions"} />}
+        </div>
+        {moments.length > 0 && (
+          <div className="recapMoments">
+            <p className="eyebrow">Feed-style moments</p>
+            <FeedEventList events={moments} limit={8} />
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -2130,10 +2263,10 @@ function RecapCard({ label, value, detail }: { label: string; value: string; det
   );
 }
 
-function FeedEventList({ events }: { events: FeedEvent[] }) {
+function FeedEventList({ events, limit = 6 }: { events: FeedEvent[]; limit?: number }) {
   return (
     <div className="eventList" aria-label="Family feed events">
-      {events.slice(0, 6).map((event) => (
+      {events.slice(0, limit).map((event) => (
         <article className={`eventRow eventRow--${event.tone}`} key={event.id}>
           <span className="eventIcon" aria-hidden="true">{eventIcon(event.type)}</span>
           <div>
@@ -2151,7 +2284,66 @@ function eventIcon(type: FeedEvent["type"]) {
   if (type === "lead-change") return "↑";
   if (type === "streak") return "🔥";
   if (type === "achievement") return "★";
+  if (type === "challenge") return "✓";
+  if (type === "weekly-recap") return "↺";
   return "🏁";
+}
+
+function RunnerProfileModal({
+  member,
+  members,
+  runs,
+  stats,
+  goalMiles,
+  onClose,
+}: {
+  member: Member;
+  members: Member[];
+  runs: RunEntry[];
+  stats: RunnerStats;
+  goalMiles: number;
+  onClose: () => void;
+}) {
+  const memberRuns = runs.filter((run) => run.memberId === member.id);
+  const badges = buildBadges(stats, runs, member.id);
+  const progress = raceProgress(stats.total, goalMiles);
+  const biggestWeek = biggestWeeklyTotal(memberRuns);
+  const recent = buildStreakStrip(runs, member.id, new Date(), 14);
+
+  return (
+    <div className="modalLayer" role="dialog" aria-modal="true" aria-labelledby="runner-profile-title">
+      <section className="runnerProfileModal" style={runnerStyle(member, members)}>
+        <div className="sectionHead">
+          <div>
+            <p className="eyebrow">Runner profile</p>
+            <h2 id="runner-profile-title">{member.name}</h2>
+            <p className="muted">{formatMiles(progress.remaining)} left in the race.</p>
+          </div>
+          <button className="ghostButton" type="button" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <div className="profileRecordGrid">
+          <CardStat label="Longest run" value={formatMiles(stats.longest)} />
+          <CardStat label="Fastest pace" value={formatPace(stats.bestPace)} />
+          <CardStat label="Biggest week" value={formatMiles(biggestWeek)} />
+          <CardStat label="Best streak" value={`${stats.streak} day${stats.streak === 1 ? "" : "s"}`} />
+        </div>
+        <div>
+          <p className="eyebrow">Recent trend</p>
+          <div className="profileTrend">
+            {recent.map((day) => (
+              <span className={day.ran ? "ran" : ""} title={day.date} key={day.date}>{day.label}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="eyebrow">Achievement shelf</p>
+          <BadgeStrip badges={badges} />
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function comebackTitle(comeback: ComebackTarget) {

@@ -2,6 +2,7 @@ import {
   buildBadges,
   buildChartDays,
   buildComebackTargets,
+  buildFamilyChallenges,
   buildFeedEvents,
   buildHeatmapWeeks,
   buildStats,
@@ -288,6 +289,63 @@ describe("run metrics", () => {
     expect(events.some((event) => event.type === "lead-change" && event.title === "Molly took the lead")).toBe(true);
     expect(events.some((event) => event.type === "achievement" && event.title === "Molly unlocked First 5K")).toBe(true);
     expect(events.some((event) => event.type === "achievement" && event.title === "Family goal week unlocked")).toBe(true);
+  });
+
+  it("builds weekly family challenges from current and previous week runs", () => {
+    const challenges = buildFamilyChallenges(
+      [
+        { id: "old-1", memberId: "shane", miles: 3, date: "2026-05-12", createdAt: "2026-05-12T12:00:00Z" },
+        { id: "old-2", memberId: "molly", miles: 4, date: "2026-05-13", createdAt: "2026-05-13T12:00:00Z" },
+        { id: "1", memberId: "shane", miles: 3, date: "2026-05-18", createdAt: "2026-05-18T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 4.5, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: 1, date: "2026-05-23", createdAt: "2026-05-23T12:00:00Z" },
+        { id: "4", memberId: "molly", miles: 1, date: "2026-05-24", createdAt: "2026-05-24T12:00:00Z" },
+      ],
+      members,
+      now,
+      100,
+    );
+
+    expect(challenges).toHaveLength(5);
+    expect(challenges.find((challenge) => challenge.type === "weekly-mileage")).toMatchObject({
+      id: "2026-05-18:weekly-mileage",
+      value: 9.5,
+      target: 8,
+      complete: true,
+    });
+    expect(challenges.find((challenge) => challenge.type === "beat-last-week")).toMatchObject({
+      value: 9.5,
+      target: 7,
+      complete: true,
+    });
+    expect(challenges.find((challenge) => challenge.type === "everyone-logs")).toMatchObject({
+      value: 2,
+      target: 2,
+      complete: true,
+    });
+    expect(challenges.find((challenge) => challenge.type === "weekend-participation")).toMatchObject({
+      value: 2,
+      target: 2,
+      complete: true,
+    });
+  });
+
+  it("adds completed challenge and weekly recap moments to the feed", () => {
+    const events = buildFeedEvents(
+      [
+        { id: "old-1", memberId: "shane", miles: 3, date: "2026-05-12", createdAt: "2026-05-12T12:00:00Z" },
+        { id: "old-2", memberId: "molly", miles: 3, date: "2026-05-13", createdAt: "2026-05-13T12:00:00Z" },
+        { id: "1", memberId: "shane", miles: 4, date: "2026-05-18", createdAt: "2026-05-18T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 4, date: "2026-05-19", createdAt: "2026-05-19T12:00:00Z" },
+      ],
+      members,
+      100,
+      now,
+    );
+
+    expect(events.some((event) => event.type === "challenge" && event.title === "Weekly family mileage complete")).toBe(true);
+    expect(events.some((event) => event.type === "challenge" && event.title === "Beat last week complete")).toBe(true);
+    expect(events.some((event) => event.type === "weekly-recap" && event.title === "Weekly recap posted")).toBe(true);
   });
 
   it("emits family-week achievement only once per week", () => {

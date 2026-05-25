@@ -59,6 +59,11 @@ export type PushSubscriptionRecord = {
   updatedAt: string;
 };
 
+export type ChallengeCompletionRecord = {
+  id: string;
+  completedAt: string;
+};
+
 export type Group = {
   id: string;
   name: string;
@@ -68,6 +73,7 @@ export type Group = {
   members: Member[];
   runs: RunEntry[];
   pushSubscriptions?: PushSubscriptionRecord[];
+  challengeCompletions?: ChallengeCompletionRecord[];
 };
 
 export type PublicGroup = {
@@ -303,6 +309,26 @@ export async function removePushSubscription(groupId: string, endpoint: string) 
   });
 }
 
+export async function claimChallengeCompletions(groupId: string, challengeIds: string[]) {
+  const ids = [...new Set(challengeIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return [];
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    group.challengeCompletions ||= [];
+    const claimed = new Set(group.challengeCompletions.map((entry) => entry.id));
+    const now = new Date().toISOString();
+    const fresh = ids.filter((id) => !claimed.has(id));
+    for (const id of fresh) {
+      group.challengeCompletions.push({ id, completedAt: now });
+    }
+    if (fresh.length > 0) await writeStore(store);
+    return fresh;
+  });
+}
+
 export function publicGroup(group: Group): PublicGroup {
   return {
     id: group.id,
@@ -506,7 +532,8 @@ function isGroup(value: unknown): value is Group {
     group.members.every(isMember) &&
     Array.isArray(group.runs) &&
     group.runs.every(isRunEntry) &&
-    (typeof group.pushSubscriptions === "undefined" || (Array.isArray(group.pushSubscriptions) && group.pushSubscriptions.every(isPushSubscription)))
+    (typeof group.pushSubscriptions === "undefined" || (Array.isArray(group.pushSubscriptions) && group.pushSubscriptions.every(isPushSubscription))) &&
+    (typeof group.challengeCompletions === "undefined" || (Array.isArray(group.challengeCompletions) && group.challengeCompletions.every(isChallengeCompletion)))
   );
 }
 
@@ -556,4 +583,10 @@ function isPushSubscription(value: unknown): value is PushSubscriptionRecord {
     typeof subscription.keys.p256dh === "string" &&
     typeof subscription.keys.auth === "string"
   );
+}
+
+function isChallengeCompletion(value: unknown): value is ChallengeCompletionRecord {
+  if (!value || typeof value !== "object") return false;
+  const completion = value as Partial<ChallengeCompletionRecord>;
+  return typeof completion.id === "string" && typeof completion.completedAt === "string";
 }

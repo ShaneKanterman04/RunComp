@@ -1186,6 +1186,96 @@ input:invalid:not(:placeholder-shown) {
   margin-bottom: 0;
 }
 
+.challengePanel {
+  margin-bottom: 18px;
+}
+
+.challengeStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border: 1px solid #b7c8df;
+  border-radius: 999px;
+  background: #eef5fb;
+  color: #274b7c;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.challengeStatus.isComplete {
+  border-color: #9dd0b8;
+  background: #e8f5ee;
+  color: #0d5c3d;
+}
+
+.challengeList {
+  display: grid;
+  gap: 10px;
+}
+
+.challengeItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 180px) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 10px;
+}
+
+.challengeItem strong,
+.challengeItem span {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.challengeItem strong {
+  font-size: 14px;
+}
+
+.challengeItem div > span,
+.challengeItem small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.challengeItem.isComplete {
+  border-color: #9dd0b8;
+  background: #f3fbf6;
+}
+
+.challengeMeter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ece5d7;
+}
+
+.challengeMeter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #18845d;
+}
+
+.challengeItem--gold .challengeMeter span {
+  background: #b27920;
+}
+
+.challengeItem--rose .challengeMeter span {
+  background: #d94f76;
+}
+
+.challengeItem--blue .challengeMeter span {
+  background: #3f6fb5;
+}
+
 .freezePanel .ghostButton {
   justify-self: start;
 }
@@ -1196,6 +1286,11 @@ input:invalid:not(:placeholder-shown) {
 
 .recapPanel {
   margin-bottom: 18px;
+}
+
+.recapScreen {
+  display: grid;
+  gap: 16px;
 }
 
 .recapRibbon {
@@ -1210,6 +1305,13 @@ input:invalid:not(:placeholder-shown) {
   font-size: 12px;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.recapActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .recapMeta {
@@ -1252,6 +1354,11 @@ input:invalid:not(:placeholder-shown) {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+}
+
+.recapMoments {
+  display: grid;
+  gap: 10px;
 }
 
 .inviteBox {
@@ -1721,6 +1828,79 @@ input:invalid:not(:placeholder-shown) {
   margin-top: 14px;
   font-size: 12px;
   font-weight: 900;
+}
+
+.profileButton {
+  position: relative;
+  z-index: 1;
+  justify-self: start;
+}
+
+.modalLayer {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  background: rgba(21, 27, 24, 0.42);
+  padding: 18px;
+}
+
+.runnerProfileModal {
+  display: grid;
+  gap: 18px;
+  width: min(680px, 100%);
+  border: 1px solid color-mix(in srgb, var(--runner-color), white 35%);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--runner-color), white 88%), rgba(255, 255, 255, 0.96) 44%),
+    var(--surface);
+  box-shadow: 0 24px 80px rgba(21, 27, 24, 0.26);
+  padding: 18px;
+}
+
+.weeklyRecapModal {
+  display: grid;
+  gap: 18px;
+  width: min(920px, 100%);
+  max-height: min(860px, calc(100vh - 36px));
+  overflow: auto;
+  border: 1px solid #d8c27a;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(21, 27, 24, 0.26);
+  padding: 18px;
+}
+
+.profileRecordGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profileTrend {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.profileTrend span {
+  display: grid;
+  min-height: 30px;
+  place-items: center;
+  border: 1px solid #ebe4d7;
+  border-radius: 7px;
+  background: #fbfaf6;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.profileTrend .ran {
+  border-color: color-mix(in srgb, var(--runner-color), white 35%);
+  background: color-mix(in srgb, var(--runner-color), white 78%);
+  color: color-mix(in srgb, var(--runner-color), black 25%);
 }
 
 .achievement {
@@ -2349,6 +2529,7 @@ input:invalid:not(:placeholder-shown) {
   .scoreGrid,
   .runnerGrid,
   .notificationPanel,
+  .profileRecordGrid,
   .memberGrid {
     grid-template-columns: 1fr;
     flex-direction: column;
@@ -2489,6 +2670,11 @@ input:invalid:not(:placeholder-shown) {
   .activityDay {
     min-width: 34px;
   }
+
+  .challengeItem {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
 }
 
 @media (max-width: 560px) {
@@ -2520,6 +2706,24 @@ input:invalid:not(:placeholder-shown) {
   .panel.chartPanel,
   .panel.feedPanel {
     padding: 14px;
+  }
+
+  .runnerProfileModal {
+    padding: 14px;
+  }
+
+  .weeklyRecapModal {
+    max-height: calc(100vh - 24px);
+    padding: 14px;
+  }
+
+  .profileTrend {
+    gap: 4px;
+  }
+
+  .profileTrend span {
+    min-height: 26px;
+    font-size: 10px;
   }
 
   .brandMark {

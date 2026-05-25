@@ -186,4 +186,24 @@ describe("file-backed store", () => {
     await expect(store.removePushSubscription(group.id, endpoint)).resolves.toEqual({ removed: 1 });
     await expect(store.listPushSubscriptions(group.id)).resolves.toHaveLength(0);
   });
+
+  it("claims challenge completions only once", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+
+    await expect(store.claimChallengeCompletions(group.id, ["2026-05-18:everyone-logs", "2026-05-18:weekly-mileage"])).resolves.toEqual([
+      "2026-05-18:everyone-logs",
+      "2026-05-18:weekly-mileage",
+    ]);
+    await expect(store.claimChallengeCompletions(group.id, ["2026-05-18:everyone-logs", "2026-05-18:beat-last-week"])).resolves.toEqual([
+      "2026-05-18:beat-last-week",
+    ]);
+  });
 });

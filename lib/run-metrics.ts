@@ -17,7 +17,7 @@ export type MetricRunEntry = {
 
 export type FeedEvent = {
   id: string;
-  type: "milestone" | "lead-change" | "streak" | "achievement";
+  type: "milestone" | "lead-change" | "streak" | "achievement" | "challenge" | "weekly-recap";
   title: string;
   body: string;
   date: string;
@@ -85,6 +85,22 @@ export type WeeklyRecap = {
     name: string;
     days: number;
   };
+};
+
+export type FamilyChallenge = {
+  id: string;
+  type: "weekly-mileage" | "weekend-participation" | "beat-last-week" | "everyone-logs" | "most-consistent";
+  title: string;
+  body: string;
+  label: string;
+  value: number;
+  target: number;
+  progress: number;
+  complete: boolean;
+  weekKey: string;
+  tone: FeedEvent["tone"];
+  completedAt?: string;
+  winner?: string;
 };
 
 export type ComebackTarget = {
@@ -207,6 +223,103 @@ export function buildWeeklyRecap(runs: MetricRunEntry[], members: MetricMember[]
   };
 }
 
+export function buildFamilyChallenges(runs: MetricRunEntry[], members: MetricMember[], now = new Date(), goalMiles = 100): FamilyChallenge[] {
+  const weekStart = startOfWeek(now);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const week = toDateKey(weekStart);
+  const previousWeekStart = new Date(weekStart);
+  previousWeekStart.setDate(weekStart.getDate() - 7);
+  const memberName = new Map(members.map((member) => [member.id, member.name]));
+  const weekRuns = runs.filter((run) => {
+    const date = parseRunDate(run.date);
+    return date >= weekStart && date <= weekEnd;
+  });
+  const previousWeekRuns = runs.filter((run) => {
+    const date = parseRunDate(run.date);
+    return date >= previousWeekStart && date < weekStart;
+  });
+  const totalMiles = sumMiles(weekRuns);
+  const previousMiles = sumMiles(previousWeekRuns);
+  const weeklyTarget = Math.max(5, Math.min(goalMiles, previousMiles > 0 ? Math.ceil(previousMiles + 1) : members.length * 5 || 5));
+  const activeMembers = new Set(weekRuns.map((run) => run.memberId));
+  const weekendMembers = new Set(weekRuns.filter((run) => isWeekend(run.date)).map((run) => run.memberId));
+  const counts = countRunsByMember(weekRuns);
+  const mostConsistent = [...counts.entries()]
+    .map(([memberId, runCount]) => ({ memberId, runCount, miles: sumMiles(weekRuns.filter((run) => run.memberId === memberId)) }))
+    .sort((a, b) => b.runCount - a.runCount || b.miles - a.miles || (memberName.get(a.memberId) || "").localeCompare(memberName.get(b.memberId) || ""))[0];
+  const consistentTarget = Math.max(3, Math.min(5, Math.ceil(weekRuns.length / Math.max(1, members.length)) + 1));
+
+  return [
+    challenge({
+      id: `${week}:weekly-mileage`,
+      type: "weekly-mileage",
+      title: "Weekly family mileage",
+      body: `${formatMiles(totalMiles)} of ${formatMiles(weeklyTarget)} logged this week.`,
+      label: "Family miles",
+      value: totalMiles,
+      target: weeklyTarget,
+      complete: totalMiles >= weeklyTarget,
+      weekKey: week,
+      tone: "gold",
+      completedAt: firstCompletionRun(weekRuns, weeklyTarget, (run) => run.miles)?.createdAt,
+    }),
+    challenge({
+      id: `${week}:weekend-participation`,
+      type: "weekend-participation",
+      title: "Weekend participation",
+      body: `${weekendMembers.size} of ${members.length || 1} runner${members.length === 1 ? "" : "s"} logged weekend miles.`,
+      label: "Weekend runners",
+      value: weekendMembers.size,
+      target: Math.max(1, members.length),
+      complete: members.length > 0 && weekendMembers.size >= members.length,
+      weekKey: week,
+      tone: "blue",
+      completedAt: completionRunForMemberCount(weekRuns.filter((run) => isWeekend(run.date)), Math.max(1, members.length))?.createdAt,
+    }),
+    challenge({
+      id: `${week}:beat-last-week`,
+      type: "beat-last-week",
+      title: "Beat last week",
+      body: previousMiles > 0 ? `${formatMiles(totalMiles)} this week against ${formatMiles(previousMiles)} last week.` : "Log a baseline this week to unlock this matchup.",
+      label: "Last week",
+      value: totalMiles,
+      target: previousMiles || 1,
+      complete: previousMiles > 0 && totalMiles > previousMiles,
+      weekKey: week,
+      tone: "green",
+      completedAt: previousMiles > 0 ? firstCompletionRun(weekRuns, previousMiles + 0.01, (run) => run.miles)?.createdAt : undefined,
+    }),
+    challenge({
+      id: `${week}:everyone-logs`,
+      type: "everyone-logs",
+      title: "Everyone logs",
+      body: `${activeMembers.size} of ${members.length || 1} runner${members.length === 1 ? "" : "s"} have miles on the board.`,
+      label: "Active runners",
+      value: activeMembers.size,
+      target: Math.max(1, members.length),
+      complete: members.length > 0 && activeMembers.size >= members.length,
+      weekKey: week,
+      tone: "rose",
+      completedAt: completionRunForMemberCount(weekRuns, Math.max(1, members.length))?.createdAt,
+    }),
+    challenge({
+      id: `${week}:most-consistent`,
+      type: "most-consistent",
+      title: "Most consistent runner",
+      body: mostConsistent ? `${memberName.get(mostConsistent.memberId) || "Runner"} has ${mostConsistent.runCount} run${mostConsistent.runCount === 1 ? "" : "s"} this week.` : "First runner to stack multiple days takes the early lead.",
+      label: "Runs by leader",
+      value: mostConsistent?.runCount || 0,
+      target: consistentTarget,
+      complete: Boolean(mostConsistent && mostConsistent.runCount >= consistentTarget),
+      weekKey: week,
+      tone: "blue",
+      completedAt: mostConsistent ? nthRunForMember(weekRuns, mostConsistent.memberId, consistentTarget)?.createdAt : undefined,
+      winner: mostConsistent ? memberName.get(mostConsistent.memberId) || "Runner" : undefined,
+    }),
+  ];
+}
+
 export function buildComebackTargets(runs: MetricRunEntry[], members: MetricMember[]): ComebackTarget[] {
   const totals = new Map(members.map((member) => [member.id, sumMiles(runs.filter((run) => run.memberId === member.id))]));
   const standings = [...members].sort((a, b) => (totals.get(b.id) || 0) - (totals.get(a.id) || 0));
@@ -228,7 +341,7 @@ export function buildComebackTargets(runs: MetricRunEntry[], members: MetricMemb
   });
 }
 
-export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[], goalMiles = 100): FeedEvent[] {
+export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[], goalMiles = 100, now = new Date()): FeedEvent[] {
   const sorted = sortRuns(runs).reverse();
   const memberName = new Map(members.map((member) => [member.id, member.name]));
   const totals = new Map<string, number>();
@@ -329,7 +442,67 @@ export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[],
     }
   }
 
+  for (const item of buildFamilyChallenges(runs, members, now, goalMiles).filter((challenge) => challenge.complete && challenge.completedAt)) {
+    events.push({
+      id: `challenge-${item.id}`,
+      type: "challenge",
+      title: `${item.title} complete`,
+      body: item.winner ? `${item.winner} sealed it. ${item.body}` : item.body,
+      date: item.completedAt ? toDateKey(new Date(item.completedAt)) : toDateKey(now),
+      createdAt: item.completedAt || new Date().toISOString(),
+      tone: item.tone,
+    });
+  }
+
+  const recap = buildWeeklyRecap(runs, members, now);
+  if (recap.runCount > 0) {
+    events.push({
+      id: `weekly-recap-${weekKey(toDateKey(now))}`,
+      type: "weekly-recap",
+      title: "Weekly recap posted",
+      body: recap.headline,
+      date: toDateKey(now),
+      createdAt: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0).toISOString(),
+      tone: "gold",
+    });
+  }
+
   return sortRuns(events).slice(0, 20);
+}
+
+function challenge(input: Omit<FamilyChallenge, "progress">): FamilyChallenge {
+  return {
+    ...input,
+    progress: Math.min(100, (input.value / Math.max(1, input.target)) * 100),
+  };
+}
+
+function countRunsByMember(runs: MetricRunEntry[]) {
+  const counts = new Map<string, number>();
+  for (const run of runs) counts.set(run.memberId, (counts.get(run.memberId) || 0) + 1);
+  return counts;
+}
+
+function firstCompletionRun(runs: MetricRunEntry[], target: number, valueForRun: (run: MetricRunEntry) => number) {
+  let total = 0;
+  for (const run of sortRuns(runs).reverse()) {
+    total += valueForRun(run);
+    if (total >= target) return run;
+  }
+  return undefined;
+}
+
+function completionRunForMemberCount(runs: MetricRunEntry[], target: number) {
+  const seen = new Set<string>();
+  for (const run of sortRuns(runs).reverse()) {
+    seen.add(run.memberId);
+    if (seen.size >= target) return run;
+  }
+  return undefined;
+}
+
+function nthRunForMember(runs: MetricRunEntry[], memberId: string, target: number) {
+  return sortRuns(runs).reverse().filter((run) => run.memberId === memberId)[target - 1];
 }
 
 function achievementForRun(run: MetricRunEntry, previousTotal: number): { id: string; label: string; body: string; tone: FeedEvent["tone"] } | null {

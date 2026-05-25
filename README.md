@@ -12,6 +12,10 @@ RunComp is a small running competition app for testing Hostlet on a homelab. It 
 - Track all-time, weekly, and monthly totals for every member
 - Compare current leader and gap
 - View streaks, averages, longest runs, recent runs, and a 14-day chart
+- Track weekly family challenges and challenge-complete feed moments
+- View a dedicated weekly recap with highlights, challenge status, and recap moments
+- Open runner profiles with personal records, recent trends, and achievement shelves
+- Enable push alerts for runs, lead changes, close-call passes, and completed challenges
 - File-backed persistence through `DATA_DIR`
 
 ## Local Development

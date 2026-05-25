@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import webpush from "web-push";
-import { formatMiles, formatPace } from "@/lib/run-metrics";
+import { formatMiles, formatPace, type FamilyChallenge } from "@/lib/run-metrics";
 import { listPushSubscriptions, removePushSubscription, type PublicRunEntry } from "@/lib/store";
 
 type VapidKeys = {
@@ -38,6 +38,30 @@ export async function notifyLeadChanged(groupId: string, runner: string, totalMi
       body: `${formatMiles(totalMiles)} total miles. The race is moving.`,
       url: "/",
       tag: `lead-${runner}-${Math.round(totalMiles * 100)}`,
+    }),
+  );
+}
+
+export async function notifyCloseToPass(groupId: string, runner: string, targetName: string, milesToPass: number) {
+  await sendGroupPush(
+    groupId,
+    JSON.stringify({
+      title: `${runner} is closing in`,
+      body: `${formatMiles(milesToPass)} to pass ${targetName}. The race is tight.`,
+      url: "/",
+      tag: `close-${runner}-${targetName}`,
+    }),
+  );
+}
+
+export async function notifyChallengeCompleted(groupId: string, challenge: FamilyChallenge) {
+  await sendGroupPush(
+    groupId,
+    JSON.stringify({
+      title: `${challenge.title} complete`,
+      body: challenge.winner ? `${challenge.winner} sealed it. ${challenge.body}` : challenge.body,
+      url: "/",
+      tag: `challenge-${challenge.id}`,
     }),
   );
 }
