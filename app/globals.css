@@ -1402,6 +1402,20 @@ input:invalid:not(:placeholder-shown) {
   gap: 14px;
 }
 
+.settingsBlock {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 12px;
+}
+
+.settingsBlock h3 {
+  margin: 2px 0 4px;
+  font-size: 18px;
+}
+
 .memberList {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1465,6 +1479,43 @@ input:invalid:not(:placeholder-shown) {
   padding: 7px 9px;
   font-size: 12px;
   font-weight: 900;
+}
+
+.dangerMiniButton {
+  border-color: #e6b8ae;
+  color: #9d2e1b;
+}
+
+.runnerManager {
+  display: grid;
+  gap: 10px;
+}
+
+.runnerManagerRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(110px, 1fr) auto minmax(120px, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.runnerManagerRow > div {
+  min-width: 0;
+}
+
+.runnerManagerRow strong,
+.runnerManagerRow span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.runnerManagerRow span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .runnerCard {
@@ -2779,6 +2830,10 @@ input:invalid:not(:placeholder-shown) {
   .memberPill {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .runnerManagerRow {
+    grid-template-columns: 1fr;
   }
 
   .miniButton {

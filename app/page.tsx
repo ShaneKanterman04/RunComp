@@ -38,6 +38,7 @@ type Member = {
   name: string;
   role: MemberRole;
   createdAt: string;
+  runCount?: number;
 };
 
 type Group = {
@@ -120,6 +121,7 @@ export default function Home() {
   const [runs, setRuns] = useState<RunEntry[]>([]);
   const [form, setForm] = useState({ miles: "", duration: "", date: todayInput(), note: "" });
   const [memberForm, setMemberForm] = useState({ name: "", password: "" });
+  const [memberEdits, setMemberEdits] = useState<Record<string, { name: string; password: string }>>({});
   const [goalForm, setGoalForm] = useState("100");
   const [inviteUrl, setInviteUrl] = useState("");
   const [memberInviteUrls, setMemberInviteUrls] = useState<Record<string, string>>({});
@@ -129,6 +131,7 @@ export default function Home() {
   const [memberSaving, setMemberSaving] = useState(false);
   const [goalSaving, setGoalSaving] = useState(false);
   const [inviteSavingId, setInviteSavingId] = useState("");
+  const [memberActionId, setMemberActionId] = useState("");
   const [message, setMessage] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -153,11 +156,13 @@ export default function Home() {
     if (!session) {
       setInviteUrl("");
       setMemberInviteUrls({});
+      setMemberEdits({});
       setPushStatus("checking");
       return;
     }
     setInviteUrl(buildInviteUrl(session.group.code));
     setGoalForm(String(session.group.goalMiles || 100));
+    setMemberEdits(Object.fromEntries(session.members.map((member) => [member.id, { name: member.name, password: "" }])));
     rememberRecentGroup(session);
     refreshPushStatus();
   }, [session]);
@@ -496,6 +501,77 @@ export default function Home() {
     } finally {
       setGoalSaving(false);
     }
+  }
+
+  async function saveMemberName(member: Member) {
+    if (!session || session.member.role !== "owner" || memberActionId) return;
+    const name = memberEdits[member.id]?.name || member.name;
+    setMemberActionId(member.id);
+    setMessage("");
+    try {
+      const response = await fetch("/api/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId: member.id, name }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not update runner.");
+      setSession((current) => (current ? { ...current, members: data.members } : current));
+      setMessage(`${data.member.name} updated.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update runner.");
+    } finally {
+      setMemberActionId("");
+    }
+  }
+
+  async function resetRunnerPassword(member: Member) {
+    if (!session || session.member.role !== "owner" || memberActionId) return;
+    const password = memberEdits[member.id]?.password || "";
+    setMemberActionId(member.id);
+    setMessage("");
+    try {
+      const response = await fetch("/api/members", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId: member.id, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not reset password.");
+      setSession((current) => (current ? { ...current, members: data.members } : current));
+      setMemberEdits((current) => ({ ...current, [member.id]: { name: data.member.name, password: "" } }));
+      setMessage(`${data.member.name}'s password was reset.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not reset password.");
+    } finally {
+      setMemberActionId("");
+    }
+  }
+
+  async function removeRunner(member: Member) {
+    if (!session || session.member.role !== "owner" || memberActionId) return;
+    setMemberActionId(member.id);
+    setMessage("");
+    try {
+      const response = await fetch(`/api/members?id=${encodeURIComponent(member.id)}`, { method: "DELETE" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not remove runner.");
+      setSession((current) => (current ? { ...current, members: data.members } : current));
+      setMemberEdits((current) => {
+        const next = { ...current };
+        delete next[member.id];
+        return next;
+      });
+      setMessage(`${member.name} was removed.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not remove runner.");
+    } finally {
+      setMemberActionId("");
+    }
+  }
+
+  function downloadExport(type: "json" | "csv") {
+    window.location.assign(`/api/exports?type=${type}`);
   }
 
   async function deleteRun(id: string) {
@@ -1038,6 +1114,17 @@ export default function Home() {
             </div>
             {session.member.role === "owner" && (
               <div className="ownerTools">
+                <div className="settingsBlock">
+                  <div>
+                    <p className="eyebrow">Settings</p>
+                    <h3>Owner controls</h3>
+                    <p className="muted">Version {appVersion} · notifications {pushStatus === "subscribed" ? "on" : pushStatus}</p>
+                  </div>
+                  <div className="groupActions">
+                    <button className="ghostButton" type="button" onClick={() => downloadExport("json")}>JSON backup</button>
+                    <button className="ghostButton" type="button" onClick={() => downloadExport("csv")}>CSV runs</button>
+                  </div>
+                </div>
                 <form className="goalForm" onSubmit={updateGoal}>
                   <label>
                     Race goal
@@ -1076,6 +1163,44 @@ export default function Home() {
                     {memberSaving ? "Creating..." : "Create password"}
                   </button>
                 </form>
+                <div className="runnerManager">
+                  {members.map((member) => {
+                    const edit = memberEdits[member.id] || { name: member.name, password: "" };
+                    const busy = memberActionId === member.id;
+                    return (
+                      <div className="runnerManagerRow" key={member.id}>
+                        <div>
+                          <strong>{member.name}</strong>
+                          <span>{member.role === "owner" ? "Owner" : `${member.runCount || 0} run${member.runCount === 1 ? "" : "s"}`}</span>
+                        </div>
+                        <input
+                          value={edit.name}
+                          onChange={(event) => setMemberEdits((current) => ({ ...current, [member.id]: { ...edit, name: event.target.value } }))}
+                          aria-label={`${member.name} display name`}
+                        />
+                        <button className="miniButton" type="button" onClick={() => saveMemberName(member)} disabled={busy || edit.name === member.name}>
+                          Save name
+                        </button>
+                        <input
+                          type="password"
+                          minLength={8}
+                          value={edit.password}
+                          onChange={(event) => setMemberEdits((current) => ({ ...current, [member.id]: { ...edit, password: event.target.value } }))}
+                          placeholder="New password"
+                          aria-label={`${member.name} new password`}
+                        />
+                        <button className="miniButton" type="button" onClick={() => resetRunnerPassword(member)} disabled={busy || edit.password.length < 8}>
+                          Reset
+                        </button>
+                        {member.role !== "owner" && (
+                          <button className="miniButton dangerMiniButton" type="button" onClick={() => removeRunner(member)} disabled={busy || Boolean(member.runCount)}>
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

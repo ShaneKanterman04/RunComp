@@ -62,6 +62,41 @@ describe("file-backed store", () => {
     expect(second.group.code).not.toBe(first.group.code);
   });
 
+  it("lets owners edit runner names and reset passwords", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+
+    await expect(store.updateMemberName(group.id, molly.id, "Molly K")).resolves.toMatchObject({ name: "Molly K" });
+    await expect(store.login({ groupCode: group.code, memberName: "Molly K", password: "password456" })).resolves.toMatchObject({
+      member: { id: molly.id },
+    });
+    await expect(store.resetMemberPassword(group.id, molly.id, "newpassword")).resolves.toMatchObject({ id: molly.id });
+    await expect(store.login({ groupCode: group.code, memberName: "Molly K", password: "password456" })).rejects.toMatchObject({ status: 401 });
+    await expect(store.login({ groupCode: group.code, memberName: "Molly K", password: "newpassword" })).resolves.toMatchObject({
+      member: { id: molly.id },
+    });
+  });
+
+  it("removes only inactive non-owner runners", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const active = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const inactive = await store.addMember(group.id, { name: "Dad", password: "password789" });
+    await store.addRun(group.id, active.id, { miles: 3, date: "2026-05-24" });
+
+    await expect(store.removeInactiveMember(group.id, owner.id, owner.id)).rejects.toMatchObject({ status: 400 });
+    await expect(store.removeInactiveMember(group.id, active.id, owner.id)).rejects.toMatchObject({ status: 409 });
+    await expect(store.removeInactiveMember(group.id, inactive.id, owner.id)).resolves.toBe(true);
+    await expect(store.login({ groupCode: group.code, memberName: "Dad", password: "password789" })).rejects.toMatchObject({ status: 401 });
+  });
+
   it("validates names, passwords, and goal limits before writing", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
@@ -205,5 +240,28 @@ describe("file-backed store", () => {
     await expect(store.claimChallengeCompletions(group.id, ["2026-05-18:everyone-logs", "2026-05-18:beat-last-week"])).resolves.toEqual([
       "2026-05-18:beat-last-week",
     ]);
+  });
+
+  it("exports sanitized JSON backups and spreadsheet-friendly runs CSV", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    await store.addRun(group.id, owner.id, { miles: 3.1, durationSeconds: 1550, date: "2026-05-22", note: 'tempo, "fast"' });
+
+    const backup = await store.exportGroupBackup(group.id);
+    const backupText = JSON.stringify(backup);
+    const csv = await store.exportRunsCsv(group.id);
+
+    expect(backup).toMatchObject({ version: 1, group: { code: group.code }, members: [{ name: "Shane", runCount: 1 }] });
+    expect(backupText).not.toContain("passwordHash");
+    expect(backupText).not.toContain("salt");
+    expect(csv).toContain("date,runner,miles,duration_seconds,pace_seconds_per_mile,note,created_at");
+    expect(csv).toContain('2026-05-22,Shane,3.10,1550,500,"tempo, ""fast"""');
   });
 });

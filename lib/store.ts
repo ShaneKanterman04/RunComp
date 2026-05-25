@@ -22,6 +22,7 @@ export type PublicMember = {
   name: string;
   role: MemberRole;
   createdAt: string;
+  runCount?: number;
 };
 
 export type RunEntry = {
@@ -138,6 +139,65 @@ export async function addMember(groupId: string, input: { name: string; password
   });
 }
 
+export async function updateMemberName(groupId: string, memberId: string, name: string) {
+  const nextName = cleanName(name, 48);
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    const member = group.members.find((row) => row.id === memberId);
+    if (!member) throw new StoreError("Runner not found.", 404);
+    const nameKey = normalizeName(nextName);
+    if (group.members.some((row) => row.id !== memberId && row.nameKey === nameKey)) {
+      throw new StoreError("That runner name is already used in this group.", 409);
+    }
+    member.name = nextName;
+    member.nameKey = nameKey;
+    await writeStore(store);
+    return publicMember(member, group);
+  });
+}
+
+export async function resetMemberPassword(groupId: string, memberId: string, password: string) {
+  validatePassword(password);
+
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    const member = group.members.find((row) => row.id === memberId);
+    if (!member) throw new StoreError("Runner not found.", 404);
+    const updated = await createMemberRecord({ name: member.name, password, role: member.role });
+    member.salt = updated.salt;
+    member.passwordHash = updated.passwordHash;
+    await writeStore(store);
+    return publicMember(member, group);
+  });
+}
+
+export async function removeInactiveMember(groupId: string, memberId: string, ownerMemberId: string) {
+  return withStoreLock(async () => {
+    const store = await readStore();
+    const group = findGroup(store, groupId);
+    if (!group) throw new StoreError("Run group not found.", 404);
+    const member = group.members.find((row) => row.id === memberId);
+    if (!member) return false;
+    if (member.id === ownerMemberId) throw new StoreError("You cannot remove yourself.", 400);
+    if (member.role === "owner") throw new StoreError("The group owner cannot be removed.", 400);
+    if (group.runs.some((run) => run.memberId === memberId)) {
+      throw new StoreError("Only inactive runners with no logged runs can be removed.", 409);
+    }
+    group.members = group.members.filter((row) => row.id !== memberId);
+    group.pushSubscriptions = (group.pushSubscriptions || []).filter((subscription) => subscription.memberId !== memberId);
+    for (const run of group.runs) {
+      if (run.reactions) delete run.reactions[memberId];
+    }
+    await writeStore(store);
+    return true;
+  });
+}
+
 export async function updateGroupGoal(groupId: string, goalMiles: number) {
   const nextGoal = cleanGoalMiles(goalMiles);
 
@@ -186,8 +246,8 @@ export async function getGroupContext(groupId: string, memberId: string) {
   if (!group || !member) return null;
   return {
     group: publicGroup(group),
-    member: publicMember(member),
-    members: group.members.map(publicMember),
+    member: publicMember(member, group),
+    members: group.members.map((row) => publicMember(row, group)),
   };
 }
 
@@ -329,6 +389,39 @@ export async function claimChallengeCompletions(groupId: string, challengeIds: s
   });
 }
 
+export async function exportGroupBackup(groupId: string) {
+  const store = await readStore();
+  const group = findGroup(store, groupId);
+  if (!group) throw new StoreError("Run group not found.", 404);
+  return {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    group: publicGroup(group),
+    members: group.members.map((member) => publicMember(member, group)),
+    runs: sortRuns(group.runs).map((run) => publicRun(group, run)),
+    challengeCompletions: [...(group.challengeCompletions || [])],
+  };
+}
+
+export async function exportRunsCsv(groupId: string) {
+  const store = await readStore();
+  const group = findGroup(store, groupId);
+  if (!group) throw new StoreError("Run group not found.", 404);
+  const rows = [
+    ["date", "runner", "miles", "duration_seconds", "pace_seconds_per_mile", "note", "created_at"],
+    ...sortRuns(group.runs).map((run) => [
+      run.date,
+      group.members.find((member) => member.id === run.memberId)?.name || "Unknown",
+      run.miles.toFixed(2),
+      run.durationSeconds ? String(run.durationSeconds) : "",
+      run.durationSeconds ? String(Math.round(run.durationSeconds / run.miles)) : "",
+      run.note,
+      run.createdAt,
+    ]),
+  ];
+  return `${rows.map((row) => row.map(csvCell).join(",")).join("\n")}\n`;
+}
+
 export function publicGroup(group: Group): PublicGroup {
   return {
     id: group.id,
@@ -339,12 +432,13 @@ export function publicGroup(group: Group): PublicGroup {
   };
 }
 
-export function publicMember(member: Member): PublicMember {
+export function publicMember(member: Member, group?: Group): PublicMember {
   return {
     id: member.id,
     name: member.name,
     role: member.role,
     createdAt: member.createdAt,
+    ...(group ? { runCount: group.runs.filter((run) => run.memberId === member.id).length } : {}),
   };
 }
 
@@ -486,6 +580,11 @@ function publicRun(group: Group, run: RunEntry, viewerMemberId?: string): Public
     reactions: publicReactions(run, viewerMemberId),
     runner: group.members.find((member) => member.id === run.memberId)?.name || "Unknown",
   };
+}
+
+function csvCell(value: string) {
+  if (!/[",\n\r]/.test(value)) return value;
+  return `"${value.replace(/"/g, '""')}"`;
 }
 
 function roundMiles(value: number) {

@@ -8,6 +8,7 @@ RunComp is a small running competition app for testing Hostlet on a homelab. It 
 - Create a private run group with a group code
 - Sign in with a group code, member name, and password
 - Group owners can create member passwords for other runners
+- Group owners can edit runner names, reset passwords, and remove inactive runners
 - Group owners can copy invite links that prefill only the group code
 - Track all-time, weekly, and monthly totals for every member
 - Compare current leader and gap
@@ -16,6 +17,7 @@ RunComp is a small running competition app for testing Hostlet on a homelab. It 
 - View a dedicated weekly recap with highlights, challenge status, and recap moments
 - Open runner profiles with personal records, recent trends, and achievement shelves
 - Enable push alerts for runs, lead changes, close-call passes, and completed challenges
+- Download owner JSON backups and CSV run exports
 - File-backed persistence through `DATA_DIR`
 
 ## Local Development
