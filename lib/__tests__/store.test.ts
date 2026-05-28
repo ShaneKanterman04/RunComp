@@ -241,7 +241,7 @@ describe("file-backed store", () => {
     expect(reacted.reactions.find((reaction) => reaction.type === "nice")).toMatchObject({ count: 0, reactedByMe: false });
   });
 
-  it("rejects unsupported reactions and missing runs", async () => {
+  it("rejects unsupported reactions, missing actors, and missing runs", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
     dataDir = loaded.dataDir;
@@ -251,8 +251,10 @@ describe("file-backed store", () => {
       ownerName: "Shane",
       password: "password123",
     });
+    const run = await store.addRun(group.id, member.id, { miles: 3, date: "2026-05-22" });
 
     await expect(store.toggleRunReaction(group.id, member.id, "missing", "fire")).rejects.toMatchObject({ status: 404 });
+    await expect(store.toggleRunReaction(group.id, "missing", run.id, "fire")).rejects.toMatchObject({ status: 404 });
     await expect(store.toggleRunReaction(group.id, member.id, "missing", "sparkle" as never)).rejects.toMatchObject({ status: 400 });
   });
 

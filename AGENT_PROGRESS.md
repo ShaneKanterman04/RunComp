@@ -439,3 +439,21 @@
   - Consider validating reaction actors in `toggleRunReaction` so removed or unknown members cannot leave reactions.
 - Skipped ideas:
   - Did not change the runs UI; this increment only tightens server/store authorization.
+
+### Increment 23: Store Reaction Actor Validation
+
+- What changed: Hardened `toggleRunReaction` so only persisted group members can add or remove reactions on runs.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended store reaction regression coverage for missing reaction actors.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Review remaining store methods for any caller-provided identity or role trust as future small hardening tasks.
+- Skipped ideas:
+  - Did not alter reaction UI or reaction aggregation; this only rejects invalid actors before writes.

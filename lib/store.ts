@@ -300,6 +300,8 @@ export async function toggleRunReaction(groupId: string, memberId: string, runId
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    const member = group.members.find((row) => row.id === memberId);
+    if (!member) throw new StoreError("Member not found.", 404);
     const run = group.runs.find((row) => row.id === runId);
     if (!run) throw new StoreError("Run not found.", 404);
     run.reactions ||= {};

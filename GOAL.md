@@ -226,3 +226,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Twentieth increment required explicit owner actors for member create, rename, and password reset store methods.
 - 2026-05-28: Twenty-first increment required explicit owner actors for store-level race goal updates.
 - 2026-05-28: Twenty-second increment removed trusted caller roles from store-level run deletion authorization.
+- 2026-05-28: Twenty-third increment required persisted members for store-level run reactions.
