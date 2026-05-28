@@ -1466,3 +1466,23 @@
   - Keep new mutable routes on the same JSON body error behavior.
 - Skipped ideas:
   - Did not add an endpoint-level parser abstraction; current routes are still small enough for explicit guards.
+
+### Increment 77: Non-Blocking Export History Writes
+
+- What changed: Made export history timestamp writes best-effort so localStorage failures cannot block JSON backup or CSV download navigation.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/export-history.ts`
+  - `lib/__tests__/export-history.test.ts`
+- Tests added/updated:
+  - Added export history coverage for storage write failures.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/export-history.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider surfacing export start feedback in Settings if download navigation is delayed by the browser.
+- Skipped ideas:
+  - Did not add a server-side export audit log; local-only history remains enough for this private deployment.

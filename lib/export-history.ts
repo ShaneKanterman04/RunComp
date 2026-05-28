@@ -28,7 +28,11 @@ export function readExportHistory(storage: Pick<Storage, "getItem">, groupCode: 
 export function recordExportRequest(storage: Pick<Storage, "getItem" | "setItem">, groupCode: string, type: ExportType, now = new Date()) {
   const history = readExportHistory(storage, groupCode);
   const next = { ...history, [type]: now.toISOString() };
-  storage.setItem(exportHistoryKey(groupCode), JSON.stringify(next));
+  try {
+    storage.setItem(exportHistoryKey(groupCode), JSON.stringify(next));
+  } catch {
+    return history;
+  }
   return next;
 }
 

@@ -31,6 +31,21 @@ describe("export history", () => {
     expect(readExportHistory(window.localStorage, "123")).toEqual({ csv: "2026-05-28T13:00:00.000Z" });
   });
 
+  it("does not throw when export history cannot be stored", () => {
+    const storage = {
+      getItem: jest.fn(() => JSON.stringify({ csv: "2026-05-28T13:00:00.000Z" })),
+      setItem: jest.fn(() => {
+        throw new Error("storage is full");
+      }),
+    };
+
+    expect(recordExportRequest(storage, "123", "json", new Date("2026-05-28T14:00:00.000Z"))).toEqual({ csv: "2026-05-28T13:00:00.000Z" });
+    expect(storage.setItem).toHaveBeenCalledWith(
+      exportHistoryKey("123"),
+      JSON.stringify({ csv: "2026-05-28T13:00:00.000Z", json: "2026-05-28T14:00:00.000Z" }),
+    );
+  });
+
   it("formats timestamps without locale-dependent output", () => {
     expect(formatExportTimestamp("2026-05-28T12:34:00.000Z")).toMatch(/^2026-05-28 \d{2}:34$/);
     expect(formatExportTimestamp()).toBe("Never");
