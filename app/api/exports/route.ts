@@ -9,7 +9,8 @@ export async function GET(request: Request) {
   try {
     const session = await requireSession();
     const { searchParams } = new URL(request.url);
-    const type = (searchParams.get("type") || "json").trim().toLowerCase();
+    const requestedType = (searchParams.get("type") || "").trim().toLowerCase();
+    const type = requestedType || "json";
     if (type !== "json" && type !== "csv") {
       return NextResponse.json({ error: "Export type must be json or csv." }, { status: 400 });
     }

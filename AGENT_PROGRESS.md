@@ -1922,3 +1922,23 @@
   - Keep route-level auth error handling aligned if signer errors become user-facing.
 - Skipped ideas:
   - Did not change signed token format or expiration behavior.
+
+### Increment 100: Blank Export Type Default
+
+- What changed: Updated `/api/exports` so whitespace-only `type` query parameters behave like omitted type parameters and default to JSON backups.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/exports/route.ts`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added export route coverage for blank `type` query values defaulting to owner JSON backups.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep optional query parameter defaults consistent if more export formats are added.
+- Skipped ideas:
+  - Did not add new export formats or change CSV access rules.

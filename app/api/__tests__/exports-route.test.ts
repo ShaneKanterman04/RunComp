@@ -191,6 +191,25 @@ describe("/api/exports", () => {
     expect(exportGroupBackup).toHaveBeenCalledWith("group-1");
   });
 
+  it("defaults blank export type parameters to JSON backups", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+    jest.mocked(exportGroupBackup).mockResolvedValue({
+      exportedAt: "2026-05-28T12:00:00.000Z",
+      version: 1,
+      group: ownerSession.group,
+      members: [],
+      runs: [],
+      challengeCompletions: [],
+    });
+
+    const response = await GET(new Request("http://localhost/api/exports?type=%20%20"));
+
+    expect(response.status).toBe(200);
+    expect(await readJson(response)).toMatchObject({ version: 1 });
+    expect(exportGroupBackup).toHaveBeenCalledWith("group-1");
+    expect(exportRunsCsv).not.toHaveBeenCalled();
+  });
+
   it("returns structured store errors when JSON backup generation fails", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(exportGroupBackup).mockRejectedValue({ status: 404, message: "Group not found." });
