@@ -1396,3 +1396,22 @@
   - Consider showing a compact character counter only if real use shows note length confusion.
 - Skipped ideas:
   - Did not change the store's defensive note trimming to preserve backward-compatible persistence behavior.
+
+### Increment 74: Inactive Runner Push Cleanup Coverage
+
+- What changed: Added store coverage proving inactive runner removal also removes that runner's saved push subscription.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended the inactive runner removal store test to create and verify cleanup of a saved push subscription.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep removal behavior limited to inactive runners until a deliberate deactivate/archive model exists.
+- Skipped ideas:
+  - Did not add a broader member archival model; this only strengthens existing cleanup guarantees.

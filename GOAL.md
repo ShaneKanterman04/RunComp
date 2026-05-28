@@ -277,3 +277,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Seventy-first increment covered group-creation context fallback behavior.
 - 2026-05-28: Seventy-second increment validated blank runner edit values before persistence.
 - 2026-05-28: Seventy-third increment added clear run note length validation.
+- 2026-05-28: Seventy-fourth increment covered inactive-runner push subscription cleanup.

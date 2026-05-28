@@ -161,11 +161,16 @@ describe("file-backed store", () => {
     const active = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
     const inactive = await store.addMember(group.id, owner.id, { name: "Dad", password: "password789" });
     await store.addRun(group.id, active.id, { miles: 3, date: "2026-05-24" });
+    await store.savePushSubscription(group.id, inactive.id, {
+      endpoint: "https://push.example.test/subscription/inactive",
+      keys: { p256dh: "inactive-key", auth: "inactive-auth" },
+    });
 
     await expect(store.removeInactiveMember(group.id, owner.id, owner.id)).rejects.toMatchObject({ status: 400 });
     await expect(store.removeInactiveMember(group.id, active.id, owner.id)).rejects.toMatchObject({ status: 409 });
     await expect(store.removeInactiveMember(group.id, inactive.id, owner.id)).resolves.toBe(true);
     await expect(store.login({ groupCode: group.code, memberName: "Dad", password: "password789" })).rejects.toMatchObject({ status: 401 });
+    await expect(store.listPushSubscriptions(group.id)).resolves.toEqual([]);
   });
 
   it("requires an owner actor when removing inactive runners", async () => {
