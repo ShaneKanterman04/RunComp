@@ -650,7 +650,7 @@ export function buildChartDays(runs: MetricRunEntry[], members: MetricMember[], 
     heights: members.reduce(
       (all, member) => {
         const total = day.totals[member.id] || 0;
-        all[member.id] = total ? Math.max(8, (total / max) * 100) : 2;
+        all[member.id] = total > 0 ? Math.max(8, (total / max) * 100) : 2;
         return all;
       },
       {} as Record<string, number>,

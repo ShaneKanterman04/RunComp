@@ -2262,3 +2262,23 @@
   - Watch for other legacy data paths where manually edited mileage can be outside normal run validation.
 - Skipped ideas:
   - Did not change run entry validation; normal persisted runs are already rounded on write.
+
+### Increment 117: Chart Height Legacy Mileage Guard
+
+- What changed: Updated chart height calculation so non-positive legacy mileage totals render as empty bars instead of visible activity.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added chart-day coverage for negative legacy mileage.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep normal run creation strict so this remains a recovery/legacy-data guard.
+- Skipped ideas:
+  - Did not clamp displayed totals, preserving visibility into bad imported or manually edited data.

@@ -115,6 +115,17 @@ describe("run metrics", () => {
     expect(chart.at(-1)?.heights.molly).toBe(50);
   });
 
+  it("keeps chart bars empty for non-positive legacy mileage", () => {
+    const chart = buildChartDays(
+      [{ id: "1", memberId: "shane", miles: -2, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" }],
+      members,
+      now,
+    );
+
+    expect(chart.at(-1)?.totals.shane).toBe(-2);
+    expect(chart.at(-1)?.heights.shane).toBe(2);
+  });
+
   it("compares recent mileage against the previous window", () => {
     expect(
       buildRecentMileageTrend(
