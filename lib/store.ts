@@ -431,7 +431,7 @@ export async function exportRunsCsv(groupId: string) {
     ...sortRuns(group.runs).map((run) => [
       run.date,
       group.members.find((member) => member.id === run.memberId)?.name || "Unknown",
-      run.miles.toFixed(2),
+      exportMiles(run),
       exportDurationSeconds(run),
       exportPaceSeconds(run),
       run.note,
@@ -439,6 +439,10 @@ export async function exportRunsCsv(groupId: string) {
     ]),
   ];
   return `${rows.map((row) => row.map(csvCell).join(",")).join("\n")}\n`;
+}
+
+function exportMiles(run: RunEntry) {
+  return (Number.isFinite(run.miles) && run.miles > 0 ? run.miles : 0).toFixed(2);
 }
 
 function exportDurationSeconds(run: RunEntry) {

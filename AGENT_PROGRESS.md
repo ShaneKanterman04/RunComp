@@ -2729,3 +2729,21 @@
   - Keep route-level validation aligned with store validation messages.
 - Skipped ideas:
   - Did not change the existing allowed race-goal range.
+
+### Increment 139: CSV Mileage Legacy Guard
+
+- What changed: Clamped non-positive legacy mileage to `0.00` in CSV exports while leaving JSON backups unchanged for recovery inspection.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Expanded CSV export coverage for negative legacy mileage values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue keeping JSON backups faithful to stored data while making user-facing exports spreadsheet-friendly.
+- Skipped ideas:
+  - Did not mutate stored legacy run records.
