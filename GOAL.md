@@ -239,3 +239,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Thirty-third increment added JSON object guards for run logging and reaction routes.
 - 2026-05-28: Thirty-fourth increment added a JSON object guard for owner invite-link requests.
 - 2026-05-28: Thirty-fifth increment added JSON object guards for push subscribe and unsubscribe routes.
+- 2026-05-28: Thirty-sixth increment shared JSON object route guards and applied them to group, member, and session mutations.

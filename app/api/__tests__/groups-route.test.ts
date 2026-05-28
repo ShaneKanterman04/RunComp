@@ -67,6 +67,15 @@ describe("/api/groups", () => {
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 
+  it("rejects non-object group creation requests before store mutation", async () => {
+    const response = await POST(jsonRequest("/api/groups", null));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(createGroup).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed group goal values before creating groups", async () => {
     const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "many" }));
 
@@ -107,6 +116,16 @@ describe("/api/groups", () => {
     expect(await readJson(missing)).toEqual({ error: "Goal miles must be a number." });
     expect(malformed.status).toBe(400);
     expect(await readJson(malformed)).toEqual({ error: "Goal miles must be a number." });
+    expect(updateGroupGoal).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-object race goal updates before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+
+    const response = await PATCH(jsonRequest("/api/groups", null, "PATCH"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
     expect(updateGroupGoal).not.toHaveBeenCalled();
   });
 

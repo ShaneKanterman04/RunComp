@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
 import { addMember, getGroupContext, removeInactiveMember, resetMemberPassword, storeErrorResponse, updateMemberName } from "@/lib/store";
+import { isJsonObject } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ export async function POST(request: Request) {
     if (session.member.role !== "owner") {
       return NextResponse.json({ error: "Only the group owner can create member passwords." }, { status: 403 });
     }
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     if (typeof body.name !== "string" || !body.name.trim()) {
       return NextResponse.json({ error: "Runner name is required." }, { status: 400 });
     }
@@ -37,7 +39,8 @@ export async function PATCH(request: Request) {
     if (session.member.role !== "owner") {
       return NextResponse.json({ error: "Only the group owner can manage runners." }, { status: 403 });
     }
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const memberId = typeof body.memberId === "string" ? body.memberId : "";
     if (!memberId) return NextResponse.json({ error: "Missing runner id." }, { status: 400 });
     const hasName = typeof body.name === "string";

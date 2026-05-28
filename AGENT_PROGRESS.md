@@ -687,3 +687,31 @@
   - Push subscription field validation still lives in the store, which keeps endpoint/key constraints centralized.
 - Skipped ideas:
   - Did not expand the push system or add per-event toggles.
+
+### Increment 36: Shared JSON Route Guard
+
+- What changed: Extracted a shared `isJsonObject` API helper, reused it in the run, invite, and push routes, and applied it to group creation, goal updates, member creation, member edits, and session login.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/route-utils.ts`
+  - `app/api/groups/route.ts`
+  - `app/api/members/route.ts`
+  - `app/api/session/route.ts`
+  - `app/api/runs/route.ts`
+  - `app/api/push/route.ts`
+  - `app/api/invites/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+  - `app/api/__tests__/members-route.test.ts`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Added non-object JSON body coverage for group creation, goal update, member creation, member edit, and session login.
+  - Re-ran existing guarded route coverage for runs, push, and invites.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts app/api/__tests__/members-route.test.ts app/api/__tests__/session-route.test.ts app/api/__tests__/runs-route.test.ts app/api/__tests__/push-route.test.ts app/api/__tests__/invites-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep route body-shape validation focused on mutation endpoints; read-only export routes do not need JSON body guards.
+- Skipped ideas:
+  - Did not add a schema library; the local helper keeps the app lightweight and dependency-free.

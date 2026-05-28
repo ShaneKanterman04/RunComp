@@ -75,6 +75,16 @@ describe("/api/session", () => {
     expect(await readJson(response)).toEqual({ authenticated: true, group, member, members: [member] });
   });
 
+  it("rejects non-object login requests before auth work", async () => {
+    const response = await POST(jsonRequest("/api/session", null));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(login).not.toHaveBeenCalled();
+    expect(verifyInviteToken).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("redeems valid invite tokens and sets the invited member session", async () => {
     jest.mocked(verifyInviteToken).mockResolvedValue({ groupId: "group-1", memberId: "member-1", role: "member", exp: 999 });
     jest.mocked(getGroupContext).mockResolvedValue(context as never);

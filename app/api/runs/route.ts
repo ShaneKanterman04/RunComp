@@ -3,6 +3,7 @@ import { AuthError, requireSession } from "@/lib/auth";
 import { buildComebackTargets, buildFamilyChallenges } from "@/lib/run-metrics";
 import { notifyChallengeCompleted, notifyCloseToPass, notifyLeadChanged, notifyRunLogged } from "@/lib/push";
 import { addRun, claimChallengeCompletions, deleteRun, getGroupContext, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
+import { isJsonObject } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -111,10 +112,6 @@ function leaderForRuns(runs: Array<{ memberId: string; runner: string; miles: nu
 
 function isReactionType(value: string): value is ReactionType {
   return value === "fire" || value === "nice" || value === "brutal" || value === "sus" || value === "respect" || value === "catching" || value === "monster" || value === "suspicious";
-}
-
-function isJsonObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export async function DELETE(request: Request) {

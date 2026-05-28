@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { clearSessionCookie, getCurrentSession, setSessionCookie, verifyInviteToken } from "@/lib/auth";
 import { getGroupContext, login, storeErrorResponse } from "@/lib/store";
+import { isJsonObject } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +19,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     if (typeof body.inviteToken === "string") {
       const invite = await verifyInviteToken(body.inviteToken);
       if (!invite) return NextResponse.json({ error: "Invite link is expired or invalid." }, { status: 401 });

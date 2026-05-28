@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { AuthError, createInviteToken, requireSession } from "@/lib/auth";
 import { storeErrorResponse } from "@/lib/store";
+import { isJsonObject } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,8 +32,4 @@ export async function POST(request: Request) {
     const storeError = storeErrorResponse(error);
     return NextResponse.json({ error: storeError.message }, { status: storeError.status });
   }
-}
-
-function isJsonObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }

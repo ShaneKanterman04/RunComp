@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
 import { getVapidPublicKey } from "@/lib/push";
 import { removePushSubscription, savePushSubscription, storeErrorResponse } from "@/lib/store";
+import { isJsonObject } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +51,4 @@ function errorResponse(error: unknown) {
   }
   const storeError = storeErrorResponse(error);
   return NextResponse.json({ error: storeError.message }, { status: storeError.status });
-}
-
-function isJsonObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }

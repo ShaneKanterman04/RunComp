@@ -99,6 +99,16 @@ describe("/api/members", () => {
     expect(addMember).not.toHaveBeenCalled();
   });
 
+  it("rejects non-object member creation requests before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const response = await POST(jsonRequest("/api/members", null));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(addMember).not.toHaveBeenCalled();
+  });
+
   it("updates runner names through the explicit store method", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(updateMemberName).mockResolvedValue({ id: "member-1", name: "Molly K", role: "member", createdAt: "2026-05-01T00:00:00Z" });
@@ -146,6 +156,17 @@ describe("/api/members", () => {
     expect(await readJson(missingAction)).toEqual({ error: "Send either a runner name or password." });
     expect(ambiguousAction.status).toBe(400);
     expect(await readJson(ambiguousAction)).toEqual({ error: "Send either a runner name or password." });
+    expect(updateMemberName).not.toHaveBeenCalled();
+    expect(resetMemberPassword).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-object runner edit requests before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const response = await PATCH(jsonRequest("/api/members", null, "PATCH"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
     expect(updateMemberName).not.toHaveBeenCalled();
     expect(resetMemberPassword).not.toHaveBeenCalled();
   });
