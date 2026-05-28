@@ -861,6 +861,7 @@ export function formatMiles(value: number) {
 }
 
 export function formatDuration(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0:00";
   const rounded = Math.round(seconds);
   const hours = Math.floor(rounded / 3600);
   const minutes = Math.floor((rounded % 3600) / 60);

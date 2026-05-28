@@ -2443,3 +2443,23 @@
   - Keep store write validation strict so non-finite miles stay legacy-only.
 - Skipped ideas:
   - Did not clamp negative miles because existing recovery exports intentionally preserve suspicious stored values.
+
+### Increment 126: Duration Formatting Invalid Value Guard
+
+- What changed: Updated `formatDuration` to display `0:00` for non-finite or non-positive legacy values instead of invalid time text.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added formatting coverage for `NaN` and negative duration values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep run duration validation strict at the API and store boundaries.
+- Skipped ideas:
+  - Did not change positive duration formatting behavior.

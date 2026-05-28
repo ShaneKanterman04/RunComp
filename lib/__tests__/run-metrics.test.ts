@@ -182,6 +182,8 @@ describe("run metrics", () => {
     expect(formatMiles(Number.POSITIVE_INFINITY)).toBe("0 mi");
     expect(formatDuration(480)).toBe("8:00");
     expect(formatDuration(3670)).toBe("1:01:10");
+    expect(formatDuration(Number.NaN)).toBe("0:00");
+    expect(formatDuration(-30)).toBe("0:00");
     expect(formatPace(480)).toBe("8:00 /mi");
     expect(formatPace(null)).toBe("-");
     expect(toDateKey(new Date(2026, 4, 2))).toBe("2026-05-02");
