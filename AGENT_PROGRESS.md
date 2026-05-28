@@ -535,3 +535,22 @@
   - Consider adding a lightweight UI guard if new export formats are added later.
 - Skipped ideas:
   - Did not add new export formats; this only makes the current API contract explicit.
+
+### Increment 28: Push Route Coverage
+
+- What changed: Expanded push API route tests around the public VAPID key endpoint and unsubscribe authentication.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Added GET coverage for returning the VAPID public key.
+  - Added DELETE coverage proving unauthenticated unsubscribe attempts do not call the store.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider checking the client-side unsubscribe fetch response before showing success.
+- Skipped ideas:
+  - Did not change push behavior in this increment; it only strengthens regression coverage.

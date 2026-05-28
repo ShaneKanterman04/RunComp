@@ -2,8 +2,9 @@
  * @jest-environment node
  */
 
-import { DELETE, POST } from "../push/route";
+import { DELETE, GET, POST } from "../push/route";
 import { AuthError, requireSession } from "@/lib/auth";
+import { getVapidPublicKey } from "@/lib/push";
 import { removePushSubscription, savePushSubscription } from "@/lib/store";
 import { jsonRequest, readJson } from "./route-test-utils";
 
@@ -59,6 +60,15 @@ describe("/api/push", () => {
     expect(savePushSubscription).not.toHaveBeenCalled();
   });
 
+  it("returns the VAPID public key for browser subscription setup", async () => {
+    jest.mocked(getVapidPublicKey).mockResolvedValue("public-key");
+
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    expect(await readJson(response)).toEqual({ publicKey: "public-key" });
+  });
+
   it("saves subscriptions for the signed-in member only", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
     jest.mocked(savePushSubscription).mockResolvedValue({ ok: true });
@@ -82,5 +92,15 @@ describe("/api/push", () => {
     expect(response.status).toBe(200);
     expect(removePushSubscription).toHaveBeenCalledWith("group-1", "https://push.example.test/1", "member-1");
     expect(await readJson(response)).toEqual({ ok: true });
+  });
+
+  it("requires a signed-in session before removing subscriptions", async () => {
+    jest.mocked(requireSession).mockRejectedValue(new AuthError("Sign in to your run group.", 401));
+
+    const response = await DELETE(jsonRequest("/api/push", { endpoint: "https://push.example.test/1" }, "DELETE"));
+
+    expect(response.status).toBe(401);
+    expect(await readJson(response)).toEqual({ error: "Sign in to your run group." });
+    expect(removePushSubscription).not.toHaveBeenCalled();
   });
 });
