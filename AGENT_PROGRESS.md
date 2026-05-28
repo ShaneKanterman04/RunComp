@@ -497,3 +497,22 @@
   - Revisit rarity thresholds later if real groups feel too slow or too fast to progress after the duplicate badge removal.
 - Skipped ideas:
   - Did not add new achievements; this was a focused cleanup of existing profile output.
+
+### Increment 26: Member Edit Route Validation
+
+- What changed: Added `/api/members` PATCH validation for missing runner ids, missing edit actions, and ambiguous name-plus-password edits before calling store mutation methods.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Added route coverage proving malformed edit requests return 400 and do not call rename or password reset store methods.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider similar explicit route validation for member creation if owner setup copy needs more specific field-level errors.
+- Skipped ideas:
+  - Did not change store validation; the store still enforces name and password constraints for valid action shapes.

@@ -117,6 +117,23 @@ describe("/api/members", () => {
     expect(await readJson(response)).toMatchObject({ member: { name: "Molly" } });
   });
 
+  it("rejects malformed runner edit requests before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const missingMember = await PATCH(jsonRequest("/api/members", { name: "Molly K" }, "PATCH"));
+    const missingAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1" }, "PATCH"));
+    const ambiguousAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K", password: "newpassword" }, "PATCH"));
+
+    expect(missingMember.status).toBe(400);
+    expect(await readJson(missingMember)).toEqual({ error: "Missing runner id." });
+    expect(missingAction.status).toBe(400);
+    expect(await readJson(missingAction)).toEqual({ error: "Send either a runner name or password." });
+    expect(ambiguousAction.status).toBe(400);
+    expect(await readJson(ambiguousAction)).toEqual({ error: "Send either a runner name or password." });
+    expect(updateMemberName).not.toHaveBeenCalled();
+    expect(resetMemberPassword).not.toHaveBeenCalled();
+  });
+
   it("rejects non-owner runner edits and deletes", async () => {
     jest.mocked(requireSession).mockResolvedValue(memberSession as never);
 

@@ -33,10 +33,15 @@ export async function PATCH(request: Request) {
     }
     const body = (await request.json()) as Record<string, unknown>;
     const memberId = typeof body.memberId === "string" ? body.memberId : "";
-    const member =
-      typeof body.password === "string"
-        ? await resetMemberPassword(session.group.id, session.member.id, memberId, body.password)
-        : await updateMemberName(session.group.id, session.member.id, memberId, typeof body.name === "string" ? body.name : "");
+    if (!memberId) return NextResponse.json({ error: "Missing runner id." }, { status: 400 });
+    const hasName = typeof body.name === "string";
+    const hasPassword = typeof body.password === "string";
+    if (hasName === hasPassword) {
+      return NextResponse.json({ error: "Send either a runner name or password." }, { status: 400 });
+    }
+    const member = hasPassword
+      ? await resetMemberPassword(session.group.id, session.member.id, memberId, body.password as string)
+      : await updateMemberName(session.group.id, session.member.id, memberId, body.name as string);
     const context = await getGroupContext(session.group.id, session.member.id);
     return NextResponse.json({ member, members: context?.members || [] });
   } catch (error) {
