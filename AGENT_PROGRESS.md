@@ -1075,3 +1075,22 @@
   - Continue pairing route coverage with store validation when push subscription behavior changes.
 - Skipped ideas:
   - Did not change push mutation behavior; this locks the existing structured error contract.
+
+### Increment 57: Runner Delete Id Validation
+
+- What changed: Updated `/api/members` DELETE to reject missing runner ids before calling the store.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Added one route test proving missing delete ids return a clear 400 and do not call `removeInactiveMember`.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue tightening member-management route validation before store calls.
+- Skipped ideas:
+  - Did not change inactive-runner removal rules; this only clarifies malformed request handling.

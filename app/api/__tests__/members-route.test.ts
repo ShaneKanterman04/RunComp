@@ -183,6 +183,16 @@ describe("/api/members", () => {
     expect(removeInactiveMember).not.toHaveBeenCalled();
   });
 
+  it("rejects runner removal requests without a runner id before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const response = await DELETE(new Request("http://localhost/api/members", { method: "DELETE" }));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Missing runner id." });
+    expect(removeInactiveMember).not.toHaveBeenCalled();
+  });
+
   it("removes inactive runners with the owner member id as the actor", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(removeInactiveMember).mockResolvedValue(true);

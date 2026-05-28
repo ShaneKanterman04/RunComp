@@ -260,3 +260,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Fifty-fourth increment added group context sanitization coverage.
 - 2026-05-28: Fifty-fifth increment surfaced per-runner login link status in Settings.
 - 2026-05-28: Fifty-sixth increment added push mutation store-error coverage.
+- 2026-05-28: Fifty-seventh increment validated missing runner delete ids before store calls.

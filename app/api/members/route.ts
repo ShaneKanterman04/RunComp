@@ -68,7 +68,9 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Only the group owner can remove runners." }, { status: 403 });
     }
     const { searchParams } = new URL(request.url);
-    const removed = await removeInactiveMember(session.group.id, searchParams.get("id") || "", session.member.id);
+    const memberId = searchParams.get("id") || "";
+    if (!memberId) return NextResponse.json({ error: "Missing runner id." }, { status: 400 });
+    const removed = await removeInactiveMember(session.group.id, memberId, session.member.id);
     if (!removed) return NextResponse.json({ error: "Runner not found." }, { status: 404 });
     const context = await getGroupContext(session.group.id, session.member.id);
     return NextResponse.json({ members: context?.members || [] });
