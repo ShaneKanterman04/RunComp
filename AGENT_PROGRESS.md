@@ -2061,3 +2061,23 @@
   - Keep setup route normalization aligned with store name cleanup.
 - Skipped ideas:
   - Did not trim owner password values; password text semantics remain unchanged except blank-password rejection.
+
+### Increment 107: Recent Trend Window Hardening
+
+- What changed: Updated `buildRecentMileageTrend` to use at least a one-day window even if called with zero or negative days.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added run-metrics coverage for zero-day trend windows.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep profile trend helpers defensive as more profile views reuse them.
+- Skipped ideas:
+  - Did not change the default seven-day profile trend window.

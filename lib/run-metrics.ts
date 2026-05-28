@@ -667,13 +667,14 @@ export function buildStreakStrip(runs: MetricRunEntry[], memberId: string, now =
 }
 
 export function buildRecentMileageTrend(runs: MetricRunEntry[], memberId: string, now = new Date(), days = 7): RecentMileageTrend {
+  const windowDays = Math.max(1, Math.floor(days));
   const currentEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const currentStart = new Date(currentEnd);
-  currentStart.setDate(currentEnd.getDate() - (days - 1));
+  currentStart.setDate(currentEnd.getDate() - (windowDays - 1));
   const previousEnd = new Date(currentStart);
   previousEnd.setDate(currentStart.getDate() - 1);
   const previousStart = new Date(previousEnd);
-  previousStart.setDate(previousEnd.getDate() - (days - 1));
+  previousStart.setDate(previousEnd.getDate() - (windowDays - 1));
   const recentMiles = sumMilesForRange(runs, memberId, currentStart, currentEnd);
   const previousMiles = sumMilesForRange(runs, memberId, previousStart, previousEnd);
   const deltaMiles = Math.round((recentMiles - previousMiles) * 100) / 100;

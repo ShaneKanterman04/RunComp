@@ -141,6 +141,20 @@ describe("run metrics", () => {
     expect(buildRecentMileageTrend([], "shane", now)).toEqual({ recentMiles: 0, previousMiles: 0, deltaMiles: 0, direction: "flat" });
   });
 
+  it("uses at least a one-day recent mileage window", () => {
+    expect(
+      buildRecentMileageTrend(
+        [
+          { id: "today", memberId: "shane", miles: 2, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+          { id: "yesterday", memberId: "shane", miles: 5, date: "2026-05-21", createdAt: "2026-05-21T12:00:00Z" },
+        ],
+        "shane",
+        now,
+        0,
+      ),
+    ).toEqual({ recentMiles: 2, previousMiles: 5, deltaMiles: -3, direction: "down" });
+  });
+
   it("sorts newest run date first and then newest created time", () => {
     const sorted = sortRuns([
       { id: "older", date: "2026-05-21", createdAt: "2026-05-21T10:00:00Z" },
