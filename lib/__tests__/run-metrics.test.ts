@@ -199,9 +199,10 @@ describe("run metrics", () => {
       { id: "older", date: "2026-05-21", createdAt: "2026-05-21T10:00:00Z" },
       { id: "latest-create", date: "2026-05-22", createdAt: "2026-05-22T11:00:00Z" },
       { id: "earlier-create", date: "2026-05-22", createdAt: "2026-05-22T09:00:00Z" },
+      { id: "bad-date", date: "not-a-date", createdAt: "2026-05-23T12:00:00Z" },
     ]);
 
-    expect(sorted.map((run) => run.id)).toEqual(["latest-create", "earlier-create", "older"]);
+    expect(sorted.map((run) => run.id)).toEqual(["latest-create", "earlier-create", "older", "bad-date"]);
   });
 
   it("formats miles and local date keys consistently", () => {

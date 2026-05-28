@@ -2834,3 +2834,25 @@
   - Consider extracting auth/settings forms into smaller components with targeted interaction tests.
 - Skipped ideas:
   - Did not change server-side validation or auth behavior.
+
+### Increment 145: Legacy Run Date Sorting
+
+- What changed: Updated metric and store run sorting to treat invalid legacy run dates and timestamps as oldest instead of relying on raw string ordering.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/store.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added metric sorting coverage for invalid date strings.
+  - Added store export coverage that valid runs appear before invalid legacy dates.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep newly written run dates strictly validated so this remains a legacy-data guard.
+- Skipped ideas:
+  - Did not mutate or drop legacy runs with invalid dates.

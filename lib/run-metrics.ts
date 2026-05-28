@@ -766,10 +766,19 @@ export function emptyStats(): RunnerStats {
 
 export function sortRuns<T extends { date: string; createdAt: string }>(runs: T[]) {
   return [...runs].sort((a, b) => {
-    const byDate = b.date.localeCompare(a.date);
+    const byDate = sortableDateTime(b.date) - sortableDateTime(a.date);
     if (byDate !== 0) return byDate;
-    return b.createdAt.localeCompare(a.createdAt);
+    return sortableTimestamp(b.createdAt) - sortableTimestamp(a.createdAt);
   });
+}
+
+function sortableDateTime(value: string) {
+  return parseRunDate(value).getTime();
+}
+
+function sortableTimestamp(value: string) {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 export function sumMiles(runs: Pick<MetricRunEntry, "miles">[]) {

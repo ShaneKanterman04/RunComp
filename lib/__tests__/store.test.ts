@@ -516,6 +516,35 @@ describe("file-backed store", () => {
     expect(csv).toContain("2026-05-22,Unknown,3.10,1550,500,tempo");
   });
 
+  it("sorts invalid legacy run dates after valid runs in exports", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    await store.addRun(group.id, owner.id, { miles: 2, date: "2026-05-22", note: "valid" });
+
+    const dataFile = path.join(dataDir, "runcomp.json");
+    const raw = JSON.parse(await fs.readFile(dataFile, "utf8"));
+    raw.groups[0].runs.push({
+      id: "legacy-bad-date",
+      memberId: owner.id,
+      miles: 99,
+      date: "not-a-date",
+      note: "legacy",
+      createdAt: "2026-05-23T12:00:00Z",
+    });
+    await fs.writeFile(dataFile, `${JSON.stringify(raw, null, 2)}\n`, "utf8");
+
+    const csv = await store.exportRunsCsv(group.id);
+
+    expect(csv.indexOf("2026-05-22,Shane,2.00,,,valid")).toBeLessThan(csv.indexOf("not-a-date,Shane,99.00,,,legacy"));
+  });
+
   it("keeps CSV mileage readable and pace cells blank for non-positive legacy mileage", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

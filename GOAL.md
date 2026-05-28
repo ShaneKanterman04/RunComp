@@ -348,3 +348,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred forty-second increment moved biggest-week profile stats into guarded metrics.
 - 2026-05-28: One hundred forty-third increment normalized password-login names at the session route boundary.
 - 2026-05-28: One hundred forty-fourth increment tightened auth form submit guards.
+- 2026-05-28: One hundred forty-fifth increment sorted invalid legacy run dates after valid runs.

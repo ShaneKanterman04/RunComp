@@ -638,10 +638,20 @@ function requireGroupOwner(group: Group, ownerMemberId: string) {
 
 function sortRuns(runs: RunEntry[]) {
   return [...runs].sort((a, b) => {
-    const byDate = b.date.localeCompare(a.date);
+    const byDate = sortableDateTime(b.date) - sortableDateTime(a.date);
     if (byDate !== 0) return byDate;
-    return b.createdAt.localeCompare(a.createdAt);
+    return sortableTimestamp(b.createdAt) - sortableTimestamp(a.createdAt);
   });
+}
+
+function sortableDateTime(value: string) {
+  const timestamp = Date.parse(`${value}T00:00:00`);
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function sortableTimestamp(value: string) {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function publicRun(group: Group, run: RunEntry, viewerMemberId?: string): PublicRunEntry {
