@@ -25,11 +25,14 @@ export async function POST(request: Request) {
     const endpoint = typeof subscription.endpoint === "string" ? subscription.endpoint.trim() : "";
     if (!endpoint) return NextResponse.json({ error: "Missing push subscription endpoint." }, { status: 400 });
     const keys = isJsonObject(subscription.keys) ? subscription.keys : {};
+    const p256dh = typeof keys.p256dh === "string" ? keys.p256dh.trim() : "";
+    const auth = typeof keys.auth === "string" ? keys.auth.trim() : "";
+    if (!p256dh || !auth) return NextResponse.json({ error: "Missing push subscription keys." }, { status: 400 });
     await savePushSubscription(session.group.id, session.member.id, {
       endpoint,
       keys: {
-        p256dh: typeof keys.p256dh === "string" ? keys.p256dh : "",
-        auth: typeof keys.auth === "string" ? keys.auth : "",
+        p256dh,
+        auth,
       },
     });
     return NextResponse.json({ ok: true });

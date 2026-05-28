@@ -2160,3 +2160,23 @@
   - Consider a no-winner challenge payload regression test if challenge variants expand.
 - Skipped ideas:
   - Did not alter challenge notification delivery logic because current route dispatch coverage already exercises fresh completion filtering.
+
+### Increment 112: Push Subscription Key Route Validation
+
+- What changed: Added API-level validation for missing or blank push subscription key fields before calling the store.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/push/route.ts`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Added push route coverage for missing, partial, and blank subscription keys.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep deeper endpoint/key length validation in the store as the persistence boundary.
+- Skipped ideas:
+  - Did not add browser push setup changes; this increment only improves API validation clarity.

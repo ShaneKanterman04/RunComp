@@ -145,6 +145,22 @@ describe("/api/push", () => {
     expect(savePushSubscription).not.toHaveBeenCalled();
   });
 
+  it("rejects missing push subscription keys before saving", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+
+    const missingKeys = await POST(jsonRequest("/api/push", { subscription: { endpoint: "https://push.example.test/1" } }));
+    const missingAuth = await POST(jsonRequest("/api/push", { subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "key" } } }));
+    const blankKey = await POST(jsonRequest("/api/push", { subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "  ", auth: "auth" } } }));
+
+    expect(missingKeys.status).toBe(400);
+    expect(await readJson(missingKeys)).toEqual({ error: "Missing push subscription keys." });
+    expect(missingAuth.status).toBe(400);
+    expect(await readJson(missingAuth)).toEqual({ error: "Missing push subscription keys." });
+    expect(blankKey.status).toBe(400);
+    expect(await readJson(blankKey)).toEqual({ error: "Missing push subscription keys." });
+    expect(savePushSubscription).not.toHaveBeenCalled();
+  });
+
   it("removes subscriptions only for the signed-in member", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
     jest.mocked(removePushSubscription).mockResolvedValue({ removed: 1 });
