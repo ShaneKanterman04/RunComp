@@ -160,6 +160,23 @@ describe("file-backed store", () => {
     await expect(store.deleteRun(group.id, owner.id, "owner", mollyRun.id)).resolves.toBe(true);
   });
 
+  it("validates run miles, dates, and durations before writing", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+
+    await expect(store.addRun(group.id, member.id, { miles: 0, date: "2026-05-22" })).rejects.toMatchObject({ status: 400 });
+    await expect(store.addRun(group.id, member.id, { miles: 3, date: "2026-02-31" })).rejects.toMatchObject({ status: 400 });
+    await expect(store.addRun(group.id, member.id, { miles: 3, date: "2026-05-22", durationSeconds: 172801 })).rejects.toMatchObject({ status: 400 });
+    await expect(store.listRuns(group.id, member.id)).resolves.toEqual([]);
+  });
+
   it("toggles one reaction per member per run", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

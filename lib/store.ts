@@ -259,6 +259,13 @@ export async function listRuns(groupId: string, viewerMemberId?: string) {
 }
 
 export async function addRun(groupId: string, memberId: string, input: { miles: number; date: string; note?: string; durationSeconds?: number }) {
+  const miles = cleanRunMiles(input.miles);
+  const date = cleanRunDate(input.date);
+  const durationSeconds = input.durationSeconds === undefined ? undefined : roundDurationSeconds(input.durationSeconds);
+  if (durationSeconds !== undefined && (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 172800)) {
+    throw new StoreError("Run time must be between 1 second and 48 hours.", 400);
+  }
+
   return withStoreLock(async () => {
     const store = await readStore();
     const group = findGroup(store, groupId);
@@ -268,9 +275,9 @@ export async function addRun(groupId: string, memberId: string, input: { miles: 
     const run: RunEntry = {
       id: randomUUID(),
       memberId,
-      miles: roundMiles(input.miles),
-      ...(input.durationSeconds ? { durationSeconds: roundDurationSeconds(input.durationSeconds) } : {}),
-      date: input.date,
+      miles,
+      ...(durationSeconds ? { durationSeconds } : {}),
+      date,
       note: (input.note || "").trim().slice(0, 180),
       createdAt: new Date().toISOString(),
     };
@@ -510,6 +517,26 @@ function cleanGoalMiles(value: number | undefined) {
     throw new StoreError("Goal miles must be between 1 and 10000.", 400);
   }
   return Math.round(goal * 100) / 100;
+}
+
+function cleanRunMiles(value: number) {
+  const miles = Number(value);
+  if (!Number.isFinite(miles) || miles <= 0 || miles > 100) {
+    throw new StoreError("Miles must be between 0 and 100.", 400);
+  }
+  return roundMiles(miles);
+}
+
+function cleanRunDate(value: string) {
+  const date = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new StoreError("Date must be a valid YYYY-MM-DD value.", 400);
+  }
+  const timestamp = Date.parse(`${date}T00:00:00.000Z`);
+  if (!Number.isFinite(timestamp) || new Date(timestamp).toISOString().slice(0, 10) !== date) {
+    throw new StoreError("Date must be a valid YYYY-MM-DD value.", 400);
+  }
+  return date;
 }
 
 function cleanName(value: string, maxLength: number) {

@@ -246,3 +246,22 @@
   - Consider extracting profile sections if the modal grows further.
 - Skipped ideas:
   - Did not add a chart library or larger profile redesign; this stayed within existing data and UI patterns.
+
+### Increment 13: Store-Level Run Validation
+
+- What changed: Hardened `addRun` in the file-backed store so direct store callers get the same basic validation guarantees as the API route: miles must be within range, dates must be real `YYYY-MM-DD` calendar dates, and durations must be positive and no more than 48 hours.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added a store regression test proving invalid run inputs are rejected before writing.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider sharing run input validation between route and store if more run fields are added.
+  - Consider stricter future-date policy only if the group wants it; current behavior still allows backfilled/future-dated runs as before.
+- Skipped ideas:
+  - Did not change persisted data shape or migrate existing runs; this only guards new writes.
