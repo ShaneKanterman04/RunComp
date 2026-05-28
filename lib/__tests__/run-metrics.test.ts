@@ -177,6 +177,7 @@ describe("run metrics", () => {
   it("derives race progress and badges", () => {
     expect(raceProgress(24, 100)).toEqual({ percent: 24, remaining: 76, complete: false });
     expect(raceProgress(125, 100)).toEqual({ percent: 100, remaining: 0, complete: true });
+    expect(raceProgress(0, Number.NaN)).toEqual({ percent: 0, remaining: 1, complete: false });
 
     const badges = buildBadges({
       total: 55,

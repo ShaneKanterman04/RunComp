@@ -2101,3 +2101,23 @@
   - Keep profile visualization helpers defensive when exposing custom ranges.
 - Skipped ideas:
   - Did not change the default seven-day streak strip or six-week heatmap.
+
+### Increment 109: Race Progress Goal Guard
+
+- What changed: Updated `raceProgress` to guard against non-finite goals by using a minimum one-mile target.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added race progress coverage for a non-finite goal.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep UI goal display backed by store validation; this guard is for helper resilience.
+- Skipped ideas:
+  - Did not change persisted goal validation, which still requires 1 to 10000 miles.

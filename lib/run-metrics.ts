@@ -577,7 +577,7 @@ function achievementForRun(run: MetricRunEntry, previousTotal: number): { id: st
 }
 
 export function raceProgress(total: number, goalMiles: number) {
-  const safeGoal = Math.max(1, goalMiles);
+  const safeGoal = Number.isFinite(goalMiles) ? Math.max(1, goalMiles) : 1;
   return {
     percent: Math.min(100, (total / safeGoal) * 100),
     remaining: Math.max(0, safeGoal - total),
