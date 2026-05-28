@@ -5,6 +5,7 @@
 import { DELETE, POST } from "../push/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { removePushSubscription, savePushSubscription } from "@/lib/store";
+import { jsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -43,17 +44,6 @@ const session = {
   members: [],
 };
 
-function jsonRequest(body: unknown, method = "POST") {
-  return new Request("http://localhost/api/push", {
-    method,
-    body: JSON.stringify(body),
-  });
-}
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
-
 describe("/api/push", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -62,7 +52,7 @@ describe("/api/push", () => {
   it("requires a signed-in session to save subscriptions", async () => {
     jest.mocked(requireSession).mockRejectedValue(new AuthError("Sign in to your run group.", 401));
 
-    const response = await POST(jsonRequest({ subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "key", auth: "auth" } } }));
+    const response = await POST(jsonRequest("/api/push", { subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "key", auth: "auth" } } }));
 
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({ error: "Sign in to your run group." });
@@ -73,7 +63,7 @@ describe("/api/push", () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
     jest.mocked(savePushSubscription).mockResolvedValue({ ok: true });
 
-    const response = await POST(jsonRequest({ subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "key", auth: "auth" } } }));
+    const response = await POST(jsonRequest("/api/push", { subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "key", auth: "auth" } } }));
 
     expect(response.status).toBe(200);
     expect(savePushSubscription).toHaveBeenCalledWith("group-1", "member-1", {
@@ -87,7 +77,7 @@ describe("/api/push", () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
     jest.mocked(removePushSubscription).mockResolvedValue({ removed: 1 });
 
-    const response = await DELETE(jsonRequest({ endpoint: "https://push.example.test/1" }, "DELETE"));
+    const response = await DELETE(jsonRequest("/api/push", { endpoint: "https://push.example.test/1" }, "DELETE"));
 
     expect(response.status).toBe(200);
     expect(removePushSubscription).toHaveBeenCalledWith("group-1", "https://push.example.test/1", "member-1");

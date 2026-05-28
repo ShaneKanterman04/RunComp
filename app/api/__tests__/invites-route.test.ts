@@ -4,6 +4,7 @@
 
 import { POST } from "../invites/route";
 import { AuthError, createInviteToken, requireSession } from "@/lib/auth";
+import { jsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -35,17 +36,6 @@ const group = { id: "group-1", code: "123", name: "Family Miles", goalMiles: 100
 const owner = { id: "owner-1", name: "Shane", role: "owner" as const, createdAt: "2026-05-01T00:00:00Z" };
 const member = { id: "member-1", name: "Molly", role: "member" as const, createdAt: "2026-05-01T00:00:00Z" };
 
-function jsonRequest(body: unknown) {
-  return new Request("http://localhost/api/invites", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
-
 describe("/api/invites", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,7 +44,7 @@ describe("/api/invites", () => {
   it("requires a signed-in owner", async () => {
     jest.mocked(requireSession).mockRejectedValue(new AuthError("Sign in to your run group.", 401));
 
-    const response = await POST(jsonRequest({ memberId: "member-1" }));
+    const response = await POST(jsonRequest("/api/invites", { memberId: "member-1" }));
 
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({ error: "Sign in to your run group." });
@@ -64,7 +54,7 @@ describe("/api/invites", () => {
   it("rejects non-owner invite generation server-side", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member, members: [owner, member] } as never);
 
-    const response = await POST(jsonRequest({ memberId: "member-1" }));
+    const response = await POST(jsonRequest("/api/invites", { memberId: "member-1" }));
 
     expect(response.status).toBe(403);
     expect(await readJson(response)).toEqual({ error: "Only the group owner can create login links." });
@@ -74,7 +64,7 @@ describe("/api/invites", () => {
   it("only creates links for runners in the current group context", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
 
-    const response = await POST(jsonRequest({ memberId: "other-group-member" }));
+    const response = await POST(jsonRequest("/api/invites", { memberId: "other-group-member" }));
 
     expect(response.status).toBe(404);
     expect(await readJson(response)).toEqual({ error: "Runner not found in this group." });
@@ -85,7 +75,7 @@ describe("/api/invites", () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
     jest.mocked(createInviteToken).mockResolvedValue("signed-invite-token");
 
-    const response = await POST(jsonRequest({ memberId: "member-1" }));
+    const response = await POST(jsonRequest("/api/invites", { memberId: "member-1" }));
 
     expect(response.status).toBe(200);
     expect(createInviteToken).toHaveBeenCalledWith({ groupId: "group-1", memberId: "member-1", role: "member" });

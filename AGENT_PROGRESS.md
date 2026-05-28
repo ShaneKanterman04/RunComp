@@ -283,3 +283,27 @@
   - Keep route-level session tests as the main coverage for cookie-setting behavior.
 - Skipped ideas:
   - Did not change token format or TTL; this increment pins existing behavior.
+
+### Increment 15: Route Test Helper Cleanup
+
+- What changed: Added a small shared route-test utility for JSON request construction and JSON response parsing, then updated API route tests to use it.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/route-test-utils.ts`
+  - `app/api/__tests__/exports-route.test.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+  - `app/api/__tests__/invites-route.test.ts`
+  - `app/api/__tests__/members-route.test.ts`
+  - `app/api/__tests__/push-route.test.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - No new behavior tests; updated existing route tests to share helpers.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider extracting shared auth/store mock factories only if route test setup keeps expanding.
+- Skipped ideas:
+  - Did not refactor route mocks in this increment; helper cleanup kept the diff mechanical and low-risk.

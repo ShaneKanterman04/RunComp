@@ -6,6 +6,7 @@ import { DELETE, GET, PATCH, POST } from "../runs/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { notifyChallengeCompleted, notifyCloseToPass, notifyLeadChanged, notifyRunLogged } from "@/lib/push";
 import { addRun, claimChallengeCompletions, deleteRun, getGroupContext, listRuns, toggleRunReaction } from "@/lib/store";
+import { jsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -61,17 +62,6 @@ const run = {
   createdAt: "2026-05-22T12:00:00Z",
 };
 
-function jsonRequest(body: unknown, method = "POST") {
-  return new Request("http://localhost/api/runs", {
-    method,
-    body: JSON.stringify(body),
-  });
-}
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
-
 describe("/api/runs", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -104,9 +94,9 @@ describe("/api/runs", () => {
   });
 
   it("validates run input before writing", async () => {
-    const badMiles = await POST(jsonRequest({ miles: 0, date: "2026-05-22" }));
-    const badDate = await POST(jsonRequest({ miles: 3, date: "2026-02-31" }));
-    const badDuration = await POST(jsonRequest({ miles: 3, date: "2026-05-22", durationSeconds: 172801 }));
+    const badMiles = await POST(jsonRequest("/api/runs", { miles: 0, date: "2026-05-22" }));
+    const badDate = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-02-31" }));
+    const badDuration = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-05-22", durationSeconds: 172801 }));
 
     expect(badMiles.status).toBe(400);
     expect(await readJson(badMiles)).toEqual({ error: "Miles must be between 0 and 100." });
@@ -122,7 +112,7 @@ describe("/api/runs", () => {
     jest.mocked(addRun).mockResolvedValue(run);
     jest.mocked(getGroupContext).mockResolvedValue(null);
 
-    const response = await POST(jsonRequest({ miles: "3.25", date: "2026-05-22", durationSeconds: "1560", note: "tempo" }));
+    const response = await POST(jsonRequest("/api/runs", { miles: "3.25", date: "2026-05-22", durationSeconds: "1560", note: "tempo" }));
 
     expect(response.status).toBe(201);
     expect(addRun).toHaveBeenCalledWith("group-1", "member-1", { miles: 3.25, date: "2026-05-22", note: "tempo", durationSeconds: 1560 });
@@ -138,7 +128,7 @@ describe("/api/runs", () => {
     jest.mocked(addRun).mockResolvedValue(run);
     jest.mocked(getGroupContext).mockResolvedValue(null);
 
-    await POST(jsonRequest({ miles: 3.25, date: "2026-05-22" }));
+    await POST(jsonRequest("/api/runs", { miles: 3.25, date: "2026-05-22" }));
 
     expect(notifyLeadChanged).toHaveBeenCalledWith("group-1", "Molly", 3.25);
   });
@@ -146,9 +136,9 @@ describe("/api/runs", () => {
   it("toggles supported reactions and rejects malformed reaction requests", async () => {
     jest.mocked(toggleRunReaction).mockResolvedValue({ ...run, reactions: [{ type: "fire", count: 1, reactedByMe: true }] });
 
-    const missingId = await PATCH(jsonRequest({ reaction: "fire" }, "PATCH"));
-    const badReaction = await PATCH(jsonRequest({ id: "run-1", reaction: "sparkle" }, "PATCH"));
-    const response = await PATCH(jsonRequest({ id: "run-1", reaction: "fire" }, "PATCH"));
+    const missingId = await PATCH(jsonRequest("/api/runs", { reaction: "fire" }, "PATCH"));
+    const badReaction = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "sparkle" }, "PATCH"));
+    const response = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "fire" }, "PATCH"));
 
     expect(missingId.status).toBe(400);
     expect(await readJson(missingId)).toEqual({ error: "Missing run id." });

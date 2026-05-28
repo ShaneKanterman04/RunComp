@@ -5,6 +5,7 @@
 import { DELETE, GET, POST } from "../session/route";
 import { clearSessionCookie, getCurrentSession, setSessionCookie, verifyInviteToken } from "@/lib/auth";
 import { getGroupContext, login } from "@/lib/store";
+import { jsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => ({
   clearSessionCookie: jest.fn(),
@@ -28,17 +29,6 @@ const group = { id: "group-1", code: "123", name: "Family Miles", goalMiles: 100
 const owner = { id: "owner-1", name: "Shane", role: "owner" as const, createdAt: "2026-05-01T00:00:00Z" };
 const member = { id: "member-1", name: "Molly", role: "member" as const, createdAt: "2026-05-01T00:00:00Z" };
 const context = { group, member, members: [owner, member] };
-
-function jsonRequest(body: unknown) {
-  return new Request("http://localhost/api/session", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
 
 describe("/api/session", () => {
   beforeEach(() => {
@@ -67,7 +57,7 @@ describe("/api/session", () => {
     jest.mocked(login).mockResolvedValue({ group, member });
     jest.mocked(getGroupContext).mockResolvedValue(context as never);
 
-    const response = await POST(jsonRequest({ groupCode: "123", memberName: "Molly", password: "password123" }));
+    const response = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly", password: "password123" }));
 
     expect(response.status).toBe(200);
     expect(login).toHaveBeenCalledWith({ groupCode: "123", memberName: "Molly", password: "password123" });
@@ -79,7 +69,7 @@ describe("/api/session", () => {
     jest.mocked(login).mockResolvedValue({ group, member });
     jest.mocked(getGroupContext).mockResolvedValue(null);
 
-    const response = await POST(jsonRequest({ groupCode: "123", memberName: "Molly", password: "password123" }));
+    const response = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly", password: "password123" }));
 
     expect(response.status).toBe(200);
     expect(await readJson(response)).toEqual({ authenticated: true, group, member, members: [member] });
@@ -89,7 +79,7 @@ describe("/api/session", () => {
     jest.mocked(verifyInviteToken).mockResolvedValue({ groupId: "group-1", memberId: "member-1", role: "member", exp: 999 });
     jest.mocked(getGroupContext).mockResolvedValue(context as never);
 
-    const response = await POST(jsonRequest({ inviteToken: "signed-token" }));
+    const response = await POST(jsonRequest("/api/session", { inviteToken: "signed-token" }));
 
     expect(response.status).toBe(200);
     expect(login).not.toHaveBeenCalled();
@@ -100,7 +90,7 @@ describe("/api/session", () => {
   it("rejects invalid or stale invite tokens", async () => {
     jest.mocked(verifyInviteToken).mockResolvedValue(null);
 
-    const response = await POST(jsonRequest({ inviteToken: "bad-token" }));
+    const response = await POST(jsonRequest("/api/session", { inviteToken: "bad-token" }));
 
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({ error: "Invite link is expired or invalid." });
@@ -111,7 +101,7 @@ describe("/api/session", () => {
     jest.mocked(verifyInviteToken).mockResolvedValue({ groupId: "group-1", memberId: "removed", role: "member", exp: 999 });
     jest.mocked(getGroupContext).mockResolvedValue(null);
 
-    const response = await POST(jsonRequest({ inviteToken: "stale-token" }));
+    const response = await POST(jsonRequest("/api/session", { inviteToken: "stale-token" }));
 
     expect(response.status).toBe(404);
     expect(await readJson(response)).toEqual({ error: "Invite member no longer exists." });
@@ -121,7 +111,7 @@ describe("/api/session", () => {
   it("returns login validation errors", async () => {
     jest.mocked(login).mockRejectedValue({ status: 401, message: "Name or password is incorrect." });
 
-    const response = await POST(jsonRequest({ groupCode: "123", memberName: "Molly", password: "wrong" }));
+    const response = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly", password: "wrong" }));
 
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({ error: "Name or password is incorrect." });

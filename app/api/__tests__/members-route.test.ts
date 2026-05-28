@@ -5,6 +5,7 @@
 import { DELETE, PATCH, POST } from "../members/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { addMember, getGroupContext, removeInactiveMember, resetMemberPassword, updateMemberName } from "@/lib/store";
+import { jsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -46,17 +47,6 @@ const memberSession = {
   member: { id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" },
 };
 
-function jsonRequest(body: unknown) {
-  return new Request("http://localhost/api/members", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
-
 describe("/api/members", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,7 +55,7 @@ describe("/api/members", () => {
   it("requires a signed-in owner before creating runner passwords", async () => {
     jest.mocked(requireSession).mockRejectedValue(new AuthError("Sign in to your run group.", 401));
 
-    const response = await POST(jsonRequest({ name: "Molly", password: "password123" }));
+    const response = await POST(jsonRequest("/api/members", { name: "Molly", password: "password123" }));
 
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({ error: "Sign in to your run group." });
@@ -75,7 +65,7 @@ describe("/api/members", () => {
   it("rejects non-owner member creation server-side", async () => {
     jest.mocked(requireSession).mockResolvedValue(memberSession as never);
 
-    const response = await POST(jsonRequest({ name: "Dad", password: "password123" }));
+    const response = await POST(jsonRequest("/api/members", { name: "Dad", password: "password123" }));
 
     expect(response.status).toBe(403);
     expect(await readJson(response)).toEqual({ error: "Only the group owner can create member passwords." });
@@ -86,7 +76,7 @@ describe("/api/members", () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(addMember).mockResolvedValue({ id: "member-2", name: "Dad", role: "member", createdAt: "2026-05-02T00:00:00Z" });
 
-    const response = await POST(jsonRequest({ name: "Dad", password: "password123" }));
+    const response = await POST(jsonRequest("/api/members", { name: "Dad", password: "password123" }));
 
     expect(response.status).toBe(201);
     expect(addMember).toHaveBeenCalledWith("group-1", { name: "Dad", password: "password123" });
@@ -102,7 +92,7 @@ describe("/api/members", () => {
       members: [ownerSession.member, { id: "member-1", name: "Molly K", role: "member", createdAt: "2026-05-01T00:00:00Z" }],
     } as never);
 
-    const response = await PATCH(jsonRequest({ memberId: "member-1", name: "Molly K" }));
+    const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K" }, "PATCH"));
 
     expect(response.status).toBe(200);
     expect(updateMemberName).toHaveBeenCalledWith("group-1", "member-1", "Molly K");
@@ -119,7 +109,7 @@ describe("/api/members", () => {
       members: [ownerSession.member, { id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" }],
     } as never);
 
-    const response = await PATCH(jsonRequest({ memberId: "member-1", password: "newpassword" }));
+    const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", password: "newpassword" }, "PATCH"));
 
     expect(response.status).toBe(200);
     expect(resetMemberPassword).toHaveBeenCalledWith("group-1", "member-1", "newpassword");
@@ -130,7 +120,7 @@ describe("/api/members", () => {
   it("rejects non-owner runner edits and deletes", async () => {
     jest.mocked(requireSession).mockResolvedValue(memberSession as never);
 
-    const patchResponse = await PATCH(jsonRequest({ memberId: "owner-1", name: "Not Owner" }));
+    const patchResponse = await PATCH(jsonRequest("/api/members", { memberId: "owner-1", name: "Not Owner" }, "PATCH"));
     const deleteResponse = await DELETE(new Request("http://localhost/api/members?id=owner-1", { method: "DELETE" }));
 
     expect(patchResponse.status).toBe(403);

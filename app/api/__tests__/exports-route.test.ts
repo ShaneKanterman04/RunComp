@@ -5,6 +5,7 @@
 import { GET } from "../exports/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { exportGroupBackup, exportRunsCsv } from "@/lib/store";
+import { readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -42,10 +43,6 @@ const memberSession = {
   ...ownerSession,
   member: { id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" },
 };
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
 
 describe("/api/exports", () => {
   beforeEach(() => {

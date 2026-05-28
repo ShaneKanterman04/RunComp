@@ -5,6 +5,7 @@
 import { PATCH, POST } from "../groups/route";
 import { AuthError, requireSession, setSessionCookie } from "@/lib/auth";
 import { createGroup, getGroupContext, updateGroupGoal } from "@/lib/store";
+import { jsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -39,17 +40,6 @@ const group = { id: "group-1", code: "123", name: "Family Miles", goalMiles: 100
 const owner = { id: "owner-1", name: "Shane", role: "owner" as const, createdAt: "2026-05-01T00:00:00Z" };
 const member = { id: "member-1", name: "Molly", role: "member" as const, createdAt: "2026-05-01T00:00:00Z" };
 
-function jsonRequest(body: unknown, method = "POST") {
-  return new Request("http://localhost/api/groups", {
-    method,
-    body: JSON.stringify(body),
-  });
-}
-
-async function readJson(response: Response) {
-  return response.json() as Promise<Record<string, unknown>>;
-}
-
 describe("/api/groups", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,7 +49,7 @@ describe("/api/groups", () => {
     jest.mocked(createGroup).mockResolvedValue({ group, member: owner });
     jest.mocked(getGroupContext).mockResolvedValue({ group, member: owner, members: [owner] } as never);
 
-    const response = await POST(jsonRequest({ groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "150" }));
+    const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "150" }));
 
     expect(response.status).toBe(201);
     expect(createGroup).toHaveBeenCalledWith({ groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: 150 });
@@ -70,7 +60,7 @@ describe("/api/groups", () => {
   it("returns validation errors from group creation", async () => {
     jest.mocked(createGroup).mockRejectedValue({ status: 400, message: "Passwords need at least 8 characters." });
 
-    const response = await POST(jsonRequest({ groupName: "Family Miles", ownerName: "Shane", password: "short" }));
+    const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "short" }));
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Passwords need at least 8 characters." });
@@ -80,7 +70,7 @@ describe("/api/groups", () => {
   it("requires owners for race goal updates", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member, members: [owner, member] } as never);
 
-    const response = await PATCH(jsonRequest({ goalMiles: 200 }, "PATCH"));
+    const response = await PATCH(jsonRequest("/api/groups", { goalMiles: 200 }, "PATCH"));
 
     expect(response.status).toBe(403);
     expect(await readJson(response)).toEqual({ error: "Only the group owner can update the race goal." });
@@ -91,7 +81,7 @@ describe("/api/groups", () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
     jest.mocked(updateGroupGoal).mockResolvedValue({ ...group, goalMiles: 200 });
 
-    const response = await PATCH(jsonRequest({ goalMiles: "200" }, "PATCH"));
+    const response = await PATCH(jsonRequest("/api/groups", { goalMiles: "200" }, "PATCH"));
 
     expect(response.status).toBe(200);
     expect(updateGroupGoal).toHaveBeenCalledWith("group-1", 200);
@@ -101,7 +91,7 @@ describe("/api/groups", () => {
   it("returns auth errors for goal updates without a valid session", async () => {
     jest.mocked(requireSession).mockRejectedValue(new AuthError("Sign in to your run group.", 401));
 
-    const response = await PATCH(jsonRequest({ goalMiles: 200 }, "PATCH"));
+    const response = await PATCH(jsonRequest("/api/groups", { goalMiles: 200 }, "PATCH"));
 
     expect(response.status).toBe(401);
     expect(await readJson(response)).toEqual({ error: "Sign in to your run group." });
