@@ -38,6 +38,12 @@ describe("auth invite tokens", () => {
     expect(claims?.exp).toBeGreaterThan(Date.now());
   });
 
+  it("trims invite token ids before signing", async () => {
+    const token = await auth.createInviteToken({ groupId: " group-1 ", memberId: " member-1 ", role: "member" });
+
+    await expect(auth.verifyInviteToken(token)).resolves.toMatchObject({ groupId: "group-1", memberId: "member-1", role: "member" });
+  });
+
   it("rejects tampered invite tokens", async () => {
     const token = await auth.createInviteToken({ groupId: "group-1", memberId: "member-1", role: "member" });
     const [payload, signature] = token.split(".");
@@ -114,6 +120,33 @@ describe("auth sessions", () => {
     expect(getGroupContext).toHaveBeenCalledWith("group-1", "member-1");
     expect(session?.claims.role).toBe("owner");
     expect(session?.member.role).toBe("member");
+  });
+
+  it("trims session cookie ids before signing", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    let cookieValue = "";
+    const cookieStore = {
+      get: jest.fn(() => (cookieValue ? { value: cookieValue } : undefined)),
+      set: jest.fn((_name: string, value: string) => {
+        cookieValue = value;
+      }),
+      delete: jest.fn(),
+    };
+    const getGroupContext = jest.fn().mockResolvedValue({
+      group: { id: "group-1", code: "123", name: "Family Miles", goalMiles: 100, createdAt: "2026-05-01T00:00:00Z" },
+      member: { id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" },
+      members: [{ id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" }],
+    });
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext }));
+    const auth = await import("../auth");
+
+    await auth.setSessionCookie({ groupId: " group-1 ", memberId: " member-1 ", role: "member" });
+    const session = await auth.getCurrentSession();
+
+    expect(getGroupContext).toHaveBeenCalledWith("group-1", "member-1");
+    expect(session?.claims).toMatchObject({ groupId: "group-1", memberId: "member-1", role: "member" });
   });
 
   it("marks session cookies secure only when configured", async () => {

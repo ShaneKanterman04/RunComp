@@ -27,9 +27,9 @@ const sessionTtlMs = 1000 * 60 * 60 * 24 * 30;
 const inviteTtlMs = 1000 * 60 * 60 * 24 * 14;
 
 export async function setSessionCookie(input: { groupId: string; memberId: string; role: MemberRole }) {
-  validateTokenInput(input);
+  const claims = cleanTokenInput(input);
   const exp = Date.now() + sessionTtlMs;
-  const token = await signSession({ ...input, exp });
+  const token = await signSession({ ...claims, exp });
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -46,9 +46,9 @@ export async function clearSessionCookie() {
 }
 
 export async function createInviteToken(input: { groupId: string; memberId: string; role: MemberRole }) {
-  validateTokenInput(input);
+  const claims = cleanTokenInput(input);
   const exp = Date.now() + inviteTtlMs;
-  return signInvite({ ...input, exp });
+  return signInvite({ ...claims, exp });
 }
 
 export async function verifyInviteToken(token: string): Promise<InviteClaims | null> {
@@ -86,10 +86,13 @@ export class AuthError extends Error {
   }
 }
 
-function validateTokenInput(input: { groupId: string; memberId: string; role: MemberRole }) {
-  if (!input.groupId.trim() || !input.memberId.trim() || (input.role !== "owner" && input.role !== "member")) {
+function cleanTokenInput(input: { groupId: string; memberId: string; role: MemberRole }) {
+  const groupId = input.groupId.trim();
+  const memberId = input.memberId.trim();
+  if (!groupId || !memberId || (input.role !== "owner" && input.role !== "member")) {
     throw new AuthError("RunComp could not create a valid session.", 500);
   }
+  return { groupId, memberId, role: input.role };
 }
 
 async function signSession(claims: SessionClaims) {

@@ -1942,3 +1942,23 @@
   - Keep optional query parameter defaults consistent if more export formats are added.
 - Skipped ideas:
   - Did not add new export formats or change CSV access rules.
+
+### Increment 101: Auth Token Id Normalization
+
+- What changed: Updated session and invite token signing to trim group and member ids before they are signed.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/auth.ts`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added auth coverage for invite and session token ids being trimmed before verification or context loading.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep auth helper normalization aligned with route/store id handling.
+- Skipped ideas:
+  - Did not change token shape, role semantics, or TTLs.
