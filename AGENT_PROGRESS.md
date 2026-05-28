@@ -910,3 +910,21 @@
   - Keep export route tests paired if additional export formats are added.
 - Skipped ideas:
   - Did not change export route behavior; this completes the current JSON/CSV error-path coverage.
+
+### Increment 48: Backup Push Subscription Secrecy Coverage
+
+- What changed: Added store coverage proving owner JSON backups exclude browser push subscription endpoints and keys.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one backup export test that saves a push subscription and verifies the backup JSON does not contain `pushSubscriptions`, endpoint text, or push key material.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep backup secrecy tests updated if recovery exports intentionally change shape.
+- Skipped ideas:
+  - Did not add restore/import behavior; this only strengthens backup output regression coverage.

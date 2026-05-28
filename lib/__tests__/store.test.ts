@@ -343,6 +343,29 @@ describe("file-backed store", () => {
     expect(csv).toContain('2026-05-22,Shane,3.10,1550,500,"tempo, ""fast"""');
   });
 
+  it("excludes push subscription secrets from JSON backups", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    await store.savePushSubscription(group.id, owner.id, {
+      endpoint: "https://push.example.test/subscription/private-endpoint",
+      keys: { p256dh: "private-p256dh-key", auth: "private-auth-key" },
+    });
+
+    const backupText = JSON.stringify(await store.exportGroupBackup(group.id));
+
+    expect(backupText).not.toContain("pushSubscriptions");
+    expect(backupText).not.toContain("private-endpoint");
+    expect(backupText).not.toContain("private-p256dh-key");
+    expect(backupText).not.toContain("private-auth-key");
+  });
+
   it("neutralizes spreadsheet formulas in CSV exports", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
