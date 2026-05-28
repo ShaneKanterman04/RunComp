@@ -2856,3 +2856,19 @@
   - Keep newly written run dates strictly validated so this remains a legacy-data guard.
 - Skipped ideas:
   - Did not mutate or drop legacy runs with invalid dates.
+
+### Increment 146: v0.3.2 Release
+
+- What changed: Bumped the app version to `0.3.2` for the accumulated quality, stability, UX, and export hardening work.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `package.json`
+- Tests added/updated:
+  - Not applicable for release metadata.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue the long-running iteration goal after the release push.
+- Skipped ideas:
+  - Did not change runtime behavior in the release commit.
