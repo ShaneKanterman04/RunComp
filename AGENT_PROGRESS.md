@@ -2121,3 +2121,23 @@
   - Keep UI goal display backed by store validation; this guard is for helper resilience.
 - Skipped ideas:
   - Did not change persisted goal validation, which still requires 1 to 10000 miles.
+
+### Increment 110: VAPID Subject Scheme Normalization
+
+- What changed: Updated VAPID subject normalization to handle uppercase `mailto:`, `http://`, and `https://` schemes consistently.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/push.ts`
+  - `lib/__tests__/push.test.ts`
+- Tests added/updated:
+  - Extended push VAPID subject coverage for uppercase VAPID and app URL schemes.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/push.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep push setup notes aligned with accepted subject formats.
+- Skipped ideas:
+  - Did not add new push notification settings or delivery behavior.

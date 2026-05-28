@@ -57,8 +57,14 @@ describe("push notification VAPID config", () => {
     process.env.VAPID_SUBJECT = "mailto:alerts@example.com";
     expect(getVapidSubject()).toBe("mailto:alerts@example.com");
 
+    process.env.VAPID_SUBJECT = "MAILTO:Alerts@Example.com";
+    expect(getVapidSubject()).toBe("mailto:Alerts@Example.com");
+
     process.env.VAPID_SUBJECT = "https://run.example.com";
     expect(getVapidSubject()).toBe("https://run.example.com");
+
+    process.env.VAPID_SUBJECT = "HTTPS://Run.Example.com";
+    expect(getVapidSubject()).toBe("https://Run.Example.com");
   });
 
   it("normalizes configured app URLs for push services", () => {
@@ -67,6 +73,12 @@ describe("push notification VAPID config", () => {
 
     process.env.NEXT_PUBLIC_APP_URL = "http://run.example.com";
     expect(getVapidSubject()).toBe("https://run.example.com");
+
+    process.env.NEXT_PUBLIC_APP_URL = "HTTP://Run.Example.com";
+    expect(getVapidSubject()).toBe("https://Run.Example.com");
+
+    process.env.NEXT_PUBLIC_APP_URL = "HTTPS://Run.Example.com";
+    expect(getVapidSubject()).toBe("https://Run.Example.com");
   });
 
   it("sends run notification payloads to each group subscription", async () => {

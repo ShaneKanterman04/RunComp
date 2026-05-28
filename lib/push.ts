@@ -108,8 +108,10 @@ export function getVapidSubject() {
 }
 
 function normalizeVapidSubject(subject: string) {
-  if (subject.startsWith("mailto:") || subject.startsWith("https://")) return subject;
-  if (subject.startsWith("http://")) return subject.replace(/^http:\/\//, "https://");
+  const lowerSubject = subject.toLowerCase();
+  if (lowerSubject.startsWith("mailto:")) return `mailto:${subject.slice("mailto:".length)}`;
+  if (lowerSubject.startsWith("https://")) return `https://${subject.slice("https://".length)}`;
+  if (lowerSubject.startsWith("http://")) return `https://${subject.slice("http://".length)}`;
   if (subject.includes(".")) return `https://${subject}`;
   return fallbackVapidSubject;
 }
