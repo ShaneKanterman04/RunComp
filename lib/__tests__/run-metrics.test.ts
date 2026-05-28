@@ -15,6 +15,8 @@ import {
   formatPace,
   heatLevel,
   raceProgress,
+  runnerCardRarity,
+  runnerTitle,
   sortRuns,
   toDateKey,
 } from "../run-metrics";
@@ -203,6 +205,38 @@ describe("run metrics", () => {
       "we-are-back",
       "new-longest",
     ]);
+  });
+
+  it("derives runner profile titles and card rarity", () => {
+    const baseStats = {
+      total: 12,
+      week: 4,
+      month: 12,
+      runCount: 3,
+      average: 4,
+      longest: 5,
+      timedRunCount: 0,
+      timedMiles: 0,
+      totalSeconds: 0,
+      averagePace: null,
+      bestPace: null,
+      streak: 1,
+      lastRun: "2026-05-22",
+    };
+
+    expect(runnerTitle({ ...baseStats, bestPace: 460 }, [], "shane")).toBe("Pace Menace");
+    expect(runnerTitle({ ...baseStats, streak: 7 }, [], "shane")).toBe("Streak Captain");
+    expect(runnerTitle({ ...baseStats, week: 10 }, [], "shane")).toBe("Weekly Closer");
+    expect(runnerTitle(baseStats, [{ id: "1", memberId: "shane", miles: 3, date: "2026-05-22", note: "morning trail", createdAt: "2026-05-22T12:00:00Z" }], "shane")).toBe("Route Scout");
+    expect(runnerTitle(baseStats, [{ id: "1", memberId: "shane", miles: 3, date: "2026-05-23", createdAt: "2026-05-23T12:00:00Z" }], "shane")).toBe("Weekend Regular");
+    expect(runnerTitle({ ...baseStats, runCount: 5 }, [], "shane")).toBe("Consistency Merchant");
+    expect(runnerTitle({ ...baseStats, runCount: 0 }, [], "shane")).toBe("Mileage Rookie");
+
+    expect(runnerCardRarity({ ...baseStats, total: 10 }, [])).toBe("base");
+    expect(runnerCardRarity({ ...baseStats, total: 26 }, [])).toBe("rare");
+    expect(runnerCardRarity({ ...baseStats, total: 51 }, [])).toBe("epic");
+    expect(runnerCardRarity({ ...baseStats, total: 101 }, [])).toBe("legend");
+    expect(runnerCardRarity(baseStats, Array.from({ length: 10 }, (_, index) => ({ id: `badge-${index}`, label: "Badge", tone: "gold" })))).toBe("legend");
   });
 
   it("builds a weekly family recap", () => {

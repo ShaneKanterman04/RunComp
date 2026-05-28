@@ -24,8 +24,11 @@ import {
   formatMiles,
   formatPace,
   raceProgress,
+  runnerCardRarity,
+  runnerTitle,
   todayInput,
   type AchievementBadge,
+  type CardRarity,
   type ComebackTarget,
   type FamilyChallenge,
   type FeedEvent,
@@ -92,8 +95,6 @@ type CalledShot = {
   miles: number;
   setAt: string;
 };
-
-type CardRarity = "base" | "rare" | "epic" | "legend";
 
 const palette = ["#18845d", "#d94f76", "#3f6fb5", "#b27920", "#6f5bb5", "#1f8793", "#a94632", "#587443"];
 const recentGroupsKey = "runcomp:recent-groups";
@@ -2187,8 +2188,8 @@ function RunnerCard({
   const strip = buildStreakStrip(runs, member.id);
   const heatmap = buildHeatmapWeeks(runs, member.id);
   const cardColor = colorForMember(member, members);
-  const nickname = runnerNickname(stats, runs, member.id);
-  const rarity = cardRarity(stats, badges);
+  const nickname = runnerTitle(stats, runs, member.id);
+  const rarity = runnerCardRarity(stats, badges);
   const runnerRuns = runs.filter((run) => run.memberId === member.id);
   const biggestWeek = biggestWeeklyTotal(runnerRuns);
   return (
@@ -2303,26 +2304,6 @@ function ChallengeProgressCard({ challenges }: { challenges: FamilyChallenge[] }
       </div>
     </section>
   );
-}
-
-function runnerNickname(stats: RunnerStats, runs: RunEntry[], memberId: string) {
-  const runnerRuns = runs.filter((run) => run.memberId === memberId);
-  const notes = runnerRuns.map((run) => run.note.toLowerCase()).join(" ");
-  if (stats.bestPace && stats.bestPace <= 8 * 60) return "Pace Menace";
-  if (stats.streak >= 7) return "Streak Captain";
-  if (stats.week >= 10) return "Weekly Closer";
-  if (/treadmill|indoor/.test(notes)) return "Indoor Specialist";
-  if (/trail|park|outside|bridge/.test(notes)) return "Route Scout";
-  if (runnerRuns.some((run) => run.date && [0, 6].includes(new Date(`${run.date}T00:00:00`).getDay()))) return "Weekend Regular";
-  if (stats.runCount >= 5) return "Consistency Merchant";
-  return "Mileage Rookie";
-}
-
-function cardRarity(stats: RunnerStats, badges: AchievementBadge[]): CardRarity {
-  if (stats.total >= 100 || badges.length >= 10) return "legend";
-  if (stats.total >= 50 || badges.length >= 7) return "epic";
-  if (stats.total >= 25 || badges.length >= 4) return "rare";
-  return "base";
 }
 
 function rarityLabel(rarity: CardRarity) {
@@ -2541,14 +2522,20 @@ function RunnerProfileModal({
   const recentActiveDays = recent.filter((day) => day.ran).length;
   const headToHead = buildHeadToHeadComparisons(runs, members, member.id).slice(0, 3);
   const hasProfileRuns = memberRuns.length > 0;
+  const title = runnerTitle(stats, runs, member.id);
+  const rarity = runnerCardRarity(stats, badges);
 
   return (
     <div className="modalLayer" role="dialog" aria-modal="true" aria-labelledby="runner-profile-title">
-      <section className="runnerProfileModal" style={runnerStyle(member, members)}>
+      <section className={`runnerProfileModal runnerProfileModal--${rarity}`} style={runnerStyle(member, members)}>
         <div className="sectionHead">
           <div>
             <p className="eyebrow">Runner profile</p>
             <h2 id="runner-profile-title">{member.name}</h2>
+            <div className="profileIdentityLine">
+              <span>{title}</span>
+              <span>{rarityLabel(rarity)}</span>
+            </div>
             <p className="muted">{formatMiles(progress.remaining)} left in the race.</p>
           </div>
           <button className="ghostButton" type="button" onClick={onClose}>

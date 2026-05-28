@@ -457,3 +457,24 @@
   - Review remaining store methods for any caller-provided identity or role trust as future small hardening tasks.
 - Skipped ideas:
   - Did not alter reaction UI or reaction aggregation; this only rejects invalid actors before writes.
+
+### Increment 24: Runner Profile Title And Rarity Polish
+
+- What changed: Moved runner title and card rarity derivation into tested metrics helpers and surfaced both values as compact chips in the runner profile modal.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - Added metrics coverage for runner title priority and card rarity thresholds.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider reducing duplicate 5K achievement labels in a separate behavior-focused increment.
+- Skipped ideas:
+  - Did not add a component-render test for the full page; the derivation logic is covered at the metrics layer.

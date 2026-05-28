@@ -49,6 +49,8 @@ export type AchievementBadge = {
   tone: "gold" | "green" | "rose" | "blue";
 };
 
+export type CardRarity = "base" | "rare" | "epic" | "legend";
+
 export type WeeklyRecap = {
   weekLabel: string;
   totalMiles: number;
@@ -148,6 +150,26 @@ export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], mem
   if (hasComebackGap(runnerRuns)) badges.push({ id: "we-are-back", label: "We're so back", tone: "green" });
   if (hasNewLongestRun(runnerRuns)) badges.push({ id: "new-longest", label: "Longest PR", tone: "gold" });
   return badges;
+}
+
+export function runnerTitle(stats: RunnerStats, runs: MetricRunEntry[] = [], memberId?: string) {
+  const runnerRuns = memberId ? runs.filter((run) => run.memberId === memberId) : runs;
+  const notes = runnerRuns.map((run) => run.note?.toLowerCase() || "").join(" ");
+  if (stats.bestPace && stats.bestPace <= 8 * 60) return "Pace Menace";
+  if (stats.streak >= 7) return "Streak Captain";
+  if (stats.week >= 10) return "Weekly Closer";
+  if (/treadmill|indoor/.test(notes)) return "Indoor Specialist";
+  if (/trail|park|outside|bridge/.test(notes)) return "Route Scout";
+  if (runnerRuns.some((run) => run.date && [0, 6].includes(new Date(`${run.date}T00:00:00`).getDay()))) return "Weekend Regular";
+  if (stats.runCount >= 5) return "Consistency Merchant";
+  return "Mileage Rookie";
+}
+
+export function runnerCardRarity(stats: RunnerStats, badges: AchievementBadge[]): CardRarity {
+  if (stats.total >= 100 || badges.length >= 10) return "legend";
+  if (stats.total >= 50 || badges.length >= 7) return "epic";
+  if (stats.total >= 25 || badges.length >= 4) return "rare";
+  return "base";
 }
 
 export function buildWeeklyRecap(runs: MetricRunEntry[], members: MetricMember[], now = new Date()): WeeklyRecap {

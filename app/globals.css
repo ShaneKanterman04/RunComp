@@ -1966,6 +1966,18 @@ input:invalid:not(:placeholder-shown) {
   padding: 18px;
 }
 
+.runnerProfileModal--rare {
+  border-color: #b7c8df;
+}
+
+.runnerProfileModal--epic {
+  border-color: #d3b6e6;
+}
+
+.runnerProfileModal--legend {
+  border-color: #d8c27a;
+}
+
 .weeklyRecapModal {
   display: grid;
   gap: 18px;
@@ -1977,6 +1989,23 @@ input:invalid:not(:placeholder-shown) {
   background: var(--surface);
   box-shadow: 0 24px 80px rgba(21, 27, 24, 0.26);
   padding: 18px;
+}
+
+.profileIdentityLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.profileIdentityLine span {
+  border: 1px solid color-mix(in srgb, var(--runner-color), white 48%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--runner-color), black 32%);
+  font-size: 12px;
+  font-weight: 950;
+  padding: 5px 8px;
 }
 
 .profileSummary {
