@@ -125,4 +125,16 @@ describe("/api/exports", () => {
     expect(await readJson(response)).toMatchObject({ version: 1, group: { code: "123" } });
     expect(exportGroupBackup).toHaveBeenCalledWith("group-1");
   });
+
+  it("returns structured store errors when JSON backup generation fails", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+    jest.mocked(exportGroupBackup).mockRejectedValue({ status: 404, message: "Group not found." });
+
+    const response = await GET(new Request("http://localhost/api/exports?type=json"));
+
+    expect(response.status).toBe(404);
+    expect(await readJson(response)).toEqual({ error: "Group not found." });
+    expect(exportGroupBackup).toHaveBeenCalledWith("group-1");
+    expect(exportRunsCsv).not.toHaveBeenCalled();
+  });
 });

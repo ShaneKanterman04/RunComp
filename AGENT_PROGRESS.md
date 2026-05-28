@@ -892,3 +892,21 @@
   - Add JSON backup failure-path coverage if owner backup generation gains more distinct error cases.
 - Skipped ideas:
   - Did not change export route behavior; this locks the existing error handling contract.
+
+### Increment 47: JSON Backup Error Coverage
+
+- What changed: Added API route coverage proving owner JSON backup generation failures return structured store errors to the client.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/exports?type=json` owner failure-path test for store error status/message handling.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep export route tests paired if additional export formats are added.
+- Skipped ideas:
+  - Did not change export route behavior; this completes the current JSON/CSV error-path coverage.
