@@ -79,6 +79,7 @@ describe("file-backed store", () => {
 
     expect(store.publicGroup({ ...group, goalMiles: -25 } as never).goalMiles).toBe(100);
     expect(store.publicGroup({ ...group, goalMiles: Number.NaN } as never).goalMiles).toBe(100);
+    expect(store.publicGroup({ ...group, goalMiles: 10001 } as never).goalMiles).toBe(100);
     expect(store.publicGroup({ ...group, goalMiles: 75 } as never).goalMiles).toBe(75);
   });
 

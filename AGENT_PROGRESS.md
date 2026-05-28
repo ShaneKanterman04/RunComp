@@ -2363,3 +2363,23 @@
   - Keep normal group creation validation strict so blank names remain legacy-only.
 - Skipped ideas:
   - Did not change persisted group names or setup behavior.
+
+### Increment 122: Public Goal Upper Bound Guard
+
+- What changed: Extended the public group goal read-side guard so legacy goals above the normal write limit default to 100 miles.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended public group goal coverage for values above 10000 miles.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep `createGroup` and `updateGroupGoal` as the authoritative write-side validation.
+- Skipped ideas:
+  - Did not migrate old files; this keeps reads safe without touching user data.

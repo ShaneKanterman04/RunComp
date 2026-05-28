@@ -325,3 +325,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred nineteenth increment omitted invalid pace from legacy run push notifications.
 - 2026-05-28: One hundred twentieth increment defaulted invalid legacy public race goals.
 - 2026-05-28: One hundred twenty-first increment added fallback group names for notification copy.
+- 2026-05-28: One hundred twenty-second increment capped legacy public race goals at the write limit.
