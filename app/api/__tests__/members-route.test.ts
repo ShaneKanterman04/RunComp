@@ -79,7 +79,7 @@ describe("/api/members", () => {
     const response = await POST(jsonRequest("/api/members", { name: "Dad", password: "password123" }));
 
     expect(response.status).toBe(201);
-    expect(addMember).toHaveBeenCalledWith("group-1", { name: "Dad", password: "password123" });
+    expect(addMember).toHaveBeenCalledWith("group-1", "owner-1", { name: "Dad", password: "password123" });
     expect(await readJson(response)).toMatchObject({ member: { id: "member-2", name: "Dad" } });
   });
 
@@ -95,7 +95,7 @@ describe("/api/members", () => {
     const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K" }, "PATCH"));
 
     expect(response.status).toBe(200);
-    expect(updateMemberName).toHaveBeenCalledWith("group-1", "member-1", "Molly K");
+    expect(updateMemberName).toHaveBeenCalledWith("group-1", "owner-1", "member-1", "Molly K");
     expect(resetMemberPassword).not.toHaveBeenCalled();
     expect(await readJson(response)).toMatchObject({ member: { name: "Molly K" }, members: [{ name: "Shane" }, { name: "Molly K" }] });
   });
@@ -112,7 +112,7 @@ describe("/api/members", () => {
     const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", password: "newpassword" }, "PATCH"));
 
     expect(response.status).toBe(200);
-    expect(resetMemberPassword).toHaveBeenCalledWith("group-1", "member-1", "newpassword");
+    expect(resetMemberPassword).toHaveBeenCalledWith("group-1", "owner-1", "member-1", "newpassword");
     expect(updateMemberName).not.toHaveBeenCalled();
     expect(await readJson(response)).toMatchObject({ member: { name: "Molly" } });
   });

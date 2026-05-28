@@ -376,3 +376,24 @@
   - Keep store methods explicit about actor identity for future owner-only operations.
 - Skipped ideas:
   - Did not change the route handler; it already checks owner role before calling the store.
+
+### Increment 20: Store Owner Actors For Member Management
+
+- What changed: Updated member-management store methods so `addMember`, `updateMemberName`, and `resetMemberPassword` all require an explicit owner member id and verify that actor before mutating group membership or credentials. Updated the members API route to pass the signed-in owner id.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Updated store and route tests for explicit owner actor arguments.
+  - Added direct store checks proving non-owner actors cannot create members, rename runners, or reset runner passwords.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts app/api/__tests__/members-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider applying the same actor-explicit pattern to other owner-only store operations such as race goal updates if they become more complex.
+- Skipped ideas:
+  - Did not alter persisted data shape; this is a store authorization boundary change only.

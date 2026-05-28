@@ -119,7 +119,7 @@ export async function createGroup(input: { groupName: string; ownerName: string;
   });
 }
 
-export async function addMember(groupId: string, input: { name: string; password: string }) {
+export async function addMember(groupId: string, ownerMemberId: string, input: { name: string; password: string }) {
   const name = cleanName(input.name, 48);
   validatePassword(input.password);
 
@@ -127,6 +127,7 @@ export async function addMember(groupId: string, input: { name: string; password
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    requireGroupOwner(group, ownerMemberId);
     const nameKey = normalizeName(name);
     if (group.members.some((member) => member.nameKey === nameKey)) {
       throw new StoreError("That person already has a password in this group.", 409);
@@ -139,13 +140,14 @@ export async function addMember(groupId: string, input: { name: string; password
   });
 }
 
-export async function updateMemberName(groupId: string, memberId: string, name: string) {
+export async function updateMemberName(groupId: string, ownerMemberId: string, memberId: string, name: string) {
   const nextName = cleanName(name, 48);
 
   return withStoreLock(async () => {
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    requireGroupOwner(group, ownerMemberId);
     const member = group.members.find((row) => row.id === memberId);
     if (!member) throw new StoreError("Runner not found.", 404);
     const nameKey = normalizeName(nextName);
@@ -159,13 +161,14 @@ export async function updateMemberName(groupId: string, memberId: string, name: 
   });
 }
 
-export async function resetMemberPassword(groupId: string, memberId: string, password: string) {
+export async function resetMemberPassword(groupId: string, ownerMemberId: string, memberId: string, password: string) {
   validatePassword(password);
 
   return withStoreLock(async () => {
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    requireGroupOwner(group, ownerMemberId);
     const member = group.members.find((row) => row.id === memberId);
     if (!member) throw new StoreError("Runner not found.", 404);
     const updated = await createMemberRecord({ name: member.name, password, role: member.role });
@@ -593,6 +596,11 @@ async function writeStore(store: Store) {
 
 function findGroup(store: Store, groupId: string) {
   return store.groups.find((group) => group.id === groupId);
+}
+
+function requireGroupOwner(group: Group, ownerMemberId: string) {
+  const owner = group.members.find((row) => row.id === ownerMemberId);
+  if (!owner || owner.role !== "owner") throw new StoreError("Only the group owner can manage runners.", 403);
 }
 
 function sortRuns(runs: RunEntry[]) {

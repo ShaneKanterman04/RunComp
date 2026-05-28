@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Only the group owner can create member passwords." }, { status: 403 });
     }
     const body = (await request.json()) as Record<string, unknown>;
-    const member = await addMember(session.group.id, {
+    const member = await addMember(session.group.id, session.member.id, {
       name: typeof body.name === "string" ? body.name : "",
       password: typeof body.password === "string" ? body.password : "",
     });
@@ -35,8 +35,8 @@ export async function PATCH(request: Request) {
     const memberId = typeof body.memberId === "string" ? body.memberId : "";
     const member =
       typeof body.password === "string"
-        ? await resetMemberPassword(session.group.id, memberId, body.password)
-        : await updateMemberName(session.group.id, memberId, typeof body.name === "string" ? body.name : "");
+        ? await resetMemberPassword(session.group.id, session.member.id, memberId, body.password)
+        : await updateMemberName(session.group.id, session.member.id, memberId, typeof body.name === "string" ? body.name : "");
     const context = await getGroupContext(session.group.id, session.member.id);
     return NextResponse.json({ member, members: context?.members || [] });
   } catch (error) {

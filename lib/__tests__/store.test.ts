@@ -52,9 +52,9 @@ describe("file-backed store", () => {
 
     const first = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
     const second = await store.createGroup({ groupName: "Run Group", ownerName: "Molly", password: "password456" });
-    await store.addMember(first.group.id, { name: "Mom", password: "password789" });
+    await store.addMember(first.group.id, first.member.id, { name: "Mom", password: "password789" });
 
-    await expect(store.addMember(first.group.id, { name: " mom ", password: "password000" })).rejects.toMatchObject({
+    await expect(store.addMember(first.group.id, first.member.id, { name: " mom ", password: "password000" })).rejects.toMatchObject({
       status: 409,
     });
     expect(first.group.code).toMatch(/^\d{3}$/);
@@ -67,14 +67,14 @@ describe("file-backed store", () => {
     const store: StoreModule = loaded.store;
     dataDir = loaded.dataDir;
 
-    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
-    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
 
-    await expect(store.updateMemberName(group.id, molly.id, "Molly K")).resolves.toMatchObject({ name: "Molly K" });
+    await expect(store.updateMemberName(group.id, owner.id, molly.id, "Molly K")).resolves.toMatchObject({ name: "Molly K" });
     await expect(store.login({ groupCode: group.code, memberName: "Molly K", password: "password456" })).resolves.toMatchObject({
       member: { id: molly.id },
     });
-    await expect(store.resetMemberPassword(group.id, molly.id, "newpassword")).resolves.toMatchObject({ id: molly.id });
+    await expect(store.resetMemberPassword(group.id, owner.id, molly.id, "newpassword")).resolves.toMatchObject({ id: molly.id });
     await expect(store.login({ groupCode: group.code, memberName: "Molly K", password: "password456" })).rejects.toMatchObject({ status: 401 });
     await expect(store.login({ groupCode: group.code, memberName: "Molly K", password: "newpassword" })).resolves.toMatchObject({
       member: { id: molly.id },
@@ -86,14 +86,17 @@ describe("file-backed store", () => {
     const store: StoreModule = loaded.store;
     dataDir = loaded.dataDir;
 
-    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
-    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
-    await store.addMember(group.id, { name: "Dad", password: "password789" });
+    const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
+    await store.addMember(group.id, owner.id, { name: "Dad", password: "password789" });
 
-    await expect(store.updateMemberName(group.id, molly.id, " dad ")).rejects.toMatchObject({ status: 409 });
-    await expect(store.updateMemberName(group.id, "missing", "New Name")).rejects.toMatchObject({ status: 404 });
-    await expect(store.resetMemberPassword(group.id, "missing", "newpassword")).rejects.toMatchObject({ status: 404 });
-    await expect(store.resetMemberPassword(group.id, molly.id, "short")).rejects.toMatchObject({ status: 400 });
+    await expect(store.addMember(group.id, molly.id, { name: "Mom", password: "password000" })).rejects.toMatchObject({ status: 403 });
+    await expect(store.updateMemberName(group.id, molly.id, molly.id, "Molly K")).rejects.toMatchObject({ status: 403 });
+    await expect(store.resetMemberPassword(group.id, molly.id, molly.id, "newpassword")).rejects.toMatchObject({ status: 403 });
+    await expect(store.updateMemberName(group.id, owner.id, molly.id, " dad ")).rejects.toMatchObject({ status: 409 });
+    await expect(store.updateMemberName(group.id, owner.id, "missing", "New Name")).rejects.toMatchObject({ status: 404 });
+    await expect(store.resetMemberPassword(group.id, owner.id, "missing", "newpassword")).rejects.toMatchObject({ status: 404 });
+    await expect(store.resetMemberPassword(group.id, owner.id, molly.id, "short")).rejects.toMatchObject({ status: 400 });
     await expect(store.login({ groupCode: group.code, memberName: "Molly", password: "password456" })).resolves.toMatchObject({
       member: { id: molly.id },
     });
@@ -105,8 +108,8 @@ describe("file-backed store", () => {
     dataDir = loaded.dataDir;
 
     const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
-    const active = await store.addMember(group.id, { name: "Molly", password: "password456" });
-    const inactive = await store.addMember(group.id, { name: "Dad", password: "password789" });
+    const active = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
+    const inactive = await store.addMember(group.id, owner.id, { name: "Dad", password: "password789" });
     await store.addRun(group.id, active.id, { miles: 3, date: "2026-05-24" });
 
     await expect(store.removeInactiveMember(group.id, owner.id, owner.id)).rejects.toMatchObject({ status: 400 });
@@ -120,9 +123,9 @@ describe("file-backed store", () => {
     const store: StoreModule = loaded.store;
     dataDir = loaded.dataDir;
 
-    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
-    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
-    const dad = await store.addMember(group.id, { name: "Dad", password: "password789" });
+    const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
+    const dad = await store.addMember(group.id, owner.id, { name: "Dad", password: "password789" });
 
     await expect(store.removeInactiveMember(group.id, dad.id, molly.id)).rejects.toMatchObject({ status: 403 });
     await expect(store.removeInactiveMember(group.id, dad.id, "missing-owner")).rejects.toMatchObject({ status: 403 });
@@ -147,8 +150,8 @@ describe("file-backed store", () => {
     const store: StoreModule = loaded.store;
     dataDir = loaded.dataDir;
 
-    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "sharedpass" });
-    await store.addMember(group.id, { name: "Molly", password: "sharedpass" });
+    const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "sharedpass" });
+    await store.addMember(group.id, owner.id, { name: "Molly", password: "sharedpass" });
 
     await expect(store.login({ groupCode: group.code, memberName: "", password: "sharedpass" })).rejects.toMatchObject({ status: 401 });
     await expect(store.login({ groupCode: group.code, memberName: "Molly", password: "sharedpass" })).resolves.toMatchObject({
@@ -180,7 +183,7 @@ describe("file-backed store", () => {
       ownerName: "Shane",
       password: "password123",
     });
-    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
     const ownerRun = await store.addRun(group.id, owner.id, { miles: 3.257, durationSeconds: 1561.4, date: "2026-05-21", note: " tempo " });
     const mollyRun = await store.addRun(group.id, molly.id, { miles: 4, date: "2026-05-22", note: "trail" });
     const runs = await store.listRuns(group.id, owner.id);
@@ -221,7 +224,7 @@ describe("file-backed store", () => {
       ownerName: "Shane",
       password: "password123",
     });
-    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
     const run = await store.addRun(group.id, owner.id, { miles: 3, date: "2026-05-22" });
 
     let reacted = await store.toggleRunReaction(group.id, molly.id, run.id, "fire");
@@ -283,7 +286,7 @@ describe("file-backed store", () => {
       ownerName: "Shane",
       password: "password123",
     });
-    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
     const endpoint = "https://push.example.test/subscription/owner";
 
     await store.savePushSubscription(group.id, owner.id, { endpoint, keys: { p256dh: "key", auth: "auth" } });
