@@ -170,6 +170,8 @@ describe("/api/members", () => {
     const missingMember = await PATCH(jsonRequest("/api/members", { name: "Molly K" }, "PATCH"));
     const missingAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1" }, "PATCH"));
     const ambiguousAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K", password: "newpassword" }, "PATCH"));
+    const blankName = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "  " }, "PATCH"));
+    const blankPassword = await PATCH(jsonRequest("/api/members", { memberId: "member-1", password: "  " }, "PATCH"));
 
     expect(missingMember.status).toBe(400);
     expect(await readJson(missingMember)).toEqual({ error: "Missing runner id." });
@@ -177,6 +179,10 @@ describe("/api/members", () => {
     expect(await readJson(missingAction)).toEqual({ error: "Send either a runner name or password." });
     expect(ambiguousAction.status).toBe(400);
     expect(await readJson(ambiguousAction)).toEqual({ error: "Send either a runner name or password." });
+    expect(blankName.status).toBe(400);
+    expect(await readJson(blankName)).toEqual({ error: "Runner name is required." });
+    expect(blankPassword.status).toBe(400);
+    expect(await readJson(blankPassword)).toEqual({ error: "Runner password is required." });
     expect(updateMemberName).not.toHaveBeenCalled();
     expect(resetMemberPassword).not.toHaveBeenCalled();
   });

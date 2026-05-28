@@ -1355,3 +1355,23 @@
   - Consider a clearer route-level error if session cookie setup itself fails after group creation.
 - Skipped ideas:
   - Did not change group creation behavior; this increment only locks down the existing fallback.
+
+### Increment 72: Runner Edit Blank Value Validation
+
+- What changed: Updated `/api/members` runner edits to reject blank names and blank passwords before calling member persistence methods.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Extended malformed runner edit route coverage for blank display names and blank passwords.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep owner settings form validation copy aligned with these server-side messages.
+- Skipped ideas:
+  - Did not change password length policy; the store still owns full password strength validation.

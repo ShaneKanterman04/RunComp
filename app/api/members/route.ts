@@ -48,6 +48,12 @@ export async function PATCH(request: Request) {
     if (hasName === hasPassword) {
       return NextResponse.json({ error: "Send either a runner name or password." }, { status: 400 });
     }
+    if (hasName && !(body.name as string).trim()) {
+      return NextResponse.json({ error: "Runner name is required." }, { status: 400 });
+    }
+    if (hasPassword && !(body.password as string).trim()) {
+      return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
+    }
     const member = hasPassword
       ? await resetMemberPassword(session.group.id, session.member.id, memberId, body.password as string)
       : await updateMemberName(session.group.id, session.member.id, memberId, body.name as string);
