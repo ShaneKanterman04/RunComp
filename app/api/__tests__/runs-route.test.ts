@@ -93,6 +93,15 @@ describe("/api/runs", () => {
     expect(listRuns).not.toHaveBeenCalled();
   });
 
+  it("returns store errors when listing runs fails", async () => {
+    jest.mocked(listRuns).mockRejectedValue({ status: 404, message: "Run group not found." });
+
+    const response = await GET();
+
+    expect(response.status).toBe(404);
+    expect(await readJson(response)).toEqual({ error: "Run group not found." });
+  });
+
   it("validates run input before writing", async () => {
     const badBody = await POST(jsonRequest("/api/runs", null));
     const badMiles = await POST(jsonRequest("/api/runs", { miles: 0, date: "2026-05-22" }));
@@ -121,6 +130,17 @@ describe("/api/runs", () => {
     expect(addRun).toHaveBeenCalledWith("group-1", "member-1", { miles: 3.25, date: "2026-05-22", note: "tempo", durationSeconds: 1560 });
     expect(notifyRunLogged).toHaveBeenCalledWith("group-1", run);
     expect(await readJson(response)).toEqual({ run });
+  });
+
+  it("returns store errors when logging runs fails", async () => {
+    jest.mocked(listRuns).mockResolvedValueOnce([]);
+    jest.mocked(addRun).mockRejectedValue({ status: 404, message: "Member not found." });
+
+    const response = await POST(jsonRequest("/api/runs", { miles: "3.25", date: "2026-05-22" }));
+
+    expect(response.status).toBe(404);
+    expect(await readJson(response)).toEqual({ error: "Member not found." });
+    expect(notifyRunLogged).not.toHaveBeenCalled();
   });
 
   it("sends lead-change notifications when the leader changes", async () => {
@@ -154,6 +174,15 @@ describe("/api/runs", () => {
     expect(toggleRunReaction).toHaveBeenCalledWith("group-1", "member-1", "run-1", "fire");
   });
 
+  it("returns store errors when reaction updates fail", async () => {
+    jest.mocked(toggleRunReaction).mockRejectedValue({ status: 404, message: "Run not found." });
+
+    const response = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "fire" }, "PATCH"));
+
+    expect(response.status).toBe(404);
+    expect(await readJson(response)).toEqual({ error: "Run not found." });
+  });
+
   it("deletes runs using the signed-in member id", async () => {
     jest.mocked(deleteRun).mockResolvedValue(true);
 
@@ -162,6 +191,15 @@ describe("/api/runs", () => {
     expect(response.status).toBe(200);
     expect(deleteRun).toHaveBeenCalledWith("group-1", "member-1", "run-1");
     expect(await readJson(response)).toEqual({ ok: true });
+  });
+
+  it("returns store errors when run deletion fails", async () => {
+    jest.mocked(deleteRun).mockRejectedValue({ status: 403, message: "You can only delete your own runs." });
+
+    const response = await DELETE(new Request("http://localhost/api/runs?id=run-1", { method: "DELETE" }));
+
+    expect(response.status).toBe(403);
+    expect(await readJson(response)).toEqual({ error: "You can only delete your own runs." });
   });
 
   it("handles missing and unknown run deletes", async () => {

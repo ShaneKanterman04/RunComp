@@ -1130,3 +1130,21 @@
   - Keep group route tests aligned with store-level goal validation.
 - Skipped ideas:
   - Did not change goal update behavior; this locks the existing structured error path.
+
+### Increment 60: Run Route Store Error Coverage
+
+- What changed: Added route coverage proving run list, log, reaction, and delete store failures return structured errors.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Added `/api/runs` GET, POST, PATCH, and DELETE failure-path tests for store error status/message handling.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue adding focused tests around notification side effects only when behavior changes.
+- Skipped ideas:
+  - Did not change run route behavior; this locks existing structured error handling.
