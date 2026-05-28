@@ -205,6 +205,32 @@ describe("run metrics", () => {
     ]);
   });
 
+  it("uses the provided date when awarding weekly run badges", () => {
+    const stats = {
+      total: 9,
+      week: 9,
+      month: 9,
+      runCount: 3,
+      average: 3,
+      longest: 3,
+      timedRunCount: 0,
+      timedMiles: 0,
+      totalSeconds: 0,
+      averagePace: null,
+      bestPace: null,
+      streak: 1,
+      lastRun: "2026-05-20",
+    };
+    const weeklyRuns = [
+      { id: "1", memberId: "shane", miles: 3, date: "2026-05-18", createdAt: "2026-05-18T12:00:00Z" },
+      { id: "2", memberId: "shane", miles: 3, date: "2026-05-19", createdAt: "2026-05-19T12:00:00Z" },
+      { id: "3", memberId: "shane", miles: 3, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+    ];
+
+    expect(buildBadges(stats, weeklyRuns, "shane", new Date("2026-05-22T12:00:00Z")).map((badge) => badge.id)).toContain("three-run-week");
+    expect(buildBadges(stats, weeklyRuns, "shane", new Date("2026-05-29T12:00:00Z")).map((badge) => badge.id)).not.toContain("three-run-week");
+  });
+
   it("derives runner profile titles and card rarity", () => {
     const baseStats = {
       total: 12,

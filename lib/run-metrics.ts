@@ -126,7 +126,7 @@ export type HeadToHeadComparison = {
   milesToPass?: number;
 };
 
-export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], memberId?: string): AchievementBadge[] {
+export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], memberId?: string, now = new Date()): AchievementBadge[] {
   const badges: AchievementBadge[] = [];
   const runnerRuns = memberId ? runs.filter((run) => run.memberId === memberId) : runs;
   const notes = runnerRuns.map((run) => run.note?.toLowerCase() || "");
@@ -138,7 +138,7 @@ export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], mem
   if (stats.total >= 25) badges.push({ id: "twenty-five", label: "25 total", tone: "gold" });
   if (stats.total >= 50) badges.push({ id: "fifty", label: "50 total", tone: "gold" });
   if (stats.runCount >= 5) badges.push({ id: "consistent", label: "Keeps showing up", tone: "blue" });
-  if (runnerRuns.filter((run) => parseRunDate(run.date) >= startOfWeek(new Date())).length >= 3) badges.push({ id: "three-run-week", label: "3-run week", tone: "blue" });
+  if (runnerRuns.filter((run) => parseRunDate(run.date) >= startOfWeek(now)).length >= 3) badges.push({ id: "three-run-week", label: "3-run week", tone: "blue" });
   if (stats.streak >= 3) badges.push({ id: "three-streak", label: "3-day streak", tone: "rose" });
   if (stats.streak >= 7) badges.push({ id: "seven-streak", label: "7-day streak", tone: "rose" });
   if (stats.bestPace && stats.bestPace <= 8 * 60) badges.push({ id: "suspiciously-fast", label: "Suspiciously fast", tone: "rose" });

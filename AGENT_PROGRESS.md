@@ -554,3 +554,22 @@
   - Consider checking the client-side unsubscribe fetch response before showing success.
 - Skipped ideas:
   - Did not change push behavior in this increment; it only strengthens regression coverage.
+
+### Increment 29: Deterministic Weekly Badge Date
+
+- What changed: Updated `buildBadges` so the `3-run week` achievement can be evaluated against an explicit date while preserving the current default behavior for the UI.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added metrics coverage proving the weekly badge is awarded or withheld based on the provided date.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider passing a shared `now` from the page to every date-sensitive metric helper if profile snapshots need to be frozen.
+- Skipped ideas:
+  - Did not change visual badge presentation; this increment only makes the calculation testable and deterministic.
