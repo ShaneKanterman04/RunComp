@@ -733,3 +733,20 @@
   - Add a focused most-consistent completion timestamp case if that challenge behavior changes.
 - Skipped ideas:
   - Did not change challenge calculation behavior; this increment only strengthens regression coverage.
+
+### Increment 38: Notification Unsubscribe Failure Handling
+
+- What changed: Updated the client notification toggle so disabling alerts only reports success after both `/api/push` cleanup and browser `unsubscribe()` succeed. Failed disable attempts now keep the status as subscribed instead of incorrectly showing alerts as off.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+- Tests added/updated:
+  - No component test was added for the monolithic page handler; this path is covered by typecheck/build and the existing push route tests cover the API contract.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add component-level tests if notification controls are extracted from the page into a smaller client component.
+- Skipped ideas:
+  - Did not expand notification settings or add per-event toggles.

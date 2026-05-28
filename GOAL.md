@@ -241,3 +241,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Thirty-fifth increment added JSON object guards for push subscribe and unsubscribe routes.
 - 2026-05-28: Thirty-sixth increment shared JSON object route guards and applied them to group, member, and session mutations.
 - 2026-05-28: Thirty-seventh increment added challenge completion timestamp regression coverage.
+- 2026-05-28: Thirty-eighth increment made notification unsubscribe success depend on API and browser unsubscribe success.

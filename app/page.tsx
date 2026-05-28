@@ -645,6 +645,7 @@ export default function Home() {
 
     setPushStatus("busy");
     setMessage("");
+    let disablingExistingSubscription = false;
 
     try {
       if (Notification.permission !== "granted") {
@@ -660,12 +661,16 @@ export default function Home() {
       const existing = await registration.pushManager.getSubscription();
 
       if (existing) {
-        await fetch("/api/push", {
+        disablingExistingSubscription = true;
+        const response = await fetch("/api/push", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ endpoint: existing.endpoint }),
         });
-        await existing.unsubscribe();
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not disable notifications.");
+        const unsubscribed = await existing.unsubscribe();
+        if (!unsubscribed) throw new Error("Could not disable notifications on this device.");
         setPushStatus("off");
         addToast("Family alerts turned off.", "success");
         return;
@@ -688,7 +693,7 @@ export default function Home() {
       setPushStatus("subscribed");
       addToast("Family run alerts are on.", "success");
     } catch (error) {
-      setPushStatus("off");
+      setPushStatus(disablingExistingSubscription ? "subscribed" : "off");
       setMessage(error instanceof Error ? error.message : "Could not enable notifications.");
     }
   }
