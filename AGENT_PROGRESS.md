@@ -172,3 +172,21 @@
   - Consider a similarly compact install/PWA status row for Settings.
 - Skipped ideas:
   - Did not add per-event notification toggles; the current push system remains intentionally simple.
+
+### Increment 9: Session Route Coverage
+
+- What changed: Added route-level tests for `/api/session` covering unauthenticated reads, authenticated context reads, password login, invite-token login, invalid/stale invite handling, login errors, and logout cookie clearing.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Added 9 API route tests.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/session-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Route coverage now spans the main API surface; future route tests should focus on regressions or tricky notification/challenge paths.
+  - Consider extracting shared route-test fixtures if new route tests add more duplicate setup.
+- Skipped ideas:
+  - Did not alter session token behavior; this increment pins current behavior for safer future changes.
