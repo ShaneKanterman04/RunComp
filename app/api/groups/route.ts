@@ -39,7 +39,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Only the group owner can update the race goal." }, { status: 403 });
     }
     const body = (await request.json()) as Record<string, unknown>;
-    const group = await updateGroupGoal(session.group.id, typeof body.goalMiles === "number" ? body.goalMiles : Number(body.goalMiles));
+    const group = await updateGroupGoal(session.group.id, session.member.id, typeof body.goalMiles === "number" ? body.goalMiles : Number(body.goalMiles));
     return NextResponse.json({ group });
   } catch (error) {
     if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });

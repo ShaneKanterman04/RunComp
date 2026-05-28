@@ -164,13 +164,15 @@ describe("file-backed store", () => {
     const store: StoreModule = loaded.store;
     dataDir = loaded.dataDir;
 
-    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
-    const updated = await store.updateGroupGoal(group.id, 250);
+    const { group, member: owner } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
+    const updated = await store.updateGroupGoal(group.id, owner.id, 250);
     const context = await store.getGroupContext(group.id, group.id);
 
     expect(updated.goalMiles).toBe(250);
     expect((await store.login({ groupCode: group.code, memberName: "Shane", password: "password123" })).group.goalMiles).toBe(250);
     expect(context).toBeNull();
+    await expect(store.updateGroupGoal(group.id, molly.id, 300)).rejects.toMatchObject({ status: 403 });
   });
 
   it("sorts runs and enforces runner delete ownership", async () => {

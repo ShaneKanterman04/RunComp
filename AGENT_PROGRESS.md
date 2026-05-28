@@ -397,3 +397,24 @@
   - Consider applying the same actor-explicit pattern to other owner-only store operations such as race goal updates if they become more complex.
 - Skipped ideas:
   - Did not alter persisted data shape; this is a store authorization boundary change only.
+
+### Increment 21: Store Owner Actor For Goal Updates
+
+- What changed: Updated `updateGroupGoal` so the file-backed store verifies an explicit owner actor before changing the race goal. Updated the groups route to pass the signed-in owner id.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Updated store and route tests for explicit owner actor arguments.
+  - Added a store assertion proving a non-owner cannot update the race goal directly.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Owner-only store operations now consistently take explicit owner actors.
+- Skipped ideas:
+  - Did not change the Settings UI for goal updates; this was a store authorization hardening increment.

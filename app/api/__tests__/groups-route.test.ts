@@ -84,7 +84,7 @@ describe("/api/groups", () => {
     const response = await PATCH(jsonRequest("/api/groups", { goalMiles: "200" }, "PATCH"));
 
     expect(response.status).toBe(200);
-    expect(updateGroupGoal).toHaveBeenCalledWith("group-1", 200);
+    expect(updateGroupGoal).toHaveBeenCalledWith("group-1", "owner-1", 200);
     expect(await readJson(response)).toMatchObject({ group: { goalMiles: 200 } });
   });
 

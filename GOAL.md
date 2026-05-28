@@ -224,3 +224,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Eighteenth increment added owner member-management store regression tests for duplicate names, missing runners, and invalid password resets.
 - 2026-05-28: Nineteenth increment enforced owner actor checks inside `removeInactiveMember` at the store layer.
 - 2026-05-28: Twentieth increment required explicit owner actors for member create, rename, and password reset store methods.
+- 2026-05-28: Twenty-first increment required explicit owner actors for store-level race goal updates.

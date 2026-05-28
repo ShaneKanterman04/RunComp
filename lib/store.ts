@@ -203,13 +203,14 @@ export async function removeInactiveMember(groupId: string, memberId: string, ow
   });
 }
 
-export async function updateGroupGoal(groupId: string, goalMiles: number) {
+export async function updateGroupGoal(groupId: string, ownerMemberId: string, goalMiles: number) {
   const nextGoal = cleanGoalMiles(goalMiles);
 
   return withStoreLock(async () => {
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    requireGroupOwner(group, ownerMemberId);
     group.goalMiles = nextGoal;
     await writeStore(store);
     return publicGroup(group);
