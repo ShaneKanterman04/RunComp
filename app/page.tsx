@@ -1124,6 +1124,13 @@ export default function Home() {
               <span>{installSettings.body}</span>
             </div>
           </div>
+          <div className="settingsStatusBlock appSettingsBlock">
+            <div>
+              <p className="eyebrow">App</p>
+              <strong>RunComp v{appVersion}</strong>
+              <span>{session.member.name} · {session.member.role === "owner" ? "Group owner" : "Runner"} in {session.group.name}</span>
+            </div>
+          </div>
           <div className="settingsBlock exportSettingsBlock">
             <div>
               <p className="eyebrow">Data export</p>

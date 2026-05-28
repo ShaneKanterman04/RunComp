@@ -946,3 +946,21 @@
   - Keep route and store export error coverage aligned if export behavior changes.
 - Skipped ideas:
   - Did not change export helper behavior; this documents the existing error contract.
+
+### Increment 50: Member-Visible Settings App Status
+
+- What changed: Added a compact Settings status row that shows RunComp version, signed-in runner, role, and group for every signed-in member.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+- Tests added/updated:
+  - No component test was added for the monolithic page; this reuses an existing static settings block pattern and is covered by TypeScript/build validation.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Extract Settings into smaller tested components if more UI-specific behavior is added.
+- Skipped ideas:
+  - Did not duplicate logout controls inside the new row; existing switch-group and logout buttons remain in the same group/settings panel.
