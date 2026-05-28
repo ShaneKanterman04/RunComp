@@ -294,3 +294,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Eighty-eighth increment covered blank setup field validation.
 - 2026-05-28: Eighty-ninth increment covered JSON backup filename sanitization.
 - 2026-05-28: Ninetieth increment rejected blank run ids before reaction and delete store calls.
+- 2026-05-28: Ninety-first increment rejected blank runner ids in invite and member owner routes.

@@ -94,10 +94,13 @@ describe("/api/invites", () => {
   it("rejects missing runner ids before creating tokens", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
 
-    const response = await POST(jsonRequest("/api/invites", {}));
+    const missing = await POST(jsonRequest("/api/invites", {}));
+    const blank = await POST(jsonRequest("/api/invites", { memberId: "  " }));
 
-    expect(response.status).toBe(400);
-    expect(await readJson(response)).toEqual({ error: "Missing runner id." });
+    expect(missing.status).toBe(400);
+    expect(await readJson(missing)).toEqual({ error: "Missing runner id." });
+    expect(blank.status).toBe(400);
+    expect(await readJson(blank)).toEqual({ error: "Missing runner id." });
     expect(createInviteToken).not.toHaveBeenCalled();
   });
 

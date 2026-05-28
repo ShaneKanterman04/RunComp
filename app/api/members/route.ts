@@ -41,7 +41,7 @@ export async function PATCH(request: Request) {
     }
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    const memberId = typeof body.memberId === "string" ? body.memberId : "";
+    const memberId = typeof body.memberId === "string" ? body.memberId.trim() : "";
     if (!memberId) return NextResponse.json({ error: "Missing runner id." }, { status: 400 });
     const hasName = typeof body.name === "string";
     const hasPassword = typeof body.password === "string";
@@ -74,7 +74,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Only the group owner can remove runners." }, { status: 403 });
     }
     const { searchParams } = new URL(request.url);
-    const memberId = searchParams.get("id") || "";
+    const memberId = searchParams.get("id")?.trim() || "";
     if (!memberId) return NextResponse.json({ error: "Missing runner id." }, { status: 400 });
     const removed = await removeInactiveMember(session.group.id, memberId, session.member.id);
     if (!removed) return NextResponse.json({ error: "Runner not found." }, { status: 404 });

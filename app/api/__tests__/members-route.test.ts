@@ -181,6 +181,7 @@ describe("/api/members", () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
 
     const missingMember = await PATCH(jsonRequest("/api/members", { name: "Molly K" }, "PATCH"));
+    const blankMember = await PATCH(jsonRequest("/api/members", { memberId: "  ", name: "Molly K" }, "PATCH"));
     const missingAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1" }, "PATCH"));
     const ambiguousAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K", password: "newpassword" }, "PATCH"));
     const blankName = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "  " }, "PATCH"));
@@ -188,6 +189,8 @@ describe("/api/members", () => {
 
     expect(missingMember.status).toBe(400);
     expect(await readJson(missingMember)).toEqual({ error: "Missing runner id." });
+    expect(blankMember.status).toBe(400);
+    expect(await readJson(blankMember)).toEqual({ error: "Missing runner id." });
     expect(missingAction.status).toBe(400);
     expect(await readJson(missingAction)).toEqual({ error: "Send either a runner name or password." });
     expect(ambiguousAction.status).toBe(400);
@@ -237,10 +240,13 @@ describe("/api/members", () => {
   it("rejects runner removal requests without a runner id before store mutation", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
 
-    const response = await DELETE(new Request("http://localhost/api/members", { method: "DELETE" }));
+    const missing = await DELETE(new Request("http://localhost/api/members", { method: "DELETE" }));
+    const blank = await DELETE(new Request("http://localhost/api/members?id=%20%20", { method: "DELETE" }));
 
-    expect(response.status).toBe(400);
-    expect(await readJson(response)).toEqual({ error: "Missing runner id." });
+    expect(missing.status).toBe(400);
+    expect(await readJson(missing)).toEqual({ error: "Missing runner id." });
+    expect(blank.status).toBe(400);
+    expect(await readJson(blank)).toEqual({ error: "Missing runner id." });
     expect(removeInactiveMember).not.toHaveBeenCalled();
   });
 

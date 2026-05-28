@@ -1741,3 +1741,25 @@
   - Keep route-level id validation consistent if additional run mutation endpoints are added.
 - Skipped ideas:
   - Did not change store-level run id semantics; this increment only blocks malformed route inputs earlier.
+
+### Increment 91: Blank Runner Id Validation
+
+- What changed: Updated invite generation and owner member-management routes to trim runner ids and reject whitespace-only ids before token creation or store mutation.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/invites/route.ts`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/invites-route.test.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Extended invite, runner edit, and runner removal route coverage for blank runner ids.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/invites-route.test.ts app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep owner-control route validation consistent with store actor checks.
+- Skipped ideas:
+  - Did not alter member-id storage rules; the route now rejects malformed ids earlier.

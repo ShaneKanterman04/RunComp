@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    const memberId = typeof body.memberId === "string" ? body.memberId : "";
+    const memberId = typeof body.memberId === "string" ? body.memberId.trim() : "";
     if (!memberId) return NextResponse.json({ error: "Missing runner id." }, { status: 400 });
     const member = session.members.find((row) => row.id === memberId);
     if (!member) return NextResponse.json({ error: "Runner not found in this group." }, { status: 404 });
