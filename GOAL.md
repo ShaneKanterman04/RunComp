@@ -220,3 +220,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Fourteenth increment added invite-token auth tests for signing, tamper rejection, expiry, malformed tokens, and claim validation.
 - 2026-05-28: Fifteenth increment reduced API route test duplication with shared request/JSON helpers.
 - 2026-05-28: Sixteenth increment cleaned up repeated Settings status-row styling for notification and install state.
+- 2026-05-28: Seventeenth increment added push sender tests for notification payloads and expired-subscription cleanup.

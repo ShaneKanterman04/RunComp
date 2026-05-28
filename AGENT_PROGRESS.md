@@ -324,3 +324,20 @@
   - Continue extracting small Settings primitives if the page grows further.
 - Skipped ideas:
   - Did not split Settings into React components yet; that would be a larger refactor and is only worth doing with stronger component-test plans.
+
+### Increment 17: Push Sender Coverage
+
+- What changed: Added focused tests for push notification sending, verifying run notification payloads, VAPID configuration use, and expired-subscription cleanup while preserving non-expired send failures for logging.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/push.test.ts`
+- Tests added/updated:
+  - Added 2 push sender tests.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/push.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add challenge notification payload tests if challenge copy changes become more frequent.
+- Skipped ideas:
+  - Did not change push behavior; this increment pins existing cleanup and payload behavior.
