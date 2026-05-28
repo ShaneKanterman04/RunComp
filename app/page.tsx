@@ -31,6 +31,7 @@ import {
   formatDuration,
   formatMiles,
   formatPace,
+  formatRunPace,
   raceProgress,
   runnerCardRarity,
   runnerTitle,
@@ -270,6 +271,7 @@ export default function Home() {
   const hasRuns = runs.length > 0;
   const hasMultipleMembers = members.length > 1;
   const latestRun = runs[0] || null;
+  const latestRunPace = latestRun ? formatRunPace(latestRun.durationSeconds, latestRun.miles) : "";
   const myComeback = session ? comebackTargets.find((target) => target.memberId === session.member.id) : undefined;
   const latestOwnRun = session ? runs.find((run) => run.memberId === session.member.id) : null;
   const rivalry = weekLeader && weekSecond ? { leader: weekLeader, chaser: weekSecond, gap: weekGap } : null;
@@ -464,9 +466,8 @@ export default function Home() {
       setRuns((current) => [data.run, ...current]);
       setLastUpdatedAt(new Date());
       setForm((current) => ({ ...current, miles: "", duration: "", note: "" }));
-      setMessage(
-        `${session.member.name} logged ${formatMiles(data.run.miles)}${data.run.durationSeconds ? ` at ${formatPace(data.run.durationSeconds / data.run.miles)}` : ""}.`,
-      );
+      const runPace = formatRunPace(data.run.durationSeconds, data.run.miles);
+      setMessage(`${session.member.name} logged ${formatMiles(data.run.miles)}${runPace ? ` at ${runPace}` : ""}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save run.");
     } finally {
@@ -864,7 +865,7 @@ export default function Home() {
                   <h2>{latestRun ? `${latestRun.runner} · ${formatMiles(latestRun.miles)}` : "No runs yet"}</h2>
                   <p className="muted">
                     {latestRun
-                      ? `${formatDate(latestRun.date)}${latestRun.durationSeconds ? ` · ${formatPace(latestRun.durationSeconds / latestRun.miles)}` : ""}`
+                      ? `${formatDate(latestRun.date)}${latestRunPace ? ` · ${latestRunPace}` : ""}`
                       : "Be the first one on the board."}
                   </p>
                 </div>
@@ -1409,6 +1410,7 @@ export default function Home() {
               {runs.map((run, index) => {
                 const member = members.find((row) => row.id === run.memberId);
                 const isMyRun = run.memberId === session.member.id;
+                const runPace = formatRunPace(run.durationSeconds, run.miles);
                 return (
                   <article className={`runRow ${isMyRun ? "currentRunRow" : ""}`} key={run.id} style={{ animationDelay: `${index * 0.05}s` }}>
                     <span className="runnerBadge runBadge" style={member ? runnerStyle(member, members) : undefined}>{run.runner.slice(0, 1)}</span>
@@ -1418,9 +1420,9 @@ export default function Home() {
                         <span>{formatDate(run.date)}</span>
                       </div>
                       {run.note && <p>{run.note}</p>}
-                      {run.durationSeconds && (
+                      {runPace && (
                         <p className="runMeta">
-                          {formatDuration(run.durationSeconds)} · {formatPace(run.durationSeconds / run.miles)}
+                          {formatDuration(run.durationSeconds ?? 0)} · {runPace}
                         </p>
                       )}
                     </div>

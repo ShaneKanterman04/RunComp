@@ -15,6 +15,7 @@ import {
   formatDuration,
   formatMiles,
   formatPace,
+  formatRunPace,
   heatLevel,
   raceProgress,
   runnerCardRarity,
@@ -190,6 +191,9 @@ describe("run metrics", () => {
     expect(formatPace(null)).toBe("-");
     expect(formatPace(-30)).toBe("-");
     expect(formatPace(Number.POSITIVE_INFINITY)).toBe("-");
+    expect(formatRunPace(1500, 3)).toBe("8:20 /mi");
+    expect(formatRunPace(undefined, 3)).toBe("");
+    expect(formatRunPace(1200, 0)).toBe("");
     expect(toDateKey(new Date(2026, 4, 2))).toBe("2026-05-02");
     expect(toDateKey(new Date("bad"))).toBe("1970-01-01");
     expect(formatDate("not-a-date")).toBe("Unknown date");

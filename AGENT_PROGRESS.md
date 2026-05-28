@@ -2543,3 +2543,24 @@
   - Keep run `createdAt` validation strict for newly written runs.
 - Skipped ideas:
   - Did not mutate legacy run records; feed rendering now handles them safely.
+
+### Increment 131: Invalid Run Pace UI Guard
+
+- What changed: Added a shared run pace formatter and used it to avoid showing unavailable pace text for legacy timed runs with non-positive mileage.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added run pace formatting coverage for valid, missing, and non-positive-mile cases.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep API/store validation strict so this remains a legacy display guard.
+- Skipped ideas:
+  - Did not change stored legacy runs or JSON backups.

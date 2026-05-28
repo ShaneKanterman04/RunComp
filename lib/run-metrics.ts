@@ -878,6 +878,12 @@ export function formatPace(secondsPerMile: number | null | undefined) {
   return `${formatDuration(secondsPerMile)} /mi`;
 }
 
+export function formatRunPace(durationSeconds: number | undefined, miles: number) {
+  if (!durationSeconds || !Number.isFinite(durationSeconds) || durationSeconds <= 0) return "";
+  if (!Number.isFinite(miles) || miles <= 0) return "";
+  return formatPace(durationSeconds / miles);
+}
+
 export function formatDate(value: string) {
   if (!isDateKey(value)) return "Unknown date";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(parseRunDate(value));
