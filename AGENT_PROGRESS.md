@@ -1038,3 +1038,22 @@
   - Keep context sanitization coverage aligned with any future session payload changes.
 - Skipped ideas:
   - Did not change context behavior; this locks the existing public-data boundary.
+
+### Increment 55: Runner Invite Status In Settings
+
+- What changed: Added owner-visible invite status text to each Settings runner row so owners can see whether a login link is not created, ready, or just copied.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No component test was added for the monolithic page; this uses existing client state and is covered by TypeScript/build validation.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Extract runner management into a small tested component if invite/status interactions grow.
+- Skipped ideas:
+  - Did not persist invite status; login links are signed on demand and the UI reflects the current browser session.

@@ -1163,6 +1163,11 @@ export default function Home() {
                     <div>
                       <strong>{member.name}{member.id === session.member.id && <YouBadge />}</strong>
                       <span>{member.role === "owner" ? "Group owner" : "Runner"}</span>
+                      {session.member.role === "owner" && (
+                        <span className="memberInviteStatus">
+                          {memberCopySuccess[member.id] ? "Login link copied" : memberInviteUrls[member.id] ? "Login link ready" : "No login link yet"}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {session.member.role === "owner" && (
