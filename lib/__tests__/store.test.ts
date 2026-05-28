@@ -438,6 +438,20 @@ describe("file-backed store", () => {
     expect(csv).toContain('2026-05-22,Shane,3.10,1550,500,"tempo, ""fast"""');
   });
 
+  it("exports a spreadsheet header for groups with no runs", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+
+    await expect(store.exportRunsCsv(group.id)).resolves.toBe("date,runner,miles,duration_seconds,pace_seconds_per_mile,note,created_at\n");
+  });
+
   it("excludes push subscription secrets from JSON backups", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

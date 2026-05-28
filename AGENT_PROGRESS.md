@@ -1279,3 +1279,21 @@
   - Extract runner profiles into a smaller tested component if profile UI behavior grows.
 - Skipped ideas:
   - Did not add a chart library or redesign the profile; this keeps the existing compact modal.
+
+### Increment 68: Empty CSV Export Header Coverage
+
+- What changed: Added store coverage proving CSV exports for groups with no runs still include the spreadsheet header row.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one `exportRunsCsv` regression test for empty run groups.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep CSV shape tests aligned if export columns change.
+- Skipped ideas:
+  - Did not change CSV behavior; this locks existing spreadsheet-friendly output.
