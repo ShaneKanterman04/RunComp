@@ -31,8 +31,8 @@ export async function POST(request: Request) {
         : typeof payload.durationSeconds === "string" && payload.durationSeconds.trim()
           ? Number(payload.durationSeconds)
           : undefined;
-    const date = typeof payload.date === "string" ? payload.date : "";
-    const note = typeof payload.note === "string" ? payload.note : "";
+    const date = typeof payload.date === "string" ? payload.date.trim() : "";
+    const note = typeof payload.note === "string" ? payload.note.trim() : "";
 
     if (!Number.isFinite(miles) || miles <= 0 || miles > 100) {
       return NextResponse.json({ error: "Miles must be between 0 and 100." }, { status: 400 });
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     if (durationSeconds !== undefined && (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 172800)) {
       return NextResponse.json({ error: "Run time must be between 1 second and 48 hours." }, { status: 400 });
     }
-    if (note.trim().length > 180) {
+    if (note.length > 180) {
       return NextResponse.json({ error: "Run notes must be 180 characters or fewer." }, { status: 400 });
     }
 

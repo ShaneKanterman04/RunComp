@@ -134,7 +134,7 @@ describe("/api/runs", () => {
     jest.mocked(addRun).mockResolvedValue(run);
     jest.mocked(getGroupContext).mockResolvedValue(null);
 
-    const response = await POST(jsonRequest("/api/runs", { miles: "3.25", date: "2026-05-22", durationSeconds: "1560", note: "tempo" }));
+    const response = await POST(jsonRequest("/api/runs", { miles: "3.25", date: " 2026-05-22 ", durationSeconds: "1560", note: " tempo " }));
 
     expect(response.status).toBe(201);
     expect(addRun).toHaveBeenCalledWith("group-1", "member-1", { miles: 3.25, date: "2026-05-22", note: "tempo", durationSeconds: 1560 });

@@ -2001,3 +2001,23 @@
   - Keep removal cleanup tests updated if historical run behavior changes.
 - Skipped ideas:
   - Did not change removal behavior; this documents the existing cleanup contract.
+
+### Increment 104: Run Route Input Normalization
+
+- What changed: Updated `/api/runs` POST handling to trim date and note inputs before validation and persistence.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Extended successful run logging coverage for padded date and note inputs being normalized before `addRun`.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep route and store normalization rules aligned for future run fields.
+- Skipped ideas:
+  - Did not change mileage or duration parsing semantics.
