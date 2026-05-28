@@ -982,3 +982,22 @@
   - Keep session route tests aligned with store public data if the login response shape changes.
 - Skipped ideas:
   - Did not change login behavior; this locks the existing public-data boundary.
+
+### Increment 52: Session GET Error Handling
+
+- What changed: Wrapped `/api/session` GET session hydration in structured error handling so store/session load failures return JSON instead of bubbling out of the route.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/session/route.ts`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/session` GET failure-path test for structured status/message responses.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/session-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue checking read-only API handlers for consistent structured error behavior.
+- Skipped ideas:
+  - Did not change successful session response shape or auth semantics.

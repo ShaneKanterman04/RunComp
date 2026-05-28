@@ -7,14 +7,19 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await getCurrentSession();
-  if (!session) return NextResponse.json({ authenticated: false });
-  return NextResponse.json({
-    authenticated: true,
-    group: session.group,
-    member: session.member,
-    members: session.members,
-  });
+  try {
+    const session = await getCurrentSession();
+    if (!session) return NextResponse.json({ authenticated: false });
+    return NextResponse.json({
+      authenticated: true,
+      group: session.group,
+      member: session.member,
+      members: session.members,
+    });
+  } catch (error) {
+    const storeError = storeErrorResponse(error);
+    return NextResponse.json({ error: storeError.message }, { status: storeError.status });
+  }
 }
 
 export async function POST(request: Request) {

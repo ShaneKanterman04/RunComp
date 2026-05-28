@@ -53,6 +53,15 @@ describe("/api/session", () => {
     expect(await readJson(response)).toEqual({ authenticated: true, group, member, members: [owner, member] });
   });
 
+  it("returns structured errors when current session loading fails", async () => {
+    jest.mocked(getCurrentSession).mockRejectedValue({ status: 500, message: "RunComp could not load sessions." });
+
+    const response = await GET();
+
+    expect(response.status).toBe(500);
+    expect(await readJson(response)).toEqual({ error: "RunComp could not load sessions." });
+  });
+
   it("logs in with group code, member name, and password", async () => {
     jest.mocked(login).mockResolvedValue({ group, member });
     jest.mocked(getGroupContext).mockResolvedValue(context as never);
