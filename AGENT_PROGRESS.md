@@ -1505,3 +1505,23 @@
   - Keep export paths tolerant of old or imperfect file-backed data.
 - Skipped ideas:
   - Did not introduce repair or import tooling; this only protects current export readability.
+
+### Increment 79: Export Filename Sanitization
+
+- What changed: Sanitized export attachment filename group-code segments so hand-edited or legacy group codes cannot produce awkward `Content-Disposition` filenames.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/exports/route.ts`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for unsafe group-code characters in CSV export filenames.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Reuse the filename segment helper if future download endpoints are added.
+- Skipped ideas:
+  - Did not change normal generated group codes or exported file contents.

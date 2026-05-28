@@ -14,12 +14,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Export type must be json or csv." }, { status: 400 });
     }
     const stamp = new Date().toISOString().slice(0, 10);
+    const filenameCode = filenameSafeSegment(session.group.code);
     if (type === "csv") {
       const csv = await exportRunsCsv(session.group.id);
       return new NextResponse(csv, {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": `attachment; filename="runcomp-${session.group.code}-runs-${stamp}.csv"`,
+          "Content-Disposition": `attachment; filename="runcomp-${filenameCode}-runs-${stamp}.csv"`,
         },
       });
     }
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
     const backup = await exportGroupBackup(session.group.id);
     return NextResponse.json(backup, {
       headers: {
-        "Content-Disposition": `attachment; filename="runcomp-${session.group.code}-backup-${stamp}.json"`,
+        "Content-Disposition": `attachment; filename="runcomp-${filenameCode}-backup-${stamp}.json"`,
       },
     });
   } catch (error) {
@@ -37,4 +38,9 @@ export async function GET(request: Request) {
     const storeError = storeErrorResponse(error);
     return NextResponse.json({ error: storeError.message }, { status: storeError.status });
   }
+}
+
+function filenameSafeSegment(value: string) {
+  const segment = value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  return segment || "group";
 }
