@@ -802,3 +802,21 @@
   - Keep README export wording in sync if restore/import support is added later.
 - Skipped ideas:
   - Did not add import/restore documentation because that workflow is not implemented.
+
+### Increment 42: Session Context Role Regression
+
+- What changed: Added auth coverage proving current sessions hydrate from fresh store context instead of trusting stale role claims from the signed cookie.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added a session-cookie test with mocked `next/headers` and store context.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add cookie clear/set option tests only if session cookie behavior changes.
+- Skipped ideas:
+  - Did not change auth behavior; this documents the existing server-side identity boundary.

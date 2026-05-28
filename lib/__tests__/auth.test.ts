@@ -60,3 +60,47 @@ describe("auth invite tokens", () => {
     await expect(auth.verifyInviteToken("not-a-token")).resolves.toBeNull();
   });
 });
+
+describe("auth sessions", () => {
+  afterEach(() => {
+    delete process.env.RUNCOMP_SECRET;
+    jest.resetModules();
+    jest.dontMock("next/headers");
+    jest.dontMock("@/lib/store");
+  });
+
+  it("hydrates current sessions from store context instead of trusting cookie roles", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    let cookieValue = "";
+    const cookieStore = {
+      get: jest.fn(() => (cookieValue ? { value: cookieValue } : undefined)),
+      set: jest.fn((_name: string, value: string) => {
+        cookieValue = value;
+      }),
+      delete: jest.fn(() => {
+        cookieValue = "";
+      }),
+    };
+    const getGroupContext = jest.fn().mockResolvedValue({
+      group: { id: "group-1", code: "123", name: "Family Miles", goalMiles: 100, createdAt: "2026-05-01T00:00:00Z" },
+      member: { id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" },
+      members: [{ id: "member-1", name: "Molly", role: "member", createdAt: "2026-05-01T00:00:00Z" }],
+    });
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext }));
+    const auth = await import("../auth");
+
+    await auth.setSessionCookie({ groupId: "group-1", memberId: "member-1", role: "owner" });
+    const session = await auth.getCurrentSession();
+
+    expect(cookieStore.set).toHaveBeenCalledWith(
+      auth.SESSION_COOKIE,
+      expect.any(String),
+      expect.objectContaining({ httpOnly: true, sameSite: "lax" }),
+    );
+    expect(getGroupContext).toHaveBeenCalledWith("group-1", "member-1");
+    expect(session?.claims.role).toBe("owner");
+    expect(session?.member.role).toBe("member");
+  });
+});
