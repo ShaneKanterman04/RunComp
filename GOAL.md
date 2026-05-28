@@ -338,3 +338,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred thirty-second increment clamped negative legacy mileage display.
 - 2026-05-28: One hundred thirty-third increment ignored non-positive legacy mileage in aggregate metrics.
 - 2026-05-28: One hundred thirty-fourth increment clarified run mileage validation copy.
+- 2026-05-28: One hundred thirty-fifth increment documented the local validation gate.

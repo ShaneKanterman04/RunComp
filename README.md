@@ -29,6 +29,14 @@ pnpm dev
 
 Open `http://localhost:3000`.
 
+Before considering a local change ready, run the same validation gate used by the project:
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
 ## Hostlet Notes
 
 Use these settings when creating the Hostlet app:

@@ -2627,3 +2627,21 @@
   - Audit other validation messages for copy that implies different bounds than the code enforces.
 - Skipped ideas:
   - Did not change accepted mileage bounds.
+
+### Increment 135: Local Validation Documentation
+
+- What changed: Added the project validation gate commands to the README local development section.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `README.md`
+- Tests added/updated:
+  - Not applicable for documentation-only change.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep README command examples aligned with `package.json` scripts.
+- Skipped ideas:
+  - Did not add CI or deployment automation.
