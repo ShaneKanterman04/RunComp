@@ -8,7 +8,7 @@ describe("notification copy", () => {
       status: "On",
       action: "Alerts on",
     });
-    expect(pushButtonLabel("subscribed")).toBe("Alerts on");
+    expect(pushButtonLabel("subscribed")).toBe("Turn off alerts");
   });
 
   it("falls back to generic group copy when the group name is blank", () => {

@@ -344,3 +344,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred thirty-eighth increment rejected out-of-range race goals before store calls.
 - 2026-05-28: One hundred thirty-ninth increment clamped non-positive legacy CSV mileage exports.
 - 2026-05-28: One hundred fortieth increment tightened owner settings form disabled states.
+- 2026-05-28: One hundred forty-first increment clarified subscribed notification button copy.

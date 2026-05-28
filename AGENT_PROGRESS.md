@@ -2763,3 +2763,21 @@
   - Consider component-level tests if the main page is split into smaller settings components.
 - Skipped ideas:
   - Did not change server-side authorization or validation; those remain authoritative.
+
+### Increment 141: Notification Disable Copy
+
+- What changed: Updated the subscribed notification control label to `Turn off alerts` so the settings button describes its unsubscribe action.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/notification-copy.ts`
+  - `lib/__tests__/notification-copy.test.ts`
+- Tests added/updated:
+  - Updated notification copy coverage for the subscribed button label.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/notification-copy.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep status copy and action copy distinct when controls toggle state.
+- Skipped ideas:
+  - Did not expand push settings into per-event toggles.

@@ -137,7 +137,7 @@ export function pushButtonLabel(status: PushStatus) {
     case "busy":
       return "Updating alerts...";
     case "subscribed":
-      return "Alerts on";
+      return "Turn off alerts";
     case "denied":
       return "Alerts blocked";
     case "unsupported":
