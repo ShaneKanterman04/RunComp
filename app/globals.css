@@ -2036,6 +2036,44 @@ input:invalid:not(:placeholder-shown) {
   color: color-mix(in srgb, var(--runner-color), black 25%);
 }
 
+.profileMatchups {
+  display: grid;
+  gap: 8px;
+}
+
+.profileMatchup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+  padding: 9px 10px;
+}
+
+.profileMatchup strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileMatchup span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.profileMatchup--ahead span {
+  color: color-mix(in srgb, var(--runner-color), black 25%);
+}
+
+.profileMatchup--behind span {
+  color: #8a1e3a;
+}
+
 .achievement {
   border: 1px solid var(--line);
   border-radius: 999px;

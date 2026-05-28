@@ -13,6 +13,7 @@ import {
   buildComebackTargets,
   buildFamilyChallenges,
   buildFeedEvents,
+  buildHeadToHeadComparisons,
   buildHeatmapWeeks,
   buildStats,
   buildStreakStrip,
@@ -2538,6 +2539,7 @@ function RunnerProfileModal({
   const biggestWeek = biggestWeeklyTotal(memberRuns);
   const recent = buildStreakStrip(runs, member.id, new Date(), 14);
   const recentActiveDays = recent.filter((day) => day.ran).length;
+  const headToHead = buildHeadToHeadComparisons(runs, members, member.id).slice(0, 3);
   const hasProfileRuns = memberRuns.length > 0;
 
   return (
@@ -2575,6 +2577,23 @@ function RunnerProfileModal({
             ))}
           </div>
         </div>
+        {members.length > 1 && (
+          <div>
+            <p className="eyebrow">Head to head</p>
+            {headToHead.length > 0 ? (
+              <div className="profileMatchups">
+                {headToHead.map((comparison) => (
+                  <div className={`profileMatchup profileMatchup--${comparison.status}`} key={comparison.opponentId}>
+                    <strong>{comparison.opponentName}</strong>
+                    <span>{headToHeadCopy(comparison.status, comparison.gap, comparison.milesToPass)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="profileEmptyState">Add another runner to compare totals.</p>
+            )}
+          </div>
+        )}
         <div>
           <p className="eyebrow">Achievement shelf</p>
           {badges.length > 0 ? <BadgeStrip badges={badges} /> : <p className="profileEmptyState">No achievements yet. Log a run to start the shelf.</p>}
@@ -2582,6 +2601,12 @@ function RunnerProfileModal({
       </section>
     </div>
   );
+}
+
+function headToHeadCopy(status: "ahead" | "behind" | "tied", gap: number, milesToPass?: number) {
+  if (status === "ahead") return `${formatMiles(gap)} ahead`;
+  if (status === "behind") return `${formatMiles(milesToPass || gap)} to pass`;
+  return "Tied on miles";
 }
 
 function comebackTitle(comeback: ComebackTarget) {

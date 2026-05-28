@@ -4,6 +4,7 @@ import {
   buildComebackTargets,
   buildFamilyChallenges,
   buildFeedEvents,
+  buildHeadToHeadComparisons,
   buildHeatmapWeeks,
   buildStats,
   buildStreakStrip,
@@ -272,6 +273,40 @@ describe("run metrics", () => {
 
     expect(targets.map((target) => target.memberId)).toEqual(["shane", "molly"]);
     expect(targets[1]).toMatchObject({ targetName: "Shane", milesToPass: 0.01, leaderGap: 0 });
+  });
+
+  it("builds head-to-head profile comparisons by closest gap", () => {
+    const comparisons = buildHeadToHeadComparisons(
+      [
+        { id: "1", memberId: "shane", miles: 10, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+        { id: "2", memberId: "molly", miles: 7.5, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+        { id: "3", memberId: "dad", miles: 10, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+      ],
+      [...members, { id: "dad", name: "Dad" }],
+      "molly",
+    );
+
+    expect(comparisons).toEqual([
+      {
+        opponentId: "dad",
+        opponentName: "Dad",
+        runnerTotal: 7.5,
+        opponentTotal: 10,
+        gap: 2.5,
+        status: "behind",
+        milesToPass: 2.51,
+      },
+      {
+        opponentId: "shane",
+        opponentName: "Shane",
+        runnerTotal: 7.5,
+        opponentTotal: 10,
+        gap: 2.5,
+        status: "behind",
+        milesToPass: 2.51,
+      },
+    ]);
+    expect(buildHeadToHeadComparisons([], members, "missing")).toEqual([]);
   });
 
   it("builds feed events for milestones, lead changes, and achievements", () => {

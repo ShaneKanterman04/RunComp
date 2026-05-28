@@ -114,6 +114,16 @@ export type ComebackTarget = {
   isLeader: boolean;
 };
 
+export type HeadToHeadComparison = {
+  opponentId: string;
+  opponentName: string;
+  runnerTotal: number;
+  opponentTotal: number;
+  gap: number;
+  status: "ahead" | "behind" | "tied";
+  milesToPass?: number;
+};
+
 export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], memberId?: string): AchievementBadge[] {
   const badges: AchievementBadge[] = [];
   const runnerRuns = memberId ? runs.filter((run) => run.memberId === memberId) : runs;
@@ -339,6 +349,29 @@ export function buildComebackTargets(runs: MetricRunEntry[], members: MetricMemb
       isLeader: index === 0,
     };
   });
+}
+
+export function buildHeadToHeadComparisons(runs: MetricRunEntry[], members: MetricMember[], memberId: string): HeadToHeadComparison[] {
+  if (!members.some((member) => member.id === memberId)) return [];
+  const runnerTotal = sumMiles(runs.filter((run) => run.memberId === memberId));
+
+  return members
+    .filter((opponent) => opponent.id !== memberId)
+    .map((opponent) => {
+      const opponentTotal = sumMiles(runs.filter((run) => run.memberId === opponent.id));
+      const rawGap = runnerTotal - opponentTotal;
+      const gap = Math.round(Math.abs(rawGap) * 100) / 100;
+      return {
+        opponentId: opponent.id,
+        opponentName: opponent.name,
+        runnerTotal,
+        opponentTotal,
+        gap,
+        status: rawGap > 0 ? "ahead" : rawGap < 0 ? "behind" : "tied",
+        ...(rawGap < 0 ? { milesToPass: Math.round((Math.abs(rawGap) + 0.01) * 100) / 100 } : {}),
+      } satisfies HeadToHeadComparison;
+    })
+    .sort((a, b) => a.gap - b.gap || a.opponentName.localeCompare(b.opponentName));
 }
 
 export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[], goalMiles = 100, now = new Date()): FeedEvent[] {

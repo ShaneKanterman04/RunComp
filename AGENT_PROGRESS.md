@@ -225,3 +225,24 @@
   - Consider a short troubleshooting section if deployment issues emerge from actual use.
 - Skipped ideas:
   - Did not add Docker or CI; the goal file explicitly says not to add those unless they can be tested locally and fit the repo.
+
+### Increment 12: Runner Profile Head-To-Head Stats
+
+- What changed: Added tested head-to-head comparison metrics and surfaced the closest runner comparisons inside each runner profile. Profiles now show whether the runner is ahead, behind, or tied against other group members.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - Added a run-metrics test for closest-gap head-to-head ordering, behind status, and miles-to-pass calculations.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider adding week-only head-to-head comparisons if profile density still feels manageable.
+  - Consider extracting profile sections if the modal grows further.
+- Skipped ideas:
+  - Did not add a chart library or larger profile redesign; this stayed within existing data and UI patterns.

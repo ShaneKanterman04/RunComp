@@ -215,3 +215,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Ninth increment added `/api/session` route coverage for current session, password login, invite login, and logout flows.
 - 2026-05-28: Tenth increment added compact install/PWA status guidance to the group settings area.
 - 2026-05-28: Eleventh increment updated README deployment/configuration notes to match current file-backed, push, and export behavior.
+- 2026-05-28: Twelfth increment added tested runner profile head-to-head comparisons.
