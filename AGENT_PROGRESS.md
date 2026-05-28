@@ -2564,3 +2564,23 @@
   - Keep API/store validation strict so this remains a legacy display guard.
 - Skipped ideas:
   - Did not change stored legacy runs or JSON backups.
+
+### Increment 132: Negative Mileage Display Guard
+
+- What changed: Clamped formatted mileage at zero so negative legacy run values do not render as negative miles in UI copy.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added formatting coverage for negative mileage values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider clamping legacy negative mileage in aggregate calculations if old hand-edited data appears.
+- Skipped ideas:
+  - Did not mutate stored runs; this is a display-only compatibility guard.

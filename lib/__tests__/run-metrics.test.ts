@@ -181,6 +181,7 @@ describe("run metrics", () => {
 
   it("formats miles and local date keys consistently", () => {
     expect(formatMiles(3.257)).toBe("3.26 mi");
+    expect(formatMiles(-1.5)).toBe("0 mi");
     expect(formatMiles(Number.NaN)).toBe("0 mi");
     expect(formatMiles(Number.POSITIVE_INFINITY)).toBe("0 mi");
     expect(formatDuration(480)).toBe("8:00");
