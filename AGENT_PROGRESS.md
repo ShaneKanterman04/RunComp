@@ -1664,3 +1664,22 @@
   - Keep member name optional for unique-password login.
 - Skipped ideas:
   - Did not change login semantics for valid invite tokens or password-only member lookup.
+
+### Increment 87: Blank Password Login Field Coverage
+
+- What changed: Added session route coverage for blank trail codes and blank runner passwords being rejected before auth work.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Extended required password-login field coverage for whitespace-only values.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/session-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep login form copy aligned with required-field route errors.
+- Skipped ideas:
+  - Did not change login behavior; this locks down the validation added in the prior increment.

@@ -109,11 +109,17 @@ describe("/api/session", () => {
   it("rejects missing password-login fields before auth work", async () => {
     const missingCode = await POST(jsonRequest("/api/session", { password: "password123" }));
     const missingPassword = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly" }));
+    const blankCode = await POST(jsonRequest("/api/session", { groupCode: "  ", password: "password123" }));
+    const blankPassword = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly", password: "  " }));
 
     expect(missingCode.status).toBe(400);
     expect(await readJson(missingCode)).toEqual({ error: "Trail code is required." });
     expect(missingPassword.status).toBe(400);
     expect(await readJson(missingPassword)).toEqual({ error: "Runner password is required." });
+    expect(blankCode.status).toBe(400);
+    expect(await readJson(blankCode)).toEqual({ error: "Trail code is required." });
+    expect(blankPassword.status).toBe(400);
+    expect(await readJson(blankPassword)).toEqual({ error: "Runner password is required." });
     expect(login).not.toHaveBeenCalled();
     expect(verifyInviteToken).not.toHaveBeenCalled();
     expect(setSessionCookie).not.toHaveBeenCalled();
