@@ -841,7 +841,8 @@ export function startOfWeek(date: Date) {
 }
 
 export function parseRunDate(date: string) {
-  return new Date(`${date}T00:00:00`);
+  const parsed = new Date(`${date}T00:00:00`);
+  return Number.isFinite(parsed.getTime()) ? parsed : new Date(0);
 }
 
 export function todayInput() {
@@ -849,6 +850,7 @@ export function todayInput() {
 }
 
 export function toDateKey(date: Date) {
+  if (!Number.isFinite(date.getTime())) return "1970-01-01";
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -876,9 +878,16 @@ export function formatPace(secondsPerMile: number | null | undefined) {
 }
 
 export function formatDate(value: string) {
+  if (!isDateKey(value)) return "Unknown date";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(parseRunDate(value));
 }
 
 export function shortDate(value: string) {
+  if (!isDateKey(value)) return "-";
   return new Intl.DateTimeFormat("en-US", { month: "numeric", day: "numeric" }).format(parseRunDate(value));
+}
+
+function isDateKey(value: string) {
+  const parsed = new Date(`${value}T00:00:00`);
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(parsed.getTime()) && toDateKey(parsed) === value;
 }

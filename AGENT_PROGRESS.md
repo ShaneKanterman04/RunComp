@@ -2503,3 +2503,23 @@
   - Keep normal run writes rounded so this remains a legacy-data compatibility path.
 - Skipped ideas:
   - Did not change JSON backups; they preserve stored values for recovery inspection.
+
+### Increment 129: Date Formatting Legacy Guard
+
+- What changed: Added safe fallbacks for invalid legacy date strings in date-key and display formatting helpers.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added date formatting coverage for invalid Date objects, malformed date strings, and impossible date keys.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep API and store date validation strict for new runs.
+- Skipped ideas:
+  - Did not migrate or rewrite legacy run dates.
