@@ -1001,3 +1001,22 @@
   - Continue checking read-only API handlers for consistent structured error behavior.
 - Skipped ideas:
   - Did not change successful session response shape or auth semantics.
+
+### Increment 53: Push Key GET Error Handling
+
+- What changed: Wrapped `/api/push` GET VAPID public-key loading in structured error handling so filesystem/key setup failures return JSON errors.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/push/route.ts`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/push` GET failure-path test for structured push key setup errors.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep notification setup UI copy aligned with the structured error returned by this route.
+- Skipped ideas:
+  - Did not change push subscription behavior or VAPID key generation.

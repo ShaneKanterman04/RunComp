@@ -8,7 +8,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return NextResponse.json({ publicKey: await getVapidPublicKey() });
+  try {
+    return NextResponse.json({ publicKey: await getVapidPublicKey() });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }
 
 export async function POST(request: Request) {

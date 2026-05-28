@@ -69,6 +69,15 @@ describe("/api/push", () => {
     expect(await readJson(response)).toEqual({ publicKey: "public-key" });
   });
 
+  it("returns structured errors when VAPID key setup fails", async () => {
+    jest.mocked(getVapidPublicKey).mockRejectedValue({ status: 500, message: "RunComp could not load push keys." });
+
+    const response = await GET();
+
+    expect(response.status).toBe(500);
+    expect(await readJson(response)).toEqual({ error: "RunComp could not load push keys." });
+  });
+
   it("saves subscriptions for the signed-in member only", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
     jest.mocked(savePushSubscription).mockResolvedValue({ ok: true });
