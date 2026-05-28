@@ -208,3 +208,20 @@
   - Consider adding component tests once the Settings area is easier to render in isolation.
 - Skipped ideas:
   - Did not add custom install-prompt handling; browser install support varies and the existing local-first guidance is enough for the homelab/private-group scope.
+
+### Increment 11: README Configuration Polish
+
+- What changed: Updated README features and deployment/configuration notes to document runner login links, spreadsheet-safe CSV exports, `PORT`, `ALLOWED_DEV_ORIGINS`, static VAPID keys, public app URL-derived VAPID subjects, and sanitized backup/export behavior.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `README.md`
+- Tests added/updated:
+  - No tests added; this is documentation aligned with existing verified behavior.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add restore/import documentation only if a verified import flow is implemented later.
+  - Consider a short troubleshooting section if deployment issues emerge from actual use.
+- Skipped ideas:
+  - Did not add Docker or CI; the goal file explicitly says not to add those unless they can be tested locally and fit the repo.
