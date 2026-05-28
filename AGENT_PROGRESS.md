@@ -2343,3 +2343,23 @@
   - Keep persisted goal writes strict through `createGroup` and `updateGroupGoal`.
 - Skipped ideas:
   - Did not rewrite existing files; this is a backward-compatible read-side guard.
+
+### Increment 121: Notification Group Name Fallback
+
+- What changed: Added a fallback display name for notification prompt copy when legacy group names are blank.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/notification-copy.ts`
+  - `lib/__tests__/notification-copy.test.ts`
+- Tests added/updated:
+  - Added notification copy coverage for blank group names in off and subscribed states.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/notification-copy.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep normal group creation validation strict so blank names remain legacy-only.
+- Skipped ideas:
+  - Did not change persisted group names or setup behavior.

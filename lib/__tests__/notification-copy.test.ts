@@ -11,6 +11,11 @@ describe("notification copy", () => {
     expect(pushButtonLabel("subscribed")).toBe("Alerts on");
   });
 
+  it("falls back to generic group copy when the group name is blank", () => {
+    expect(notificationPromptCopy("off", "  ").body).toBe("Get a notification on this device when anyone in your group logs a run.");
+    expect(notificationPromptCopy("subscribed", "  ").body).toBe("This device will get alerts when anyone in your group logs runs or changes the race.");
+  });
+
   it("explains iOS browser limitations separately from unsupported browsers", () => {
     expect(notificationPromptCopy("unsupported", "Family Miles", { isIosDevice: true, isStandaloneApp: false })).toMatchObject({
       title: "Open RunComp from your Home Screen",

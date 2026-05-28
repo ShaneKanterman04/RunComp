@@ -6,6 +6,8 @@ type DeviceContext = {
 };
 
 export function notificationPromptCopy(status: PushStatus, groupName: string, context: DeviceContext = {}) {
+  const displayGroupName = groupName.trim() || "your group";
+
   if (status === "checking") {
     return {
       eyebrow: "Run alerts",
@@ -30,7 +32,7 @@ export function notificationPromptCopy(status: PushStatus, groupName: string, co
     return {
       eyebrow: "Run alerts",
       title: "Group notifications are on",
-      body: `This device will get alerts when anyone in ${groupName} logs runs or changes the race.`,
+      body: `This device will get alerts when anyone in ${displayGroupName} logs runs or changes the race.`,
       status: "On",
       action: "Alerts on",
     };
@@ -63,7 +65,7 @@ export function notificationPromptCopy(status: PushStatus, groupName: string, co
   return {
     eyebrow: "Run alerts",
     title: "Turn on group notifications",
-    body: `Get a notification on this device when anyone in ${groupName} logs a run.`,
+    body: `Get a notification on this device when anyone in ${displayGroupName} logs a run.`,
     status: "Off",
     action: "Turn on notifications",
   };
