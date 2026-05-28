@@ -46,3 +46,26 @@
   - Move from route hardening into Settings UX polish once the critical API boundary coverage is less thin.
 - Skipped ideas:
   - Did not change invite token behavior; current flow already uses signed, expiring tokens and the tests now pin the owner/current-group boundaries.
+
+### Increment 3: Export History In Owner Settings
+
+- What changed: Added local, per-group export request history for JSON backups and CSV downloads, then surfaced the last request timestamps in the owner Settings area.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+  - `lib/export-history.ts`
+  - `lib/__tests__/export-history.test.ts`
+- Tests added/updated:
+  - Added 4 tests for export-history storage, corrupt data handling, and timestamp formatting.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/export-history.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider making backup/download success more explicit if exports move from browser navigation to fetch-based downloads.
+  - Continue Settings polish around notification status and install/PWA status.
+- Skipped ideas:
+  - Did not add persisted server-side backup timestamps; local request history is simpler, testable, and avoids changing the file-backed data shape.

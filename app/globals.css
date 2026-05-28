@@ -1416,6 +1416,30 @@ input:invalid:not(:placeholder-shown) {
   font-size: 18px;
 }
 
+.exportStatusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.exportStatusGrid div {
+  display: grid;
+  gap: 3px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 10px;
+}
+
+.exportStatusGrid span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.exportStatusGrid strong {
+  font-size: 13px;
+}
+
 .memberList {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2799,6 +2823,7 @@ input:invalid:not(:placeholder-shown) {
   .runForm,
   .memberForm,
   .goalForm,
+  .exportStatusGrid,
   .groupActions,
   .inviteBox,
   .calledShotBanner,

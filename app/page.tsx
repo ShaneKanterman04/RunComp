@@ -6,6 +6,7 @@ import { Confetti } from "./components/Confetti";
 import { ToastContainer, type ToastMessage } from "./components/Toast";
 import { AnimatedMiles } from "./components/AnimatedCounter";
 import packageInfo from "@/package.json";
+import { formatExportTimestamp, readExportHistory, recordExportRequest, type ExportHistory } from "@/lib/export-history";
 import {
   buildChartDays,
   buildBadges,
@@ -144,6 +145,7 @@ export default function Home() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [profileMemberId, setProfileMemberId] = useState("");
   const [recapOpen, setRecapOpen] = useState(false);
+  const [exportHistory, setExportHistory] = useState<ExportHistory>({});
   const pollingRunsRef = useRef(false);
 
   useEffect(() => {
@@ -158,11 +160,13 @@ export default function Home() {
       setMemberInviteUrls({});
       setMemberEdits({});
       setPushStatus("checking");
+      setExportHistory({});
       return;
     }
     setInviteUrl(buildInviteUrl(session.group.code));
     setGoalForm(String(session.group.goalMiles || 100));
     setMemberEdits(Object.fromEntries(session.members.map((member) => [member.id, { name: member.name, password: "" }])));
+    setExportHistory(readExportHistory(window.localStorage, session.group.code));
     rememberRecentGroup(session);
     refreshPushStatus();
   }, [session]);
@@ -571,6 +575,9 @@ export default function Home() {
   }
 
   function downloadExport(type: "json" | "csv") {
+    if (session) {
+      setExportHistory(recordExportRequest(window.localStorage, session.group.code, type));
+    }
     window.location.assign(`/api/exports?type=${type}`);
   }
 
@@ -1123,6 +1130,16 @@ export default function Home() {
                   <div className="groupActions">
                     <button className="ghostButton" type="button" onClick={() => downloadExport("json")}>JSON backup</button>
                     <button className="ghostButton" type="button" onClick={() => downloadExport("csv")}>CSV runs</button>
+                  </div>
+                </div>
+                <div className="exportStatusGrid" aria-label="Export history">
+                  <div>
+                    <span>Last backup request</span>
+                    <strong>{formatExportTimestamp(exportHistory.json)}</strong>
+                  </div>
+                  <div>
+                    <span>Last CSV request</span>
+                    <strong>{formatExportTimestamp(exportHistory.csv)}</strong>
                   </div>
                 </div>
                 <form className="goalForm" onSubmit={updateGoal}>
