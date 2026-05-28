@@ -10,6 +10,15 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
+    if (typeof body.groupName !== "string" || !body.groupName.trim()) {
+      return NextResponse.json({ error: "Group name is required." }, { status: 400 });
+    }
+    if (typeof body.ownerName !== "string" || !body.ownerName.trim()) {
+      return NextResponse.json({ error: "Owner name is required." }, { status: 400 });
+    }
+    if (typeof body.password !== "string" || !body.password.trim()) {
+      return NextResponse.json({ error: "Owner password is required." }, { status: 400 });
+    }
     const goalMiles = parseGoalMiles(body.goalMiles, 100);
     if (goalMiles === null) return NextResponse.json({ error: "Goal miles must be a number." }, { status: 400 });
     const { group, member } = await createGroup({

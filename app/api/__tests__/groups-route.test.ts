@@ -88,6 +88,21 @@ describe("/api/groups", () => {
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 
+  it("rejects missing setup fields before creating groups", async () => {
+    const missingGroup = await POST(jsonRequest("/api/groups", { ownerName: "Shane", password: "password123" }));
+    const missingOwner = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", password: "password123" }));
+    const missingPassword = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane" }));
+
+    expect(missingGroup.status).toBe(400);
+    expect(await readJson(missingGroup)).toEqual({ error: "Group name is required." });
+    expect(missingOwner.status).toBe(400);
+    expect(await readJson(missingOwner)).toEqual({ error: "Owner name is required." });
+    expect(missingPassword.status).toBe(400);
+    expect(await readJson(missingPassword)).toEqual({ error: "Owner password is required." });
+    expect(createGroup).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed group creation JSON before store mutation", async () => {
     const response = await POST(malformedJsonRequest("/api/groups"));
 

@@ -1604,3 +1604,23 @@
   - Keep Settings form copy aligned with owner-facing API validation messages.
 - Skipped ideas:
   - Did not change the minimum password length policy; store validation still owns that rule.
+
+### Increment 84: Setup Required Field Validation
+
+- What changed: Updated `/api/groups` creation to reject missing group name, owner name, and owner password before calling group persistence.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Added group route coverage for missing setup fields and no session cookie writes.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep first-run setup UI copy aligned with these route-level errors.
+- Skipped ideas:
+  - Did not change password length or race-goal validation rules; those still use existing policies.
