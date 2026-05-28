@@ -111,6 +111,7 @@ describe("/api/runs", () => {
     const badMiles = await POST(jsonRequest("/api/runs", { miles: 0, date: "2026-05-22" }));
     const badDate = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-02-31" }));
     const badDuration = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-05-22", durationSeconds: 172801 }));
+    const longNote = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-05-22", note: "x".repeat(181) }));
 
     expect(badBody.status).toBe(400);
     expect(await readJson(badBody)).toEqual({ error: "Send a JSON object." });
@@ -120,6 +121,8 @@ describe("/api/runs", () => {
     expect(await readJson(badDate)).toEqual({ error: "Date must be a valid YYYY-MM-DD value." });
     expect(badDuration.status).toBe(400);
     expect(await readJson(badDuration)).toEqual({ error: "Run time must be between 1 second and 48 hours." });
+    expect(longNote.status).toBe(400);
+    expect(await readJson(longNote)).toEqual({ error: "Run notes must be 180 characters or fewer." });
     expect(addRun).not.toHaveBeenCalled();
   });
 

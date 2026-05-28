@@ -43,6 +43,9 @@ export async function POST(request: Request) {
     if (durationSeconds !== undefined && (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 172800)) {
       return NextResponse.json({ error: "Run time must be between 1 second and 48 hours." }, { status: 400 });
     }
+    if (note.trim().length > 180) {
+      return NextResponse.json({ error: "Run notes must be 180 characters or fewer." }, { status: 400 });
+    }
 
     const beforeRuns = await listRuns(session.group.id, session.member.id);
     const beforeLeader = leaderForRuns(beforeRuns);

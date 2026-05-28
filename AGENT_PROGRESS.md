@@ -1375,3 +1375,24 @@
   - Keep owner settings form validation copy aligned with these server-side messages.
 - Skipped ideas:
   - Did not change password length policy; the store still owns full password strength validation.
+
+### Increment 73: Run Note Length Validation
+
+- What changed: Added route-level validation for run notes over 180 characters and matched the run logging input with a `maxLength` limit.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+  - `app/page.tsx`
+- Tests added/updated:
+  - Extended `/api/runs` input validation coverage for oversized run notes.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider showing a compact character counter only if real use shows note length confusion.
+- Skipped ideas:
+  - Did not change the store's defensive note trimming to preserve backward-compatible persistence behavior.

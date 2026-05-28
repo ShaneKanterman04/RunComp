@@ -1015,7 +1015,7 @@ export default function Home() {
               </label>
               <label className="wideField">
                 <span className="fieldLabel">Note</span>
-                <input value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="trail, treadmill, tempo..." />
+                <input maxLength={180} value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} placeholder="trail, treadmill, tempo..." />
               </label>
               <div className="quickChips wideField" aria-label="Quick note choices">
                 {runNoteOptions.map((note) => (
