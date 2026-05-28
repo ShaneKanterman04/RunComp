@@ -838,3 +838,21 @@
   - Continue adding narrow auth/session regression tests around cookie clearing and required-session failures if those paths change.
 - Skipped ideas:
   - Did not change auth behavior; this increment only locks the existing invalid-cookie handling.
+
+### Increment 44: Required Session Failure Coverage
+
+- What changed: Added auth coverage proving `requireSession()` rejects malformed session cookies with the expected 401 auth error before loading group context.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added one session guard test that asserts the user-facing sign-in error and status for invalid cookies.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add cookie clearing option coverage if cookie behavior changes or route tests need it.
+- Skipped ideas:
+  - Did not alter auth implementation; this records the existing guard contract used by API routes.

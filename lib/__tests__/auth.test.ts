@@ -120,4 +120,24 @@ describe("auth sessions", () => {
     await expect(auth.getCurrentSession()).resolves.toBeNull();
     expect(getGroupContext).not.toHaveBeenCalled();
   });
+
+  it("requires a valid session before continuing", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    const cookieStore = {
+      get: jest.fn(() => ({ value: "not-a-token" })),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    const getGroupContext = jest.fn();
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext }));
+    const auth = await import("../auth");
+
+    await expect(auth.requireSession()).rejects.toMatchObject({
+      message: "Sign in to your run group.",
+      status: 401,
+    });
+    expect(getGroupContext).not.toHaveBeenCalled();
+  });
 });
