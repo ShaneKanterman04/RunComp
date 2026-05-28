@@ -786,3 +786,19 @@
   - Continue adding calculation regression tests around challenge and feed behavior before changing those flows.
 - Skipped ideas:
   - Did not change challenge calculation behavior; this only documents and locks the existing behavior.
+
+### Increment 41: README Export Permission Clarity
+
+- What changed: Updated README export wording to clarify that JSON recovery backups are owner-only and CSV run exports are available to any signed-in runner.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `README.md`
+- Tests added/updated:
+  - No tests were added for documentation-only wording.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep README export wording in sync if restore/import support is added later.
+- Skipped ideas:
+  - Did not add import/restore documentation because that workflow is not implemented.

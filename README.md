@@ -17,7 +17,7 @@ RunComp is a small running competition app for testing Hostlet on a homelab. It 
 - View a dedicated weekly recap with highlights, challenge status, and recap moments
 - Open runner profiles with personal records, recent trends, and achievement shelves
 - Enable push alerts for runs, lead changes, close-call passes, and completed challenges
-- Download owner JSON backups and spreadsheet-friendly CSV run exports
+- Download owner JSON backups and spreadsheet-friendly CSV run exports for any signed-in runner
 - File-backed persistence through `DATA_DIR`
 
 ## Local Development
@@ -60,4 +60,4 @@ RunComp is local-first and file-backed. The useful environment variables are:
 - `PORT`: Port used by `pnpm start`; defaults to `3000`.
 - `ALLOWED_DEV_ORIGINS`: Optional comma-separated extra origins for Next.js dev-server access from LAN or tunnel hosts.
 
-Owner JSON backups are sanitized for normal app recovery use and do not include password hashes, salts, session secrets, or VAPID keys. CSV run exports are intended for spreadsheets and neutralize formula-like cells from runner names or notes.
+Owner JSON backups are sanitized for normal app recovery use and do not include password hashes, salts, session secrets, or VAPID keys. Any signed-in runner can download CSV run exports for spreadsheets; CSV cells from runner names or notes are neutralized when they look like formulas.
