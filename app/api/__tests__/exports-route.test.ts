@@ -74,6 +74,17 @@ describe("/api/exports", () => {
     expect(exportGroupBackup).not.toHaveBeenCalled();
   });
 
+  it("rejects unsupported export types", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const response = await GET(new Request("http://localhost/api/exports?type=zip"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Export type must be json or csv." });
+    expect(exportRunsCsv).not.toHaveBeenCalled();
+    expect(exportGroupBackup).not.toHaveBeenCalled();
+  });
+
   it("blocks non-owner full JSON backups server-side", async () => {
     jest.mocked(requireSession).mockResolvedValue(memberSession as never);
 

@@ -516,3 +516,22 @@
   - Consider similar explicit route validation for member creation if owner setup copy needs more specific field-level errors.
 - Skipped ideas:
   - Did not change store validation; the store still enforces name and password constraints for valid action shapes.
+
+### Increment 27: Export Type Validation
+
+- What changed: Tightened `/api/exports` so only `json` and `csv` export types are accepted; unsupported values now return a 400 instead of falling through to JSON backup behavior.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/exports/route.ts`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for unsupported export types and verified no export store method is called.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider adding a lightweight UI guard if new export formats are added later.
+- Skipped ideas:
+  - Did not add new export formats; this only makes the current API contract explicit.

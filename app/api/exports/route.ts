@@ -10,6 +10,9 @@ export async function GET(request: Request) {
     const session = await requireSession();
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "json";
+    if (type !== "json" && type !== "csv") {
+      return NextResponse.json({ error: "Export type must be json or csv." }, { status: 400 });
+    }
     const stamp = new Date().toISOString().slice(0, 10);
     if (type === "csv") {
       const csv = await exportRunsCsv(session.group.id);

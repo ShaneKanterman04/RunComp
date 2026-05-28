@@ -230,3 +230,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Twenty-fourth increment made runner profile titles and card rarity more prominent with tested shared metric helpers.
 - 2026-05-28: Twenty-fifth increment removed duplicate 5K achievement badges from runner shelves.
 - 2026-05-28: Twenty-sixth increment added route-level validation for malformed owner runner edit requests.
+- 2026-05-28: Twenty-seventh increment rejected unsupported export types before generating downloads.
