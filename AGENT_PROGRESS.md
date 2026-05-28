@@ -2242,3 +2242,23 @@
   - Consider a rendered profile modal test if app-level component tests are introduced.
 - Skipped ideas:
   - Did not add a larger comparison table; the profile stays compact for mobile use.
+
+### Increment 116: Rounded Head-To-Head Aggregate Mileage
+
+- What changed: Rounded aggregate mileage totals to two decimals before using them in comparison helpers, avoiding floating-point tie drift in profile head-to-head rows.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added a head-to-head regression test for decimal mileage ties.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Watch for other legacy data paths where manually edited mileage can be outside normal run validation.
+- Skipped ideas:
+  - Did not change run entry validation; normal persisted runs are already rounded on write.

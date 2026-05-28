@@ -413,6 +413,26 @@ describe("run metrics", () => {
     expect(buildHeadToHeadComparisons([], members, "missing")).toEqual([]);
   });
 
+  it("rounds aggregate mileage before comparing head-to-head ties", () => {
+    const comparisons = buildHeadToHeadComparisons(
+      [
+        { id: "1", memberId: "shane", miles: 0.1, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+        { id: "2", memberId: "shane", miles: 0.2, date: "2026-05-22", createdAt: "2026-05-22T12:05:00Z" },
+        { id: "3", memberId: "molly", miles: 0.3, date: "2026-05-22", createdAt: "2026-05-22T12:10:00Z" },
+      ],
+      members,
+      "shane",
+    );
+
+    expect(comparisons[0]).toMatchObject({
+      opponentId: "molly",
+      runnerTotal: 0.3,
+      opponentTotal: 0.3,
+      gap: 0,
+      status: "tied",
+    });
+  });
+
   it("builds feed events for milestones, lead changes, and achievements", () => {
     const events = buildFeedEvents(
       [

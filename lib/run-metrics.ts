@@ -763,7 +763,7 @@ export function sortRuns<T extends { date: string; createdAt: string }>(runs: T[
 }
 
 export function sumMiles(runs: Pick<MetricRunEntry, "miles">[]) {
-  return runs.reduce((total, run) => total + run.miles, 0);
+  return Math.round(runs.reduce((total, run) => total + run.miles, 0) * 100) / 100;
 }
 
 function sumMilesForRange(runs: MetricRunEntry[], memberId: string, start: Date, end: Date) {

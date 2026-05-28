@@ -319,3 +319,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred thirteenth increment hardened export download headers.
 - 2026-05-28: One hundred fourteenth increment kept CSV pace exports readable for non-positive legacy mileage.
 - 2026-05-28: One hundred fifteenth increment added head-to-head profile totals and run counts.
+- 2026-05-28: One hundred sixteenth increment rounded aggregate mileage before head-to-head comparison.
