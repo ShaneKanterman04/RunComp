@@ -219,12 +219,13 @@ export default function Home() {
 
   const members = session?.members || [];
   const goalMiles = session?.group.goalMiles || 100;
-  const stats = useMemo(() => buildStats(runs, members), [runs, members]);
-  const chartDays = useMemo(() => buildChartDays(runs, members), [runs, members]);
-  const weeklyRecap = useMemo(() => buildWeeklyRecap(runs, members), [runs, members]);
-  const challenges = useMemo(() => buildFamilyChallenges(runs, members, new Date(), goalMiles), [runs, members, goalMiles]);
+  const metricsNow = useMemo(() => lastUpdatedAt || new Date(), [lastUpdatedAt, runs, members]);
+  const stats = useMemo(() => buildStats(runs, members, metricsNow), [runs, members, metricsNow]);
+  const chartDays = useMemo(() => buildChartDays(runs, members, metricsNow), [runs, members, metricsNow]);
+  const weeklyRecap = useMemo(() => buildWeeklyRecap(runs, members, metricsNow), [runs, members, metricsNow]);
+  const challenges = useMemo(() => buildFamilyChallenges(runs, members, metricsNow, goalMiles), [runs, members, metricsNow, goalMiles]);
   const comebackTargets = useMemo(() => buildComebackTargets(runs, members), [runs, members]);
-  const feedEvents = useMemo(() => buildFeedEvents(runs, members, goalMiles), [runs, members, goalMiles]);
+  const feedEvents = useMemo(() => buildFeedEvents(runs, members, goalMiles, metricsNow), [runs, members, goalMiles, metricsNow]);
   const profileMember = members.find((member) => member.id === profileMemberId) || null;
   const standings = useMemo(
     () => [...members].sort((a, b) => (stats[b.id]?.total || 0) - (stats[a.id]?.total || 0)),
@@ -774,6 +775,7 @@ export default function Home() {
           runs={runs}
           stats={stats[profileMember.id] || emptyStats()}
           goalMiles={goalMiles}
+          now={metricsNow}
           onClose={() => setProfileMemberId("")}
         />
       )}
@@ -1273,6 +1275,7 @@ export default function Home() {
               raceRank={index + 1}
               weekRank={weekStandings.findIndex((row) => row.id === member.id) + 1}
               comeback={comebackTargets.find((target) => target.memberId === member.id)}
+              now={metricsNow}
               onOpenProfile={() => setProfileMemberId(member.id)}
             />
           ))}
@@ -2170,6 +2173,7 @@ function RunnerCard({
   raceRank,
   weekRank,
   comeback,
+  now,
   onOpenProfile,
 }: {
   member: Member;
@@ -2181,11 +2185,12 @@ function RunnerCard({
   raceRank: number;
   weekRank: number;
   comeback?: ComebackTarget;
+  now: Date;
   onOpenProfile: () => void;
 }) {
-  const badges = buildBadges(stats, runs, member.id);
+  const badges = buildBadges(stats, runs, member.id, now);
   const progress = raceProgress(stats.total, goalMiles);
-  const strip = buildStreakStrip(runs, member.id);
+  const strip = buildStreakStrip(runs, member.id, now);
   const heatmap = buildHeatmapWeeks(runs, member.id);
   const cardColor = colorForMember(member, members);
   const nickname = runnerTitle(stats, runs, member.id);
@@ -2505,6 +2510,7 @@ function RunnerProfileModal({
   runs,
   stats,
   goalMiles,
+  now,
   onClose,
 }: {
   member: Member;
@@ -2512,13 +2518,14 @@ function RunnerProfileModal({
   runs: RunEntry[];
   stats: RunnerStats;
   goalMiles: number;
+  now: Date;
   onClose: () => void;
 }) {
   const memberRuns = runs.filter((run) => run.memberId === member.id);
-  const badges = buildBadges(stats, runs, member.id);
+  const badges = buildBadges(stats, runs, member.id, now);
   const progress = raceProgress(stats.total, goalMiles);
   const biggestWeek = biggestWeeklyTotal(memberRuns);
-  const recent = buildStreakStrip(runs, member.id, new Date(), 14);
+  const recent = buildStreakStrip(runs, member.id, now, 14);
   const recentActiveDays = recent.filter((day) => day.ran).length;
   const headToHead = buildHeadToHeadComparisons(runs, members, member.id).slice(0, 3);
   const hasProfileRuns = memberRuns.length > 0;

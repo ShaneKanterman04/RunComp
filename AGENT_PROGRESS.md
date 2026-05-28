@@ -573,3 +573,21 @@
   - Consider passing a shared `now` from the page to every date-sensitive metric helper if profile snapshots need to be frozen.
 - Skipped ideas:
   - Did not change visual badge presentation; this increment only makes the calculation testable and deterministic.
+
+### Increment 30: Shared Metrics Timestamp In UI
+
+- What changed: Threaded a single page-level metrics timestamp through stats, chart, recap, challenge, feed, runner-card badge, and profile trend calculations.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+- Tests added/updated:
+  - No new UI test was added; this wires existing tested metric helpers through the page with type coverage.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add component-level page tests only if the monolithic page is split into smaller renderable sections.
+- Skipped ideas:
+  - Did not introduce a live clock; metrics refresh naturally when runs/session data refresh.
