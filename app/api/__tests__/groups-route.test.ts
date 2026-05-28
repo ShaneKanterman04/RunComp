@@ -139,6 +139,18 @@ describe("/api/groups", () => {
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 
+  it("rejects out-of-range setup goals before creating groups", async () => {
+    const tooSmall = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "0" }));
+    const tooLarge = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "10001" }));
+
+    expect(tooSmall.status).toBe(400);
+    expect(await readJson(tooSmall)).toEqual({ error: "Goal miles must be between 1 and 10000." });
+    expect(tooLarge.status).toBe(400);
+    expect(await readJson(tooLarge)).toEqual({ error: "Goal miles must be between 1 and 10000." });
+    expect(createGroup).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("requires owners for race goal updates", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member, members: [owner, member] } as never);
 
@@ -160,15 +172,14 @@ describe("/api/groups", () => {
     expect(await readJson(response)).toMatchObject({ group: { goalMiles: 200 } });
   });
 
-  it("returns store errors from race goal updates", async () => {
+  it("rejects out-of-range race goal updates before store mutation", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
-    jest.mocked(updateGroupGoal).mockRejectedValue({ status: 400, message: "Goal miles must be between 1 and 10000." });
 
     const response = await PATCH(jsonRequest("/api/groups", { goalMiles: "10001" }, "PATCH"));
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Goal miles must be between 1 and 10000." });
-    expect(updateGroupGoal).toHaveBeenCalledWith("group-1", "owner-1", 10001);
+    expect(updateGroupGoal).not.toHaveBeenCalled();
   });
 
   it("rejects malformed race goal updates before store mutation", async () => {

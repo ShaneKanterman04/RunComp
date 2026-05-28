@@ -2710,3 +2710,22 @@
   - Run `pnpm lint` separately from `pnpm build`; running them in parallel can race on `.next` generated type files.
 - Skipped ideas:
   - Did not change the existing 8-character password policy.
+
+### Increment 138: Race Goal Route Bounds
+
+- What changed: Added API-level 1-10000 race-goal bounds for group setup and owner goal updates before calling store mutation methods.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Added setup-goal coverage for too-small and too-large values before `createGroup`.
+  - Updated owner goal update coverage so out-of-range values are rejected before `updateGroupGoal`.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep route-level validation aligned with store validation messages.
+- Skipped ideas:
+  - Did not change the existing allowed race-goal range.

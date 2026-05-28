@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     }
     const goalMiles = parseGoalMiles(body.goalMiles, 100);
     if (goalMiles === null) return NextResponse.json({ error: "Goal miles must be a number." }, { status: 400 });
+    if (!isGoalInRange(goalMiles)) return NextResponse.json({ error: "Goal miles must be between 1 and 10000." }, { status: 400 });
     const { group, member } = await createGroup({
       groupName,
       ownerName,
@@ -60,6 +61,7 @@ export async function PATCH(request: Request) {
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const goalMiles = parseGoalMiles(body.goalMiles);
     if (goalMiles === null) return NextResponse.json({ error: "Goal miles must be a number." }, { status: 400 });
+    if (!isGoalInRange(goalMiles)) return NextResponse.json({ error: "Goal miles must be between 1 and 10000." }, { status: 400 });
     const group = await updateGroupGoal(session.group.id, session.member.id, goalMiles);
     return NextResponse.json({ group });
   } catch (error) {
@@ -75,4 +77,8 @@ function parseGoalMiles(value: unknown, fallback?: number) {
   if (typeof value === "string" && !value.trim()) return fallback ?? null;
   const goal = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
   return Number.isFinite(goal) ? goal : null;
+}
+
+function isGoalInRange(goalMiles: number) {
+  return goalMiles >= 1 && goalMiles <= 10000;
 }
