@@ -583,8 +583,9 @@ function publicRun(group: Group, run: RunEntry, viewerMemberId?: string): Public
 }
 
 function csvCell(value: string) {
-  if (!/[",\n\r]/.test(value)) return value;
-  return `"${value.replace(/"/g, '""')}"`;
+  const safeValue = /^[\s]*[=+\-@]/.test(value) ? `'${value}` : value;
+  if (!/[",\n\r]/.test(safeValue)) return safeValue;
+  return `"${safeValue.replace(/"/g, '""')}"`;
 }
 
 function roundMiles(value: number) {

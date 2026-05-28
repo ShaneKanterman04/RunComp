@@ -209,3 +209,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Third increment improved owner Settings export visibility with local last-request tracking for JSON backup and CSV export.
 - 2026-05-28: Fourth increment hardened push unsubscribe cleanup so client-provided endpoints are scoped to the signed-in member.
 - 2026-05-28: Fifth increment improved runner profile empty states and recent activity summary copy.
+- 2026-05-28: Sixth increment hardened CSV exports against spreadsheet formula injection from runner names and notes.

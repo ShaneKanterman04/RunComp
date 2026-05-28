@@ -283,4 +283,21 @@ describe("file-backed store", () => {
     expect(csv).toContain("date,runner,miles,duration_seconds,pace_seconds_per_mile,note,created_at");
     expect(csv).toContain('2026-05-22,Shane,3.10,1550,500,"tempo, ""fast"""');
   });
+
+  it("neutralizes spreadsheet formulas in CSV exports", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "@Owner",
+      password: "password123",
+    });
+    await store.addRun(group.id, owner.id, { miles: 3, date: "2026-05-22", note: "=HYPERLINK(\"https://example.test\")" });
+
+    const csv = await store.exportRunsCsv(group.id);
+
+    expect(csv).toContain("2026-05-22,'@Owner,3.00,,,\"'=HYPERLINK(\"\"https://example.test\"\")\"");
+  });
 });

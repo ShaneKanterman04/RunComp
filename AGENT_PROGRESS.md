@@ -114,3 +114,22 @@
   - Consider extracting profile summary calculations if more profile-specific metrics are added.
 - Skipped ideas:
   - Did not add a new chart library or complex trend visualization; the existing streak strip already covers lightweight recent activity.
+
+### Increment 6: CSV Formula Injection Hardening
+
+- What changed: CSV export now prefixes cells that could be interpreted as spreadsheet formulas, covering user-controlled runner names and run notes while preserving normal CSV quoting.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added a store export regression test for formula-like runner names and notes.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider adding route-level tests for `/api/runs` validation and notification side effects.
+  - Consider documenting export safety behavior in README if export/import documentation expands.
+- Skipped ideas:
+  - Did not change JSON backup shape; this increment was limited to spreadsheet-facing CSV safety.
