@@ -27,6 +27,7 @@ const sessionTtlMs = 1000 * 60 * 60 * 24 * 30;
 const inviteTtlMs = 1000 * 60 * 60 * 24 * 14;
 
 export async function setSessionCookie(input: { groupId: string; memberId: string; role: MemberRole }) {
+  validateTokenInput(input);
   const exp = Date.now() + sessionTtlMs;
   const token = await signSession({ ...input, exp });
   const cookieStore = await cookies();
@@ -45,6 +46,7 @@ export async function clearSessionCookie() {
 }
 
 export async function createInviteToken(input: { groupId: string; memberId: string; role: MemberRole }) {
+  validateTokenInput(input);
   const exp = Date.now() + inviteTtlMs;
   return signInvite({ ...input, exp });
 }
@@ -81,6 +83,12 @@ export class AuthError extends Error {
   constructor(message: string, status: number) {
     super(message);
     this.status = status;
+  }
+}
+
+function validateTokenInput(input: { groupId: string; memberId: string; role: MemberRole }) {
+  if (!input.groupId.trim() || !input.memberId.trim() || (input.role !== "owner" && input.role !== "member")) {
+    throw new AuthError("RunComp could not create a valid session.", 500);
   }
 }
 

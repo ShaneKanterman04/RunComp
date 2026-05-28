@@ -61,6 +61,15 @@ describe("auth invite tokens", () => {
     await expect(auth.verifyInviteToken(badRole)).resolves.toBeNull();
     await expect(auth.verifyInviteToken("not-a-token")).resolves.toBeNull();
   });
+
+  it("rejects malformed invite token input before signing", async () => {
+    await expect(auth.createInviteToken({ groupId: " ", memberId: "member-1", role: "member" })).rejects.toMatchObject({
+      message: "RunComp could not create a valid session.",
+      status: 500,
+    });
+    await expect(auth.createInviteToken({ groupId: "group-1", memberId: " ", role: "member" })).rejects.toMatchObject({ status: 500 });
+    await expect(auth.createInviteToken({ groupId: "group-1", memberId: "member-1", role: "admin" as never })).rejects.toMatchObject({ status: 500 });
+  });
 });
 
 describe("auth sessions", () => {
@@ -127,6 +136,24 @@ describe("auth sessions", () => {
       expect.any(String),
       expect.objectContaining({ httpOnly: true, sameSite: "lax", secure: true }),
     );
+  });
+
+  it("rejects malformed session cookie input before signing", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    const cookieStore = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext: jest.fn() }));
+    const auth = await import("../auth");
+
+    await expect(auth.setSessionCookie({ groupId: " ", memberId: "member-1", role: "member" })).rejects.toMatchObject({ status: 500 });
+    await expect(auth.setSessionCookie({ groupId: "group-1", memberId: " ", role: "member" })).rejects.toMatchObject({ status: 500 });
+    await expect(auth.setSessionCookie({ groupId: "group-1", memberId: "member-1", role: "admin" as never })).rejects.toMatchObject({ status: 500 });
+    expect(cookieStore.set).not.toHaveBeenCalled();
   });
 
   it("clears the session cookie by name", async () => {

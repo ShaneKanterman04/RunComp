@@ -302,3 +302,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Ninety-sixth increment enforced run note length in the store.
 - 2026-05-28: Ninety-seventh increment rejected auth tokens with extra segments.
 - 2026-05-28: Ninety-eighth increment covered blank store passwords for member management.
+- 2026-05-28: Ninety-ninth increment validated auth token input before signing.

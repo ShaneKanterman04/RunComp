@@ -1902,3 +1902,23 @@
   - Keep route and store password validation coverage paired for future password policy changes.
 - Skipped ideas:
   - Did not change store behavior; this locks down the stricter validation added in the prior store increment.
+
+### Increment 99: Auth Token Signing Input Validation
+
+- What changed: Added auth helper validation so session cookies and invite tokens are not signed with blank ids or invalid roles.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/auth.ts`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added auth tests for malformed invite token input and malformed session cookie input.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep route-level auth error handling aligned if signer errors become user-facing.
+- Skipped ideas:
+  - Did not change signed token format or expiration behavior.
