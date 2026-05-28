@@ -1525,3 +1525,23 @@
   - Reuse the filename segment helper if future download endpoints are added.
 - Skipped ideas:
   - Did not change normal generated group codes or exported file contents.
+
+### Increment 80: Blank Invite Token Login Fallback
+
+- What changed: Updated `/api/session` to ignore blank invite token strings and continue with normal group-code/password login.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/session/route.ts`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Added session route coverage for blank invite tokens falling back to password login without verifying an invite token.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/session-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep login-mode detection tolerant of empty URL params from shared links.
+- Skipped ideas:
+  - Did not change nonblank invite-token behavior or invite validation rules.

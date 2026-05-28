@@ -26,8 +26,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    if (typeof body.inviteToken === "string") {
-      const invite = await verifyInviteToken(body.inviteToken);
+    const inviteToken = typeof body.inviteToken === "string" ? body.inviteToken.trim() : "";
+    if (inviteToken) {
+      const invite = await verifyInviteToken(inviteToken);
       if (!invite) return NextResponse.json({ error: "Invite link is expired or invalid." }, { status: 401 });
       const context = await getGroupContext(invite.groupId, invite.memberId);
       if (!context) return NextResponse.json({ error: "Invite member no longer exists." }, { status: 404 });

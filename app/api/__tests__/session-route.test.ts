@@ -74,6 +74,18 @@ describe("/api/session", () => {
     expect(await readJson(response)).toEqual({ authenticated: true, group, member, members: [owner, member] });
   });
 
+  it("ignores blank invite tokens and falls back to password login", async () => {
+    jest.mocked(login).mockResolvedValue({ group, member });
+    jest.mocked(getGroupContext).mockResolvedValue(context as never);
+
+    const response = await POST(jsonRequest("/api/session", { inviteToken: "  ", groupCode: "123", memberName: "Molly", password: "password123" }));
+
+    expect(response.status).toBe(200);
+    expect(verifyInviteToken).not.toHaveBeenCalled();
+    expect(login).toHaveBeenCalledWith({ groupCode: "123", memberName: "Molly", password: "password123" });
+    expect(setSessionCookie).toHaveBeenCalledWith({ groupId: "group-1", memberId: "member-1", role: "member" });
+  });
+
   it("falls back to the logged-in member when context is missing after password login", async () => {
     jest.mocked(login).mockResolvedValue({ group, member });
     jest.mocked(getGroupContext).mockResolvedValue(null);
