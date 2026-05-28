@@ -540,4 +540,11 @@ describe("run metrics", () => {
     expect(heatLevel(5)).toBe(3);
     expect(heatLevel(9)).toBe(4);
   });
+
+  it("uses minimum streak and heatmap windows", () => {
+    const runs = [{ id: "1", memberId: "shane", miles: 2, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" }];
+
+    expect(buildStreakStrip(runs, "shane", now, 0)).toEqual([{ date: "2026-05-22", label: "F", ran: true }]);
+    expect(buildHeatmapWeeks(runs, "shane", now, 0)).toHaveLength(7);
+  });
 });

@@ -311,3 +311,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred fifth increment normalized member names before owner store calls.
 - 2026-05-28: One hundred sixth increment normalized setup names before group creation.
 - 2026-05-28: One hundred seventh increment hardened recent mileage trend windows.
+- 2026-05-28: One hundred eighth increment hardened profile streak and heatmap windows.

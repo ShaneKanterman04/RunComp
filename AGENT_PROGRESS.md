@@ -2081,3 +2081,23 @@
   - Keep profile trend helpers defensive as more profile views reuse them.
 - Skipped ideas:
   - Did not change the default seven-day profile trend window.
+
+### Increment 108: Profile Window Helper Hardening
+
+- What changed: Updated streak strip and heatmap helpers to use minimum one-day and one-week windows.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added run-metrics coverage for zero-day streak strips and zero-week heatmaps.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep profile visualization helpers defensive when exposing custom ranges.
+- Skipped ideas:
+  - Did not change the default seven-day streak strip or six-week heatmap.

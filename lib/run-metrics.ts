@@ -653,10 +653,11 @@ export function buildChartDays(runs: MetricRunEntry[], members: MetricMember[], 
 }
 
 export function buildStreakStrip(runs: MetricRunEntry[], memberId: string, now = new Date(), days = 7) {
+  const windowDays = Math.max(1, Math.floor(days));
   const runDays = new Set(runs.filter((run) => run.memberId === memberId).map((run) => run.date));
-  return Array.from({ length: days }, (_, index) => {
+  return Array.from({ length: windowDays }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    date.setDate(date.getDate() - (days - 1 - index));
+    date.setDate(date.getDate() - (windowDays - 1 - index));
     const key = toDateKey(date);
     return {
       date: key,
@@ -691,7 +692,7 @@ export function buildHeatmapWeeks(runs: MetricRunEntry[], memberId: string, now 
   for (const run of runs.filter((row) => row.memberId === memberId)) {
     totals.set(run.date, (totals.get(run.date) || 0) + run.miles);
   }
-  const days = weeks * 7;
+  const days = Math.max(1, Math.floor(weeks)) * 7;
   return Array.from({ length: days }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     date.setDate(date.getDate() - (days - 1 - index));
