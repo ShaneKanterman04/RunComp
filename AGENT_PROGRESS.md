@@ -1094,3 +1094,21 @@
   - Continue tightening member-management route validation before store calls.
 - Skipped ideas:
   - Did not change inactive-runner removal rules; this only clarifies malformed request handling.
+
+### Increment 58: Member Route Store Error Coverage
+
+- What changed: Added route coverage proving member creation, edit, and removal store failures return structured errors to owners.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Added `/api/members` POST, PATCH, and DELETE failure-path tests for duplicate member, duplicate rename, and active-runner removal errors.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep owner-member route tests paired with store validation as management behavior evolves.
+- Skipped ideas:
+  - Did not change member-management behavior; this locks the existing structured error paths.

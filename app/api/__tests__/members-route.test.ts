@@ -83,6 +83,16 @@ describe("/api/members", () => {
     expect(await readJson(response)).toMatchObject({ member: { id: "member-2", name: "Dad" } });
   });
 
+  it("returns store errors from member creation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+    jest.mocked(addMember).mockRejectedValue({ status: 409, message: "That person already has a password in this group." });
+
+    const response = await POST(jsonRequest("/api/members", { name: "Dad", password: "password123" }));
+
+    expect(response.status).toBe(409);
+    expect(await readJson(response)).toEqual({ error: "That person already has a password in this group." });
+  });
+
   it("rejects malformed member creation requests before store mutation", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
 
@@ -141,6 +151,17 @@ describe("/api/members", () => {
     expect(resetMemberPassword).toHaveBeenCalledWith("group-1", "owner-1", "member-1", "newpassword");
     expect(updateMemberName).not.toHaveBeenCalled();
     expect(await readJson(response)).toMatchObject({ member: { name: "Molly" } });
+  });
+
+  it("returns store errors from runner edits", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+    jest.mocked(updateMemberName).mockRejectedValue({ status: 409, message: "That runner name is already used in this group." });
+
+    const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Shane" }, "PATCH"));
+
+    expect(response.status).toBe(409);
+    expect(await readJson(response)).toEqual({ error: "That runner name is already used in this group." });
+    expect(resetMemberPassword).not.toHaveBeenCalled();
   });
 
   it("rejects malformed runner edit requests before store mutation", async () => {
@@ -207,5 +228,16 @@ describe("/api/members", () => {
     expect(response.status).toBe(200);
     expect(removeInactiveMember).toHaveBeenCalledWith("group-1", "member-1", "owner-1");
     expect(await readJson(response)).toMatchObject({ members: [{ id: "owner-1" }] });
+  });
+
+  it("returns store errors from runner removal", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+    jest.mocked(removeInactiveMember).mockRejectedValue({ status: 409, message: "Only runners without logged miles can be removed." });
+
+    const response = await DELETE(new Request("http://localhost/api/members?id=member-1", { method: "DELETE" }));
+
+    expect(response.status).toBe(409);
+    expect(await readJson(response)).toEqual({ error: "Only runners without logged miles can be removed." });
+    expect(getGroupContext).not.toHaveBeenCalled();
   });
 });
