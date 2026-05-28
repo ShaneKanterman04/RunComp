@@ -2141,3 +2141,22 @@
   - Keep push setup notes aligned with accepted subject formats.
 - Skipped ideas:
   - Did not add new push notification settings or delivery behavior.
+
+### Increment 111: Challenge Completion Push Payload Coverage
+
+- What changed: Added focused coverage for challenge completion push payload formatting, including winner context and stable notification tags.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/push.test.ts`
+- Tests added/updated:
+  - Added a push test for `notifyChallengeCompleted`.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/push.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider a no-winner challenge payload regression test if challenge variants expand.
+- Skipped ideas:
+  - Did not alter challenge notification delivery logic because current route dispatch coverage already exercises fresh completion filtering.

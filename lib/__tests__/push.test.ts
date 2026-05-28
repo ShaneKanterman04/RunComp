@@ -1,5 +1,5 @@
 import webpush from "web-push";
-import { getVapidSubject, notifyLeadChanged, notifyRunLogged } from "../push";
+import { getVapidSubject, notifyChallengeCompleted, notifyLeadChanged, notifyRunLogged } from "../push";
 import { listPushSubscriptions, removePushSubscription } from "../store";
 
 jest.mock("web-push", () => ({
@@ -121,6 +121,45 @@ describe("push notification VAPID config", () => {
         body: "tempo at 8:00 /mi",
         url: "/",
         tag: "run-run-1",
+      }),
+    );
+  });
+
+  it("sends challenge completion payloads with winner context", async () => {
+    jest.mocked(listPushSubscriptions).mockResolvedValue([
+      {
+        endpoint: "https://push.example.test/challenge",
+        keys: { p256dh: "key-one", auth: "auth-one" },
+        memberId: "member-1",
+        createdAt: "2026-05-22T12:00:00Z",
+        updatedAt: "2026-05-22T12:00:00Z",
+      },
+    ]);
+    jest.mocked(webpush.sendNotification).mockResolvedValue({ statusCode: 201 } as never);
+
+    await notifyChallengeCompleted("group-1", {
+      id: "2026-05-25:weekly-mileage",
+      type: "weekly-mileage",
+      title: "Weekly miles",
+      body: "The group hit 20 miles this week.",
+      label: "20 mi",
+      value: 20,
+      target: 20,
+      progress: 1,
+      complete: true,
+      weekKey: "2026-05-25",
+      tone: "green",
+      completedAt: "2026-05-27",
+      winner: "Molly",
+    });
+
+    expect(webpush.sendNotification).toHaveBeenCalledWith(
+      { endpoint: "https://push.example.test/challenge", keys: { p256dh: "key-one", auth: "auth-one" } },
+      JSON.stringify({
+        title: "Weekly miles complete",
+        body: "Molly sealed it. The group hit 20 miles this week.",
+        url: "/",
+        tag: "challenge-2026-05-25:weekly-mileage",
       }),
     );
   });
