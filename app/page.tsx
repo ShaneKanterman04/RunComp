@@ -279,6 +279,9 @@ export default function Home() {
   const previewDurationSeconds = parseDurationInput(form.duration);
   const previewMiles = Number(form.miles);
   const previewPace = Number.isFinite(previewMiles) && previewMiles > 0 && previewDurationSeconds ? formatPace(previewDurationSeconds / previewMiles) : "";
+  const parsedGoalForm = Number(goalForm);
+  const canSubmitGoal = Number.isFinite(parsedGoalForm) && parsedGoalForm >= 1 && parsedGoalForm <= 10000 && parsedGoalForm !== goalMiles;
+  const canCreateMember = memberForm.name.trim().length > 0 && memberForm.password.trim().length >= 8;
   const raceEmptyCopy = isOwner
     ? "Create runner passwords, share invite links, then log the first run."
     : "You are signed in. Log your first run to start the group scoreboard.";
@@ -501,7 +504,7 @@ export default function Home() {
 
   async function updateGoal(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (goalSaving || !session || session.member.role !== "owner") return;
+    if (goalSaving || !session || session.member.role !== "owner" || !canSubmitGoal) return;
     setGoalSaving(true);
     setMessage("");
 
@@ -524,7 +527,8 @@ export default function Home() {
 
   async function saveMemberName(member: Member) {
     if (!session || session.member.role !== "owner" || memberActionId) return;
-    const name = memberEdits[member.id]?.name || member.name;
+    const name = (memberEdits[member.id]?.name ?? member.name).trim();
+    if (!name || name === member.name) return;
     setMemberActionId(member.id);
     setMessage("");
     try {
@@ -547,6 +551,7 @@ export default function Home() {
   async function resetRunnerPassword(member: Member) {
     if (!session || session.member.role !== "owner" || memberActionId) return;
     const password = memberEdits[member.id]?.password || "";
+    if (password.trim().length < 8) return;
     setMemberActionId(member.id);
     setMessage("");
     try {
@@ -1223,7 +1228,7 @@ export default function Home() {
                       required
                     />
                   </label>
-                  <button className="primaryButton" disabled={goalSaving || Number(goalForm) === goalMiles}>
+                  <button className="primaryButton" disabled={goalSaving || !canSubmitGoal}>
                     {goalSaving ? "Saving..." : "Update goal"}
                   </button>
                 </form>
@@ -1243,7 +1248,7 @@ export default function Home() {
                       required
                     />
                   </label>
-                  <button className="primaryButton" disabled={memberSaving}>
+                  <button className="primaryButton" disabled={memberSaving || !canCreateMember}>
                     {memberSaving ? "Creating..." : "Create password"}
                   </button>
                 </form>
@@ -1251,6 +1256,8 @@ export default function Home() {
                   {members.map((member) => {
                     const edit = memberEdits[member.id] || { name: member.name, password: "" };
                     const busy = memberActionId === member.id;
+                    const canSaveName = edit.name.trim().length > 0 && edit.name.trim() !== member.name;
+                    const canResetPassword = edit.password.trim().length >= 8;
                     return (
                       <div className="runnerManagerRow" key={member.id}>
                         <div>
@@ -1265,7 +1272,7 @@ export default function Home() {
                           onChange={(event) => setMemberEdits((current) => ({ ...current, [member.id]: { ...edit, name: event.target.value } }))}
                           aria-label={`${member.name} display name`}
                         />
-                        <button className="miniButton" type="button" onClick={() => saveMemberName(member)} disabled={busy || edit.name === member.name}>
+                        <button className="miniButton" type="button" onClick={() => saveMemberName(member)} disabled={busy || !canSaveName}>
                           Save name
                         </button>
                         <input
@@ -1276,7 +1283,7 @@ export default function Home() {
                           placeholder="New password"
                           aria-label={`${member.name} new password`}
                         />
-                        <button className="miniButton" type="button" onClick={() => resetRunnerPassword(member)} disabled={busy || edit.password.length < 8}>
+                        <button className="miniButton" type="button" onClick={() => resetRunnerPassword(member)} disabled={busy || !canResetPassword}>
                           Reset
                         </button>
                         {member.role !== "owner" && (

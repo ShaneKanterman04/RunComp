@@ -2747,3 +2747,19 @@
   - Continue keeping JSON backups faithful to stored data while making user-facing exports spreadsheet-friendly.
 - Skipped ideas:
   - Did not mutate stored legacy run records.
+
+### Increment 140: Owner Settings Form Guards
+
+- What changed: Tightened owner settings disabled states and handler guards for race-goal updates, new-runner creation, runner rename, and password reset forms.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+- Tests added/updated:
+  - Not practical for the current test structure; covered by TypeScript and production build validation.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider component-level tests if the main page is split into smaller settings components.
+- Skipped ideas:
+  - Did not change server-side authorization or validation; those remain authoritative.
