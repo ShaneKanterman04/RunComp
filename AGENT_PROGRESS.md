@@ -1148,3 +1148,21 @@
   - Continue adding focused tests around notification side effects only when behavior changes.
 - Skipped ideas:
   - Did not change run route behavior; this locks existing structured error handling.
+
+### Increment 61: Invite Token Error Coverage
+
+- What changed: Added route coverage proving login-link token generation failures return structured errors.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/invites-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/invites` POST failure-path test for token creation errors.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/invites-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep owner login-link UI copy aligned with invite route error messages.
+- Skipped ideas:
+  - Did not change invite token behavior; this locks existing structured error handling.

@@ -91,4 +91,14 @@ describe("/api/invites", () => {
     expect(createInviteToken).toHaveBeenCalledWith({ groupId: "group-1", memberId: "member-1", role: "member" });
     expect(await readJson(response)).toEqual({ token: "signed-invite-token", member });
   });
+
+  it("returns structured errors when token creation fails", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+    jest.mocked(createInviteToken).mockRejectedValue({ status: 500, message: "RunComp could not create that login link." });
+
+    const response = await POST(jsonRequest("/api/invites", { memberId: "member-1" }));
+
+    expect(response.status).toBe(500);
+    expect(await readJson(response)).toEqual({ error: "RunComp could not create that login link." });
+  });
 });
