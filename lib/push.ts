@@ -23,7 +23,7 @@ export async function notifyRunLogged(groupId: string, run: PublicRunEntry) {
     groupId,
     JSON.stringify({
       title: `${run.runner} logged ${formatMiles(run.miles)}`,
-      body: `${run.note || "New family run"}${run.durationSeconds ? ` at ${formatPace(run.durationSeconds / run.miles)}` : ""}`,
+      body: `${run.note || "New family run"}${run.durationSeconds && run.miles > 0 ? ` at ${formatPace(run.durationSeconds / run.miles)}` : ""}`,
       url: "/",
       tag: `run-${run.id}`,
     }),

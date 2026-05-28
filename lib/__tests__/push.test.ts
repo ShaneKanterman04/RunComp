@@ -125,6 +125,41 @@ describe("push notification VAPID config", () => {
     );
   });
 
+  it("omits pace from run notifications when legacy mileage is non-positive", async () => {
+    jest.mocked(listPushSubscriptions).mockResolvedValue([
+      {
+        endpoint: "https://push.example.test/legacy",
+        keys: { p256dh: "key-one", auth: "auth-one" },
+        memberId: "member-1",
+        createdAt: "2026-05-22T12:00:00Z",
+        updatedAt: "2026-05-22T12:00:00Z",
+      },
+    ]);
+    jest.mocked(webpush.sendNotification).mockResolvedValue({ statusCode: 201 } as never);
+
+    await notifyRunLogged("group-1", {
+      id: "legacy-run",
+      memberId: "member-1",
+      runner: "Molly",
+      miles: 0,
+      durationSeconds: 1200,
+      date: "2026-05-22",
+      note: "legacy import",
+      createdAt: "2026-05-22T12:00:00Z",
+      reactions: [],
+    });
+
+    expect(webpush.sendNotification).toHaveBeenCalledWith(
+      { endpoint: "https://push.example.test/legacy", keys: { p256dh: "key-one", auth: "auth-one" } },
+      JSON.stringify({
+        title: "Molly logged 0 mi",
+        body: "legacy import",
+        url: "/",
+        tag: "run-legacy-run",
+      }),
+    );
+  });
+
   it("sends challenge completion payloads with winner context", async () => {
     jest.mocked(listPushSubscriptions).mockResolvedValue([
       {

@@ -2303,3 +2303,23 @@
   - Consider a browser-level notification settings test if app-shell tests expand.
 - Skipped ideas:
   - Did not add per-event notification toggles because the current push model is intentionally simple.
+
+### Increment 119: Run Push Pace Guard
+
+- What changed: Omitted pace text from run notification payloads when legacy run mileage is non-positive, preventing invalid pace copy.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/push.ts`
+  - `lib/__tests__/push.test.ts`
+- Tests added/updated:
+  - Added push payload coverage for duration-bearing legacy runs with zero mileage.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/push.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep normal run creation validation strict so new runs continue to require positive mileage.
+- Skipped ideas:
+  - Did not change notification titles for legacy mileage; the goal is to avoid invalid pace text without hiding the stored value.
