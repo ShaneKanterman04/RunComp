@@ -1,5 +1,6 @@
 import {
   buildBadges,
+  buildBiggestWeeklyTotal,
   buildChartDays,
   buildComebackTargets,
   buildFamilyChallenges,
@@ -180,6 +181,17 @@ describe("run metrics", () => {
         0,
       ),
     ).toEqual({ recentMiles: 2, previousMiles: 5, deltaMiles: -3, direction: "down" });
+  });
+
+  it("builds biggest weekly totals with legacy mileage and date guards", () => {
+    expect(
+      buildBiggestWeeklyTotal([
+        { id: "1", memberId: "shane", miles: 3.126, date: "2026-05-18", createdAt: "2026-05-18T12:00:00Z" },
+        { id: "2", memberId: "shane", miles: 2.125, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: -10, date: "2026-05-21", createdAt: "2026-05-21T12:00:00Z" },
+        { id: "4", memberId: "shane", miles: 99, date: "not-a-date", createdAt: "2026-05-22T12:00:00Z" },
+      ]),
+    ).toBe(99);
   });
 
   it("sorts newest run date first and then newest created time", () => {

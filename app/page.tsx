@@ -17,6 +17,7 @@ import {
 import {
   buildChartDays,
   buildBadges,
+  buildBiggestWeeklyTotal,
   buildComebackTargets,
   buildFamilyChallenges,
   buildFeedEvents,
@@ -2115,7 +2116,7 @@ function RunnerCard({
   const nickname = runnerTitle(stats, runs, member.id);
   const rarity = runnerCardRarity(stats, badges);
   const runnerRuns = runs.filter((run) => run.memberId === member.id);
-  const biggestWeek = biggestWeeklyTotal(runnerRuns);
+  const biggestWeek = buildBiggestWeeklyTotal(runnerRuns);
   return (
     <section className={`panel runnerCard runnerCard--${rarity} ${isCurrentUser ? "currentRunnerCard" : ""}`} style={{ "--runner-color": cardColor } as CSSProperties}>
       <div className="playerCardTop">
@@ -2235,23 +2236,6 @@ function rarityLabel(rarity: CardRarity) {
   if (rarity === "epic") return "Epic card";
   if (rarity === "rare") return "Rare card";
   return "Base card";
-}
-
-function biggestWeeklyTotal(runs: RunEntry[]) {
-  const totals = new Map<string, number>();
-  for (const run of runs) {
-    const week = weekKey(run.date);
-    totals.set(week, (totals.get(week) || 0) + run.miles);
-  }
-  return Math.max(0, ...totals.values());
-}
-
-function weekKey(date: string) {
-  const parsed = new Date(`${date}T00:00:00`);
-  const day = parsed.getDay();
-  const diff = day === 0 ? 6 : day - 1;
-  parsed.setDate(parsed.getDate() - diff);
-  return parsed.toISOString().slice(0, 10);
 }
 
 function CardStat({ label, value }: { label: string; value: string }) {
@@ -2443,7 +2427,7 @@ function RunnerProfileModal({
   const memberRuns = runs.filter((run) => run.memberId === member.id);
   const badges = buildBadges(stats, runs, member.id, now);
   const progress = raceProgress(stats.total, goalMiles);
-  const biggestWeek = biggestWeeklyTotal(memberRuns);
+  const biggestWeek = buildBiggestWeeklyTotal(memberRuns);
   const recent = buildStreakStrip(runs, member.id, now, 14);
   const recentMileageTrend = buildRecentMileageTrend(runs, member.id, now);
   const recentActiveDays = recent.filter((day) => day.ran).length;

@@ -2781,3 +2781,22 @@
   - Keep status copy and action copy distinct when controls toggle state.
 - Skipped ideas:
   - Did not expand push settings into per-event toggles.
+
+### Increment 142: Biggest Week Metric Guard
+
+- What changed: Moved runner card/profile biggest-week calculation into `run-metrics` and guarded it against non-positive legacy mileage and invalid legacy dates.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added biggest-week coverage for rounded totals, negative legacy mileage, and invalid legacy dates.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue moving profile-only calculations into tested metrics helpers when they carry data assumptions.
+- Skipped ideas:
+  - Did not change profile layout or add new chart components.

@@ -694,6 +694,15 @@ export function buildRecentMileageTrend(runs: MetricRunEntry[], memberId: string
   };
 }
 
+export function buildBiggestWeeklyTotal(runs: MetricRunEntry[]) {
+  const totals = new Map<string, number>();
+  for (const run of runs) {
+    const week = weekKey(run.date);
+    totals.set(week, (totals.get(week) || 0) + metricMiles(run.miles));
+  }
+  return Math.round(Math.max(0, ...totals.values()) * 100) / 100;
+}
+
 export function buildHeatmapWeeks(runs: MetricRunEntry[], memberId: string, now = new Date(), weeks = 6) {
   const totals = new Map<string, number>();
   for (const run of runs.filter((row) => row.memberId === memberId)) {
