@@ -272,3 +272,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Sixty-sixth increment clarified inactive-runner removal status in Settings.
 - 2026-05-28: Sixty-seventh increment added runner profile recent mileage trend summaries.
 - 2026-05-28: Sixty-eighth increment added empty CSV export header coverage.
+- 2026-05-28: Sixty-ninth increment validated missing invite runner ids before token creation.

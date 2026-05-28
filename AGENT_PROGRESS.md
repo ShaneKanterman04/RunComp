@@ -1297,3 +1297,22 @@
   - Keep CSV shape tests aligned if export columns change.
 - Skipped ideas:
   - Did not change CSV behavior; this locks existing spreadsheet-friendly output.
+
+### Increment 69: Invite Runner Id Validation
+
+- What changed: Updated `/api/invites` to reject missing runner ids before member lookup or token creation.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/invites/route.ts`
+  - `app/api/__tests__/invites-route.test.ts`
+- Tests added/updated:
+  - Added one route test proving missing invite runner ids return a clear 400 and do not create a token.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/invites-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep owner login-link validation aligned with member management validation.
+- Skipped ideas:
+  - Did not change invite token semantics or expiration.
