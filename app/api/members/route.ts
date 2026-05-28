@@ -12,9 +12,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Only the group owner can create member passwords." }, { status: 403 });
     }
     const body = (await request.json()) as Record<string, unknown>;
+    if (typeof body.name !== "string" || !body.name.trim()) {
+      return NextResponse.json({ error: "Runner name is required." }, { status: 400 });
+    }
+    if (typeof body.password !== "string") {
+      return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
+    }
     const member = await addMember(session.group.id, session.member.id, {
-      name: typeof body.name === "string" ? body.name : "",
-      password: typeof body.password === "string" ? body.password : "",
+      name: body.name,
+      password: body.password,
     });
     return NextResponse.json({ member }, { status: 201 });
   } catch (error) {

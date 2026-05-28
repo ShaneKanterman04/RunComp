@@ -591,3 +591,22 @@
   - Add component-level page tests only if the monolithic page is split into smaller renderable sections.
 - Skipped ideas:
   - Did not introduce a live clock; metrics refresh naturally when runs/session data refresh.
+
+### Increment 31: Member Creation Route Validation
+
+- What changed: Added `/api/members` POST validation for missing or blank runner names and missing runner passwords before calling the member-creation store method.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Added route coverage proving malformed member creation requests return 400 and do not call `addMember`.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep store-level duplicate-name and password-strength checks as the source of truth for valid create-member payloads.
+- Skipped ideas:
+  - Did not add field-specific UI messages; the existing client already displays API errors.

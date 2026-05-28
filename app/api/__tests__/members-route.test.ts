@@ -83,6 +83,22 @@ describe("/api/members", () => {
     expect(await readJson(response)).toMatchObject({ member: { id: "member-2", name: "Dad" } });
   });
 
+  it("rejects malformed member creation requests before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const missingName = await POST(jsonRequest("/api/members", { password: "password123" }));
+    const blankName = await POST(jsonRequest("/api/members", { name: "  ", password: "password123" }));
+    const missingPassword = await POST(jsonRequest("/api/members", { name: "Dad" }));
+
+    expect(missingName.status).toBe(400);
+    expect(await readJson(missingName)).toEqual({ error: "Runner name is required." });
+    expect(blankName.status).toBe(400);
+    expect(await readJson(blankName)).toEqual({ error: "Runner name is required." });
+    expect(missingPassword.status).toBe(400);
+    expect(await readJson(missingPassword)).toEqual({ error: "Runner password is required." });
+    expect(addMember).not.toHaveBeenCalled();
+  });
+
   it("updates runner names through the explicit store method", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(updateMemberName).mockResolvedValue({ id: "member-1", name: "Molly K", role: "member", createdAt: "2026-05-01T00:00:00Z" });
