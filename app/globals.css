@@ -1451,6 +1451,13 @@ input:invalid:not(:placeholder-shown) {
   margin-bottom: 12px;
 }
 
+.exportSafetyNote {
+  margin: 6px 0 0;
+  color: #516257;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .exportStatusGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

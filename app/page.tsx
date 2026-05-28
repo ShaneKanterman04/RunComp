@@ -1136,6 +1136,7 @@ export default function Home() {
               <p className="eyebrow">Data export</p>
               <h3>Save a copy</h3>
               <p className="muted">{isOwner ? "Owners can save a recovery backup. Everyone can download spreadsheet runs." : "Download spreadsheet-friendly runs for your group."}</p>
+              <p className="exportSafetyNote">Exports leave out passwords and push keys.</p>
             </div>
             <div className="groupActions">
               {isOwner && <button className="ghostButton" type="button" onClick={() => downloadExport("json")}>JSON backup</button>}

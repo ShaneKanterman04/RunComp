@@ -1166,3 +1166,22 @@
   - Keep owner login-link UI copy aligned with invite route error messages.
 - Skipped ideas:
   - Did not change invite token behavior; this locks existing structured error handling.
+
+### Increment 62: Settings Export Safety Copy
+
+- What changed: Added a compact note to Settings data export controls that exports omit passwords and push keys.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No component test was added for static copy in the monolithic page; existing backup/export tests cover the sensitive-data behavior.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep export UI copy aligned with backup/export behavior if restore/import is added.
+- Skipped ideas:
+  - Did not add restore/import or expand export formats.
