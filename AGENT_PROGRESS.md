@@ -1584,3 +1584,23 @@
   - Keep download filename tests aligned with future export endpoints.
 - Skipped ideas:
   - Did not change the filename sanitizer behavior; this locks down the existing fallback.
+
+### Increment 83: New Runner Blank Password Validation
+
+- What changed: Updated `/api/members` creation to reject blank password strings before calling member persistence.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Extended malformed member creation route coverage for blank passwords.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep Settings form copy aligned with owner-facing API validation messages.
+- Skipped ideas:
+  - Did not change the minimum password length policy; store validation still owns that rule.

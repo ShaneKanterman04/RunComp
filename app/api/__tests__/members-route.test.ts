@@ -99,6 +99,7 @@ describe("/api/members", () => {
     const missingName = await POST(jsonRequest("/api/members", { password: "password123" }));
     const blankName = await POST(jsonRequest("/api/members", { name: "  ", password: "password123" }));
     const missingPassword = await POST(jsonRequest("/api/members", { name: "Dad" }));
+    const blankPassword = await POST(jsonRequest("/api/members", { name: "Dad", password: "  " }));
 
     expect(missingName.status).toBe(400);
     expect(await readJson(missingName)).toEqual({ error: "Runner name is required." });
@@ -106,6 +107,8 @@ describe("/api/members", () => {
     expect(await readJson(blankName)).toEqual({ error: "Runner name is required." });
     expect(missingPassword.status).toBe(400);
     expect(await readJson(missingPassword)).toEqual({ error: "Runner password is required." });
+    expect(blankPassword.status).toBe(400);
+    expect(await readJson(blankPassword)).toEqual({ error: "Runner password is required." });
     expect(addMember).not.toHaveBeenCalled();
   });
 

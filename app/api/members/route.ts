@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (typeof body.name !== "string" || !body.name.trim()) {
       return NextResponse.json({ error: "Runner name is required." }, { status: 400 });
     }
-    if (typeof body.password !== "string") {
+    if (typeof body.password !== "string" || !body.password.trim()) {
       return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
     }
     const member = await addMember(session.group.id, session.member.id, {
