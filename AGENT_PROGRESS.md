@@ -94,3 +94,23 @@
   - Continue notification settings clarity in the UI.
 - Skipped ideas:
   - Did not add per-event notification toggles; the current push model is intentionally simple and the roadmap says to avoid expanding it unless the model already supports it cleanly.
+
+### Increment 5: Runner Profile Empty State
+
+- What changed: Improved runner profile modals with a compact run summary, 14-day activity count for active runners, and clear empty-state copy for new runners without achievements.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No new automated tests; this was a narrow presentational copy/layout change using existing computed metrics.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Add head-to-head profile stats if it can be kept compact and tested cleanly.
+  - Consider extracting profile summary calculations if more profile-specific metrics are added.
+- Skipped ideas:
+  - Did not add a new chart library or complex trend visualization; the existing streak strip already covers lightweight recent activity.

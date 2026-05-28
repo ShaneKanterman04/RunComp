@@ -2451,6 +2451,8 @@ function RunnerProfileModal({
   const progress = raceProgress(stats.total, goalMiles);
   const biggestWeek = biggestWeeklyTotal(memberRuns);
   const recent = buildStreakStrip(runs, member.id, new Date(), 14);
+  const recentActiveDays = recent.filter((day) => day.ran).length;
+  const hasProfileRuns = memberRuns.length > 0;
 
   return (
     <div className="modalLayer" role="dialog" aria-modal="true" aria-labelledby="runner-profile-title">
@@ -2464,6 +2466,14 @@ function RunnerProfileModal({
           <button className="ghostButton" type="button" onClick={onClose}>
             Close
           </button>
+        </div>
+        <div className="profileSummary">
+          <strong>{hasProfileRuns ? `${memberRuns.length} logged run${memberRuns.length === 1 ? "" : "s"}` : "No runs logged yet"}</strong>
+          <span>
+            {hasProfileRuns
+              ? `${recentActiveDays}/14 recent days active · ${formatMiles(stats.average)} average run`
+              : "The first run will unlock records, trends, badges, and recap moments."}
+          </span>
         </div>
         <div className="profileRecordGrid">
           <CardStat label="Longest run" value={formatMiles(stats.longest)} />
@@ -2481,7 +2491,7 @@ function RunnerProfileModal({
         </div>
         <div>
           <p className="eyebrow">Achievement shelf</p>
-          <BadgeStrip badges={badges} />
+          {badges.length > 0 ? <BadgeStrip badges={badges} /> : <p className="profileEmptyState">No achievements yet. Log a run to start the shelf.</p>}
         </div>
       </section>
     </div>

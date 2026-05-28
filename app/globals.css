@@ -1948,6 +1948,29 @@ input:invalid:not(:placeholder-shown) {
   padding: 18px;
 }
 
+.profileSummary {
+  display: grid;
+  gap: 3px;
+  border: 1px solid color-mix(in srgb, var(--runner-color), white 55%);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+  padding: 10px 12px;
+}
+
+.profileSummary strong {
+  font-size: 15px;
+}
+
+.profileSummary span,
+.profileEmptyState {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.profileEmptyState {
+  margin: 0;
+}
+
 .profileRecordGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
