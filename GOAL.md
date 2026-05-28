@@ -291,3 +291,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Eighty-fifth increment rejected blank race-goal updates before persistence.
 - 2026-05-28: Eighty-sixth increment validated required password-login fields before auth work.
 - 2026-05-28: Eighty-seventh increment covered blank password-login field validation.
+- 2026-05-28: Eighty-eighth increment covered blank setup field validation.

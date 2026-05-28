@@ -1683,3 +1683,22 @@
   - Keep login form copy aligned with required-field route errors.
 - Skipped ideas:
   - Did not change login behavior; this locks down the validation added in the prior increment.
+
+### Increment 88: Blank Setup Field Coverage
+
+- What changed: Added group creation route coverage for blank group names, owner names, and owner passwords being rejected before store mutation.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Extended required setup field coverage for whitespace-only values.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep first-run setup UI copy aligned with route-level required-field errors.
+- Skipped ideas:
+  - Did not change setup behavior; this locks down the validation added in an earlier increment.
