@@ -497,6 +497,30 @@ describe("file-backed store", () => {
     expect(csv).toContain("2026-05-22,Unknown,3.10,1550,500,tempo");
   });
 
+  it("keeps CSV pace cells blank for non-positive legacy mileage", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    await store.addRun(group.id, owner.id, { miles: 3.1, durationSeconds: 1550, date: "2026-05-22", note: "legacy fix" });
+
+    const dataFile = path.join(dataDir, "runcomp.json");
+    const raw = JSON.parse(await fs.readFile(dataFile, "utf8"));
+    raw.groups[0].runs[0].miles = 0;
+    await fs.writeFile(dataFile, `${JSON.stringify(raw, null, 2)}\n`, "utf8");
+
+    const csv = await store.exportRunsCsv(group.id);
+
+    expect(csv).toContain("2026-05-22,Shane,0.00,1550,,legacy fix");
+    expect(csv).not.toContain("Infinity");
+    expect(csv).not.toContain("NaN");
+  });
+
   it("excludes push subscription secrets from JSON backups", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

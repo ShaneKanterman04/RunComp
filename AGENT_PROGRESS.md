@@ -2200,3 +2200,23 @@
   - Keep export responses intentionally simple and file-backed for local deployments.
 - Skipped ideas:
   - Did not add encrypted backups or external storage because the app should stay local-first and secret-free.
+
+### Increment 114: CSV Pace Export Guard
+
+- What changed: Kept CSV pace cells blank when legacy persisted mileage is non-positive, preventing `Infinity` or invalid pace values in recovery exports.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added store export coverage for zero-mile legacy run data with a duration.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Add migration-style cleanup only if legacy data issues appear in real deployments.
+- Skipped ideas:
+  - Did not loosen normal run creation validation; new runs still require positive mileage.

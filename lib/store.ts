@@ -433,12 +433,18 @@ export async function exportRunsCsv(groupId: string) {
       group.members.find((member) => member.id === run.memberId)?.name || "Unknown",
       run.miles.toFixed(2),
       run.durationSeconds ? String(run.durationSeconds) : "",
-      run.durationSeconds ? String(Math.round(run.durationSeconds / run.miles)) : "",
+      exportPaceSeconds(run),
       run.note,
       run.createdAt,
     ]),
   ];
   return `${rows.map((row) => row.map(csvCell).join(",")).join("\n")}\n`;
+}
+
+function exportPaceSeconds(run: RunEntry) {
+  if (!run.durationSeconds || run.miles <= 0) return "";
+  const pace = Math.round(run.durationSeconds / run.miles);
+  return Number.isFinite(pace) && pace > 0 ? String(pace) : "";
 }
 
 export function publicGroup(group: Group): PublicGroup {
