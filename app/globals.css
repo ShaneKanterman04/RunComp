@@ -1391,8 +1391,7 @@ input:invalid:not(:placeholder-shown) {
   font-size: 12px;
 }
 
-.notificationSettingsBlock,
-.installSettingsBlock {
+.settingsStatusBlock {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1408,20 +1407,17 @@ input:invalid:not(:placeholder-shown) {
   margin-top: -8px;
 }
 
-.notificationSettingsBlock > div,
-.installSettingsBlock > div {
+.settingsStatusBlock > div {
   display: grid;
   gap: 3px;
   min-width: 0;
 }
 
-.notificationSettingsBlock strong,
-.installSettingsBlock strong {
+.settingsStatusBlock strong {
   font-size: 15px;
 }
 
-.notificationSettingsBlock span,
-.installSettingsBlock span {
+.settingsStatusBlock span {
   color: var(--muted);
   font-size: 13px;
 }
@@ -2948,8 +2944,7 @@ input:invalid:not(:placeholder-shown) {
     flex-direction: column;
   }
 
-  .notificationSettingsBlock,
-  .installSettingsBlock {
+  .settingsStatusBlock {
     align-items: stretch;
     flex-direction: column;
   }

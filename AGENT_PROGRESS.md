@@ -307,3 +307,20 @@
   - Consider extracting shared auth/store mock factories only if route test setup keeps expanding.
 - Skipped ideas:
   - Did not refactor route mocks in this increment; helper cleanup kept the diff mechanical and low-risk.
+
+### Increment 16: Settings Status Row Style Cleanup
+
+- What changed: Consolidated notification and install Settings row styling under a shared `settingsStatusBlock` class to reduce duplicated CSS and keep future Settings rows consistent.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No behavior tests added; this was a styling refactor with unchanged UI behavior.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue extracting small Settings primitives if the page grows further.
+- Skipped ideas:
+  - Did not split Settings into React components yet; that would be a larger refactor and is only worth doing with stronger component-test plans.

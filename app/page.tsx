@@ -1092,7 +1092,7 @@ export default function Home() {
               </button>
             </div>
           )}
-          <div className="notificationSettingsBlock">
+          <div className="settingsStatusBlock notificationSettingsBlock">
             <div>
               <p className="eyebrow">Notifications</p>
               <strong>{notificationSettings.title}</strong>
@@ -1109,7 +1109,7 @@ export default function Home() {
               </button>
             )}
           </div>
-          <div className="installSettingsBlock">
+          <div className="settingsStatusBlock installSettingsBlock">
             <div>
               <p className="eyebrow">Install status</p>
               <strong>{installSettings.title}</strong>
