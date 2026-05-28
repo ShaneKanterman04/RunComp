@@ -74,6 +74,18 @@ describe("/api/exports", () => {
     expect(exportGroupBackup).not.toHaveBeenCalled();
   });
 
+  it("returns structured store errors when CSV export generation fails", async () => {
+    jest.mocked(requireSession).mockResolvedValue(memberSession as never);
+    jest.mocked(exportRunsCsv).mockRejectedValue({ status: 404, message: "Group not found." });
+
+    const response = await GET(new Request("http://localhost/api/exports?type=csv"));
+
+    expect(response.status).toBe(404);
+    expect(await readJson(response)).toEqual({ error: "Group not found." });
+    expect(exportRunsCsv).toHaveBeenCalledWith("group-1");
+    expect(exportGroupBackup).not.toHaveBeenCalled();
+  });
+
   it("rejects unsupported export types", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
 

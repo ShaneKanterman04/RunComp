@@ -874,3 +874,21 @@
   - Keep cookie behavior aligned with README deployment guidance if the auth/session model changes.
 - Skipped ideas:
   - Did not change session TTL or cookie persistence behavior.
+
+### Increment 46: Export Route Store Error Coverage
+
+- What changed: Added API route coverage proving CSV export generation failures return structured store errors to the client.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/exports?type=csv` failure-path test for store error status/message handling.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add JSON backup failure-path coverage if owner backup generation gains more distinct error cases.
+- Skipped ideas:
+  - Did not change export route behavior; this locks the existing error handling contract.
