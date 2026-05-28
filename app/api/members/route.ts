@@ -14,14 +14,15 @@ export async function POST(request: Request) {
     }
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    if (typeof body.name !== "string" || !body.name.trim()) {
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    if (!name) {
       return NextResponse.json({ error: "Runner name is required." }, { status: 400 });
     }
     if (typeof body.password !== "string" || !body.password.trim()) {
       return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
     }
     const member = await addMember(session.group.id, session.member.id, {
-      name: body.name,
+      name,
       password: body.password,
     });
     return NextResponse.json({ member }, { status: 201 });
@@ -56,7 +57,7 @@ export async function PATCH(request: Request) {
     }
     const member = hasPassword
       ? await resetMemberPassword(session.group.id, session.member.id, memberId, body.password as string)
-      : await updateMemberName(session.group.id, session.member.id, memberId, body.name as string);
+      : await updateMemberName(session.group.id, session.member.id, memberId, (body.name as string).trim());
     const context = await getGroupContext(session.group.id, session.member.id);
     return NextResponse.json({ member, members: context?.members || [] });
   } catch (error) {

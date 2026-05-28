@@ -2021,3 +2021,23 @@
   - Keep route and store normalization rules aligned for future run fields.
 - Skipped ideas:
   - Did not change mileage or duration parsing semantics.
+
+### Increment 105: Member Route Name Normalization
+
+- What changed: Updated owner member creation and rename routes to trim runner names before calling store methods.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Extended member route coverage for padded runner names being normalized before add and rename store calls.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep member route normalization aligned with store name cleanup.
+- Skipped ideas:
+  - Did not trim password values; password text semantics remain unchanged except blank-password rejection.

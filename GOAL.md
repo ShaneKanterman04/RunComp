@@ -308,3 +308,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred second increment required existing members for push unsubscribe store calls.
 - 2026-05-28: One hundred third increment covered removed-runner reaction cleanup.
 - 2026-05-28: One hundred fourth increment normalized run route dates and notes before persistence.
+- 2026-05-28: One hundred fifth increment normalized member names before owner store calls.

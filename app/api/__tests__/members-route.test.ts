@@ -76,7 +76,7 @@ describe("/api/members", () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(addMember).mockResolvedValue({ id: "member-2", name: "Dad", role: "member", createdAt: "2026-05-02T00:00:00Z" });
 
-    const response = await POST(jsonRequest("/api/members", { name: "Dad", password: "password123" }));
+    const response = await POST(jsonRequest("/api/members", { name: " Dad ", password: "password123" }));
 
     expect(response.status).toBe(201);
     expect(addMember).toHaveBeenCalledWith("group-1", "owner-1", { name: "Dad", password: "password123" });
@@ -141,7 +141,7 @@ describe("/api/members", () => {
       members: [ownerSession.member, { id: "member-1", name: "Molly K", role: "member", createdAt: "2026-05-01T00:00:00Z" }],
     } as never);
 
-    const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K" }, "PATCH"));
+    const response = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: " Molly K " }, "PATCH"));
 
     expect(response.status).toBe(200);
     expect(updateMemberName).toHaveBeenCalledWith("group-1", "owner-1", "member-1", "Molly K");
