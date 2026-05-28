@@ -2423,3 +2423,23 @@
   - Keep public read guards aligned with store write validation.
 - Skipped ideas:
   - Did not alter persisted legacy values.
+
+### Increment 125: Mile Formatting Non-Finite Guard
+
+- What changed: Updated `formatMiles` to display `0 mi` for non-finite legacy numeric values instead of leaking `NaN` or infinity into UI copy.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added formatting coverage for `NaN` and infinite mile values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep store write validation strict so non-finite miles stay legacy-only.
+- Skipped ideas:
+  - Did not clamp negative miles because existing recovery exports intentionally preserve suspicious stored values.

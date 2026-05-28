@@ -328,3 +328,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred twenty-second increment capped legacy public race goals at the write limit.
 - 2026-05-28: One hundred twenty-third increment added stable export history keys for blank legacy group codes.
 - 2026-05-28: One hundred twenty-fourth increment rounded legacy public race goals.
+- 2026-05-28: One hundred twenty-fifth increment guarded mile formatting for non-finite legacy values.

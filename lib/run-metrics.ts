@@ -856,7 +856,8 @@ export function toDateKey(date: Date) {
 }
 
 export function formatMiles(value: number) {
-  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(value)} mi`;
+  const miles = Number.isFinite(value) ? value : 0;
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(miles)} mi`;
 }
 
 export function formatDuration(seconds: number) {
