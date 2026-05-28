@@ -550,7 +550,7 @@ function cleanGoalMiles(value: number | undefined) {
 function cleanRunMiles(value: number) {
   const miles = Number(value);
   if (!Number.isFinite(miles) || miles <= 0 || miles > 100) {
-    throw new StoreError("Miles must be between 0 and 100.", 400);
+    throw new StoreError("Miles must be greater than 0 and no more than 100.", 400);
   }
   return roundMiles(miles);
 }

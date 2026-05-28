@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const note = typeof payload.note === "string" ? payload.note.trim() : "";
 
     if (!Number.isFinite(miles) || miles <= 0 || miles > 100) {
-      return NextResponse.json({ error: "Miles must be between 0 and 100." }, { status: 400 });
+      return NextResponse.json({ error: "Miles must be greater than 0 and no more than 100." }, { status: 400 });
     }
     if (!isValidDate(date)) {
       return NextResponse.json({ error: "Date must be a valid YYYY-MM-DD value." }, { status: 400 });

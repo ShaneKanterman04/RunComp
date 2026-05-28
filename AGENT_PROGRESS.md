@@ -2605,3 +2605,25 @@
   - Continue keeping new run validation strict so this remains a legacy compatibility path.
 - Skipped ideas:
   - Did not change run counts or streak logic for legacy rows; those still reflect logged run records.
+
+### Increment 134: Run Mileage Validation Copy
+
+- What changed: Updated run mileage validation errors in the API route and store to say miles must be greater than 0 and no more than 100, matching the actual rule.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+  - `lib/store.ts`
+- Tests added/updated:
+  - Updated the runs route validation assertion for the clearer mileage error.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Audit other validation messages for copy that implies different bounds than the code enforces.
+- Skipped ideas:
+  - Did not change accepted mileage bounds.

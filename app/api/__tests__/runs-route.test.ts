@@ -119,7 +119,7 @@ describe("/api/runs", () => {
     expect(badJson.status).toBe(400);
     expect(await readJson(badJson)).toEqual({ error: "Send a JSON body." });
     expect(badMiles.status).toBe(400);
-    expect(await readJson(badMiles)).toEqual({ error: "Miles must be between 0 and 100." });
+    expect(await readJson(badMiles)).toEqual({ error: "Miles must be greater than 0 and no more than 100." });
     expect(badDate.status).toBe(400);
     expect(await readJson(badDate)).toEqual({ error: "Date must be a valid YYYY-MM-DD value." });
     expect(badDuration.status).toBe(400);
