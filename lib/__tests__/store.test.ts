@@ -163,6 +163,8 @@ describe("file-backed store", () => {
     const active = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
     const inactive = await store.addMember(group.id, owner.id, { name: "Dad", password: "password789" });
     await store.addRun(group.id, active.id, { miles: 3, date: "2026-05-24" });
+    const ownerRun = await store.addRun(group.id, owner.id, { miles: 2, date: "2026-05-25" });
+    await store.toggleRunReaction(group.id, inactive.id, ownerRun.id, "fire");
     await store.savePushSubscription(group.id, inactive.id, {
       endpoint: "https://push.example.test/subscription/inactive",
       keys: { p256dh: "inactive-key", auth: "inactive-auth" },
@@ -173,6 +175,12 @@ describe("file-backed store", () => {
     await expect(store.removeInactiveMember(group.id, inactive.id, owner.id)).resolves.toBe(true);
     await expect(store.login({ groupCode: group.code, memberName: "Dad", password: "password789" })).rejects.toMatchObject({ status: 401 });
     await expect(store.listPushSubscriptions(group.id)).resolves.toEqual([]);
+    await expect(store.listRuns(group.id, owner.id)).resolves.toContainEqual(
+      expect.objectContaining({
+        id: ownerRun.id,
+        reactions: expect.arrayContaining([expect.objectContaining({ type: "fire", count: 0 })]),
+      }),
+    );
   });
 
   it("requires an owner actor when removing inactive runners", async () => {

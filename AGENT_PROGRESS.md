@@ -1982,3 +1982,22 @@
   - Keep push store actor checks aligned with route session ownership.
 - Skipped ideas:
   - Did not alter the existing same-group different-member behavior; that still returns no removals.
+
+### Increment 103: Removed Runner Reaction Cleanup Coverage
+
+- What changed: Added store coverage proving inactive runner removal clears that runner's reactions from existing runs.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended inactive runner removal coverage to verify reaction counts are cleaned up alongside push subscriptions.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep removal cleanup tests updated if historical run behavior changes.
+- Skipped ideas:
+  - Did not change removal behavior; this documents the existing cleanup contract.
