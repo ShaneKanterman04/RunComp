@@ -5,7 +5,7 @@
 import { PATCH, POST } from "../groups/route";
 import { AuthError, requireSession, setSessionCookie } from "@/lib/auth";
 import { createGroup, getGroupContext, updateGroupGoal } from "@/lib/store";
-import { jsonRequest, readJson } from "./route-test-utils";
+import { jsonRequest, malformedJsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -88,6 +88,15 @@ describe("/api/groups", () => {
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed group creation JSON before store mutation", async () => {
+    const response = await POST(malformedJsonRequest("/api/groups"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
+    expect(createGroup).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed group goal values before creating groups", async () => {
     const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "many" }));
 
@@ -149,6 +158,16 @@ describe("/api/groups", () => {
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(updateGroupGoal).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed race goal JSON before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+
+    const response = await PATCH(malformedJsonRequest("/api/groups", "PATCH"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
     expect(updateGroupGoal).not.toHaveBeenCalled();
   });
 

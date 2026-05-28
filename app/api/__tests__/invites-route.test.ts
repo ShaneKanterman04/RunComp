@@ -4,7 +4,7 @@
 
 import { POST } from "../invites/route";
 import { AuthError, createInviteToken, requireSession } from "@/lib/auth";
-import { jsonRequest, readJson } from "./route-test-utils";
+import { jsonRequest, malformedJsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -84,7 +84,7 @@ describe("/api/invites", () => {
   it("rejects malformed JSON before creating tokens", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
 
-    const response = await POST(new Request("http://localhost/api/invites", { method: "POST", body: "{" }));
+    const response = await POST(malformedJsonRequest("/api/invites"));
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Send a JSON body." });

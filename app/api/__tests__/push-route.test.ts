@@ -6,7 +6,7 @@ import { DELETE, GET, POST } from "../push/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { getVapidPublicKey } from "@/lib/push";
 import { removePushSubscription, savePushSubscription } from "@/lib/store";
-import { jsonRequest, readJson } from "./route-test-utils";
+import { jsonRequest, malformedJsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -112,6 +112,16 @@ describe("/api/push", () => {
     expect(savePushSubscription).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed subscription save JSON before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+
+    const response = await POST(malformedJsonRequest("/api/push"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
+    expect(savePushSubscription).not.toHaveBeenCalled();
+  });
+
   it("rejects missing push subscriptions before store mutation", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
 
@@ -160,6 +170,16 @@ describe("/api/push", () => {
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(removePushSubscription).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed subscription removal JSON before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+
+    const response = await DELETE(malformedJsonRequest("/api/push", "DELETE"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
     expect(removePushSubscription).not.toHaveBeenCalled();
   });
 

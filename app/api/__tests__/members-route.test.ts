@@ -5,7 +5,7 @@
 import { DELETE, PATCH, POST } from "../members/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { addMember, getGroupContext, removeInactiveMember, resetMemberPassword, updateMemberName } from "@/lib/store";
-import { jsonRequest, readJson } from "./route-test-utils";
+import { jsonRequest, malformedJsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -119,6 +119,16 @@ describe("/api/members", () => {
     expect(addMember).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed member creation JSON before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const response = await POST(malformedJsonRequest("/api/members"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
+    expect(addMember).not.toHaveBeenCalled();
+  });
+
   it("updates runner names through the explicit store method", async () => {
     jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
     jest.mocked(updateMemberName).mockResolvedValue({ id: "member-1", name: "Molly K", role: "member", createdAt: "2026-05-01T00:00:00Z" });
@@ -194,6 +204,17 @@ describe("/api/members", () => {
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(updateMemberName).not.toHaveBeenCalled();
+    expect(resetMemberPassword).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed runner edit JSON before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(ownerSession as never);
+
+    const response = await PATCH(malformedJsonRequest("/api/members", "PATCH"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
     expect(updateMemberName).not.toHaveBeenCalled();
     expect(resetMemberPassword).not.toHaveBeenCalled();
   });

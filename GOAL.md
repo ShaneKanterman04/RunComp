@@ -279,3 +279,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Seventy-third increment added clear run note length validation.
 - 2026-05-28: Seventy-fourth increment covered inactive-runner push subscription cleanup.
 - 2026-05-28: Seventy-fifth increment hardened malformed JSON handling across API routes.
+- 2026-05-28: Seventy-sixth increment expanded malformed JSON coverage across mutable API routes.

@@ -1441,3 +1441,28 @@
   - Add malformed JSON coverage to other mutable route suites as those files are touched.
 - Skipped ideas:
   - Did not introduce a route parsing abstraction; the shared predicate keeps this small and compatible with existing route structure.
+
+### Increment 76: Mutable Route Malformed JSON Coverage
+
+- What changed: Added a shared malformed JSON request test helper and expanded bad-JSON coverage across group, session, member, push, run, and invite route suites.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/route-test-utils.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+  - `app/api/__tests__/session-route.test.ts`
+  - `app/api/__tests__/members-route.test.ts`
+  - `app/api/__tests__/push-route.test.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+  - `app/api/__tests__/invites-route.test.ts`
+- Tests added/updated:
+  - Added malformed JSON coverage for group creation, race goal updates, session login, member create/edit, push subscribe/unsubscribe, run create/reaction, and invite creation.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts app/api/__tests__/session-route.test.ts app/api/__tests__/push-route.test.ts app/api/__tests__/runs-route.test.ts app/api/__tests__/members-route.test.ts app/api/__tests__/invites-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep new mutable routes on the same JSON body error behavior.
+- Skipped ideas:
+  - Did not add an endpoint-level parser abstraction; current routes are still small enough for explicit guards.

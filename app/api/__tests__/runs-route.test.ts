@@ -6,7 +6,7 @@ import { DELETE, GET, PATCH, POST } from "../runs/route";
 import { AuthError, requireSession } from "@/lib/auth";
 import { notifyChallengeCompleted, notifyCloseToPass, notifyLeadChanged, notifyRunLogged } from "@/lib/push";
 import { addRun, claimChallengeCompletions, deleteRun, getGroupContext, listRuns, toggleRunReaction } from "@/lib/store";
-import { jsonRequest, readJson } from "./route-test-utils";
+import { jsonRequest, malformedJsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => {
   class MockAuthError extends Error {
@@ -108,6 +108,7 @@ describe("/api/runs", () => {
 
   it("validates run input before writing", async () => {
     const badBody = await POST(jsonRequest("/api/runs", null));
+    const badJson = await POST(malformedJsonRequest("/api/runs"));
     const badMiles = await POST(jsonRequest("/api/runs", { miles: 0, date: "2026-05-22" }));
     const badDate = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-02-31" }));
     const badDuration = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-05-22", durationSeconds: 172801 }));
@@ -115,6 +116,8 @@ describe("/api/runs", () => {
 
     expect(badBody.status).toBe(400);
     expect(await readJson(badBody)).toEqual({ error: "Send a JSON object." });
+    expect(badJson.status).toBe(400);
+    expect(await readJson(badJson)).toEqual({ error: "Send a JSON body." });
     expect(badMiles.status).toBe(400);
     expect(await readJson(badMiles)).toEqual({ error: "Miles must be between 0 and 100." });
     expect(badDate.status).toBe(400);
@@ -190,12 +193,15 @@ describe("/api/runs", () => {
     jest.mocked(toggleRunReaction).mockResolvedValue({ ...run, reactions: [{ type: "fire", count: 1, reactedByMe: true }] });
 
     const badBody = await PATCH(jsonRequest("/api/runs", null, "PATCH"));
+    const badJson = await PATCH(malformedJsonRequest("/api/runs", "PATCH"));
     const missingId = await PATCH(jsonRequest("/api/runs", { reaction: "fire" }, "PATCH"));
     const badReaction = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "sparkle" }, "PATCH"));
     const response = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "fire" }, "PATCH"));
 
     expect(badBody.status).toBe(400);
     expect(await readJson(badBody)).toEqual({ error: "Send a JSON object." });
+    expect(badJson.status).toBe(400);
+    expect(await readJson(badJson)).toEqual({ error: "Send a JSON body." });
     expect(missingId.status).toBe(400);
     expect(await readJson(missingId)).toEqual({ error: "Missing run id." });
     expect(badReaction.status).toBe(400);

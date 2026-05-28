@@ -5,7 +5,7 @@
 import { DELETE, GET, POST } from "../session/route";
 import { clearSessionCookie, getCurrentSession, setSessionCookie, verifyInviteToken } from "@/lib/auth";
 import { getGroupContext, login } from "@/lib/store";
-import { jsonRequest, readJson } from "./route-test-utils";
+import { jsonRequest, malformedJsonRequest, readJson } from "./route-test-utils";
 
 jest.mock("@/lib/auth", () => ({
   clearSessionCookie: jest.fn(),
@@ -89,6 +89,16 @@ describe("/api/session", () => {
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(login).not.toHaveBeenCalled();
+    expect(verifyInviteToken).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed login JSON before auth work", async () => {
+    const response = await POST(malformedJsonRequest("/api/session"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
     expect(login).not.toHaveBeenCalled();
     expect(verifyInviteToken).not.toHaveBeenCalled();
     expect(setSessionCookie).not.toHaveBeenCalled();
