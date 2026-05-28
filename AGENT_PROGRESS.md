@@ -133,3 +133,22 @@
   - Consider documenting export safety behavior in README if export/import documentation expands.
 - Skipped ideas:
   - Did not change JSON backup shape; this increment was limited to spreadsheet-facing CSV safety.
+
+### Increment 7: Run Route Coverage And Date Validation
+
+- What changed: Added route-level tests for `/api/runs` covering session requirements, run input validation, successful run logging, lead-change notification dispatch, reaction validation, and delete behavior. Tightened date validation so impossible calendar dates like `2026-02-31` are rejected instead of being normalized by `Date.parse`.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Added 8 API route tests.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add route tests for challenge-completion notification dispatch if mocking date-dependent challenge inputs stays readable.
+  - Consider moving shared route-test fixture helpers into a small local test utility if route tests grow much more.
+- Skipped ideas:
+  - Did not refactor `/api/runs` notification orchestration; the route is still understandable, and this increment focused on pinning behavior before any structural change.
