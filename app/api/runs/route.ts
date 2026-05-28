@@ -3,7 +3,7 @@ import { AuthError, requireSession } from "@/lib/auth";
 import { buildComebackTargets, buildFamilyChallenges } from "@/lib/run-metrics";
 import { notifyChallengeCompleted, notifyCloseToPass, notifyLeadChanged, notifyRunLogged } from "@/lib/push";
 import { addRun, claimChallengeCompletions, deleteRun, getGroupContext, listRuns, storeErrorResponse, toggleRunReaction, type ReactionType } from "@/lib/store";
-import { isJsonObject } from "../route-utils";
+import { isJsonObject, isJsonParseError } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ run }, { status: 201 });
   } catch (error) {
-    if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
+    if (isJsonParseError(error)) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     return errorResponse(error);
   }
 }
@@ -98,7 +98,7 @@ export async function PATCH(request: Request) {
     const run = await toggleRunReaction(session.group.id, session.member.id, id, reaction);
     return NextResponse.json({ run });
   } catch (error) {
-    if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
+    if (isJsonParseError(error)) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     return errorResponse(error);
   }
 }

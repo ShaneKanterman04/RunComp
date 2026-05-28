@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { AuthError, createInviteToken, requireSession } from "@/lib/auth";
 import { storeErrorResponse } from "@/lib/store";
-import { isJsonObject } from "../route-utils";
+import { isJsonObject, isJsonParseError } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ token, member });
   } catch (error) {
-    if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
+    if (isJsonParseError(error)) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     if (error instanceof AuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     const storeError = storeErrorResponse(error);
     return NextResponse.json({ error: storeError.message }, { status: storeError.status });

@@ -81,6 +81,16 @@ describe("/api/invites", () => {
     expect(createInviteToken).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed JSON before creating tokens", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+
+    const response = await POST(new Request("http://localhost/api/invites", { method: "POST", body: "{" }));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON body." });
+    expect(createInviteToken).not.toHaveBeenCalled();
+  });
+
   it("rejects missing runner ids before creating tokens", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
 

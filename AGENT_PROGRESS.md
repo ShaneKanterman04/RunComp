@@ -1415,3 +1415,29 @@
   - Keep removal behavior limited to inactive runners until a deliberate deactivate/archive model exists.
 - Skipped ideas:
   - Did not add a broader member archival model; this only strengthens existing cleanup guarantees.
+
+### Increment 75: Cross-Realm JSON Parse Error Handling
+
+- What changed: Added shared malformed JSON error detection and switched mutable API routes to use it so bad JSON returns a clear 400 instead of a generic 500.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/route-utils.ts`
+  - `app/api/groups/route.ts`
+  - `app/api/invites/route.ts`
+  - `app/api/members/route.ts`
+  - `app/api/push/route.ts`
+  - `app/api/runs/route.ts`
+  - `app/api/session/route.ts`
+  - `app/api/__tests__/invites-route.test.ts`
+- Tests added/updated:
+  - Added invite route coverage proving malformed JSON is rejected before token creation.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/invites-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Add malformed JSON coverage to other mutable route suites as those files are touched.
+- Skipped ideas:
+  - Did not introduce a route parsing abstraction; the shared predicate keeps this small and compatible with existing route structure.

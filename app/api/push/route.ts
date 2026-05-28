@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
 import { getVapidPublicKey } from "@/lib/push";
 import { removePushSubscription, savePushSubscription, storeErrorResponse } from "@/lib/store";
-import { isJsonObject } from "../route-utils";
+import { isJsonObject, isJsonParseError } from "../route-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
+    if (isJsonParseError(error)) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     return errorResponse(error);
   }
 }
@@ -49,7 +49,7 @@ export async function DELETE(request: Request) {
     await removePushSubscription(session.group.id, endpoint, session.member.id);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
+    if (isJsonParseError(error)) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     return errorResponse(error);
   }
 }
