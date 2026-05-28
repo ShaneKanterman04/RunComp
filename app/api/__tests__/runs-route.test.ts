@@ -166,6 +166,19 @@ describe("/api/runs", () => {
     expect(notifyLeadChanged).toHaveBeenCalledWith("group-1", "Molly", 3.25);
   });
 
+  it("ignores non-positive legacy mileage when checking lead-change notifications", async () => {
+    const legacyRun = { ...run, id: "legacy", memberId: "member-1", runner: "Molly", miles: -100 };
+    const ownerRun = { ...run, id: "owner-run", memberId: "owner-1", runner: "Shane", miles: 1 };
+    const newRun = { ...run, id: "new-run", memberId: "member-1", runner: "Molly", miles: 5 };
+    jest.mocked(listRuns).mockResolvedValueOnce([ownerRun, legacyRun]).mockResolvedValueOnce([ownerRun, legacyRun, newRun]);
+    jest.mocked(addRun).mockResolvedValue(newRun);
+    jest.mocked(getGroupContext).mockResolvedValue(null);
+
+    await POST(jsonRequest("/api/runs", { miles: 5, date: "2026-05-22" }));
+
+    expect(notifyLeadChanged).toHaveBeenCalledWith("group-1", "Molly", 5);
+  });
+
   it("sends challenge notifications only for freshly claimed completions", async () => {
     jest.useFakeTimers({ now: new Date("2026-05-28T12:00:00Z") });
     const challengeRun = { ...run, miles: 5, date: "2026-05-27", createdAt: "2026-05-27T12:00:00Z" };

@@ -2645,3 +2645,23 @@
   - Keep README command examples aligned with `package.json` scripts.
 - Skipped ideas:
   - Did not add CI or deployment automation.
+
+### Increment 136: Lead-Change Legacy Mileage Guard
+
+- What changed: Updated run-route lead-change notification totals to ignore non-positive legacy mileage so valid new runs can still trigger the right alert.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for lead-change notifications when a runner has an old negative-mileage row plus a valid new run.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep list and metric calculations aligned on legacy mileage normalization.
+- Skipped ideas:
+  - Did not alter persisted legacy runs.

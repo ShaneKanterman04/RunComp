@@ -107,10 +107,14 @@ function leaderForRuns(runs: Array<{ memberId: string; runner: string; miles: nu
   const totals = new Map<string, { memberId: string; runner: string; total: number }>();
   for (const run of runs) {
     const row = totals.get(run.memberId) || { memberId: run.memberId, runner: run.runner, total: 0 };
-    row.total += run.miles;
+    row.total += notificationMiles(run.miles);
     totals.set(run.memberId, row);
   }
   return [...totals.values()].sort((a, b) => b.total - a.total)[0] || null;
+}
+
+function notificationMiles(value: number) {
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }
 
 function isReactionType(value: string): value is ReactionType {
