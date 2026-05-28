@@ -871,7 +871,7 @@ export function formatDuration(seconds: number) {
 }
 
 export function formatPace(secondsPerMile: number | null | undefined) {
-  if (!secondsPerMile || !Number.isFinite(secondsPerMile)) return "-";
+  if (!secondsPerMile || !Number.isFinite(secondsPerMile) || secondsPerMile <= 0) return "-";
   return `${formatDuration(secondsPerMile)} /mi`;
 }
 

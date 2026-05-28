@@ -186,6 +186,8 @@ describe("run metrics", () => {
     expect(formatDuration(-30)).toBe("0:00");
     expect(formatPace(480)).toBe("8:00 /mi");
     expect(formatPace(null)).toBe("-");
+    expect(formatPace(-30)).toBe("-");
+    expect(formatPace(Number.POSITIVE_INFINITY)).toBe("-");
     expect(toDateKey(new Date(2026, 4, 2))).toBe("2026-05-02");
   });
 

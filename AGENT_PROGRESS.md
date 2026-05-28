@@ -2463,3 +2463,23 @@
   - Keep run duration validation strict at the API and store boundaries.
 - Skipped ideas:
   - Did not change positive duration formatting behavior.
+
+### Increment 127: Pace Formatting Invalid Value Guard
+
+- What changed: Updated `formatPace` to return `-` for non-finite or non-positive legacy pace values.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added formatting coverage for negative and infinite pace values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep UI pace displays routed through `formatPace`.
+- Skipped ideas:
+  - Did not alter valid positive pace formatting.
