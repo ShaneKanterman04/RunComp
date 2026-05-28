@@ -265,3 +265,21 @@
   - Consider stricter future-date policy only if the group wants it; current behavior still allows backfilled/future-dated runs as before.
 - Skipped ideas:
   - Did not change persisted data shape or migrate existing runs; this only guards new writes.
+
+### Increment 14: Invite Token Auth Coverage
+
+- What changed: Added focused tests for invite-token signing and verification, including valid scoped claims, tampered payload/signature rejection, expired token rejection, wrong-kind rejection, bad-role rejection, and malformed token rejection.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added 3 auth tests covering invite token behavior.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add session-cookie tests only if `next/headers` cookie mocking can stay clean and useful.
+  - Keep route-level session tests as the main coverage for cookie-setting behavior.
+- Skipped ideas:
+  - Did not change token format or TTL; this increment pins existing behavior.
