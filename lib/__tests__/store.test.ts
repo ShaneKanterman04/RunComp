@@ -65,6 +65,36 @@ describe("file-backed store", () => {
     expect(loginText).not.toContain("password123");
   });
 
+  it("returns sanitized group context with public member data", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Shane vs Molly",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    const molly = await store.addMember(group.id, owner.id, { name: "Molly", password: "password456" });
+    await store.addRun(group.id, molly.id, { miles: 3, date: "2026-05-22" });
+
+    const context = await store.getGroupContext(group.id, owner.id);
+    const contextText = JSON.stringify(context);
+
+    expect(context).toMatchObject({
+      group: { code: group.code, name: "Shane vs Molly" },
+      member: { id: owner.id, name: "Shane", role: "owner", runCount: 0 },
+      members: [
+        { id: owner.id, name: "Shane", role: "owner", runCount: 0 },
+        { id: molly.id, name: "Molly", role: "member", runCount: 1 },
+      ],
+    });
+    expect(contextText).not.toContain("passwordHash");
+    expect(contextText).not.toContain("salt");
+    expect(contextText).not.toContain("password123");
+    expect(contextText).not.toContain("password456");
+  });
+
   it("keeps group codes unique and rejects duplicate member names", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

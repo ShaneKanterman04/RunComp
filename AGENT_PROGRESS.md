@@ -1020,3 +1020,21 @@
   - Keep notification setup UI copy aligned with the structured error returned by this route.
 - Skipped ideas:
   - Did not change push subscription behavior or VAPID key generation.
+
+### Increment 54: Group Context Sanitization Coverage
+
+- What changed: Added store coverage proving `getGroupContext()` returns public group/member data without credential fields.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one store regression test for sanitized group context, member run counts, and absence of password hashes, salts, and plaintext passwords.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep context sanitization coverage aligned with any future session payload changes.
+- Skipped ideas:
+  - Did not change context behavior; this locks the existing public-data boundary.
