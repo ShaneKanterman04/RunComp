@@ -15,6 +15,7 @@ import {
   buildFeedEvents,
   buildHeadToHeadComparisons,
   buildHeatmapWeeks,
+  buildRecentMileageTrend,
   buildStats,
   buildStreakStrip,
   buildWeeklyRecap,
@@ -32,6 +33,7 @@ import {
   type ComebackTarget,
   type FamilyChallenge,
   type FeedEvent,
+  type RecentMileageTrend,
   type RunnerStats,
   type WeeklyRecap,
 } from "@/lib/run-metrics";
@@ -2556,6 +2558,7 @@ function RunnerProfileModal({
   const progress = raceProgress(stats.total, goalMiles);
   const biggestWeek = biggestWeeklyTotal(memberRuns);
   const recent = buildStreakStrip(runs, member.id, now, 14);
+  const recentMileageTrend = buildRecentMileageTrend(runs, member.id, now);
   const recentActiveDays = recent.filter((day) => day.ran).length;
   const headToHead = buildHeadToHeadComparisons(runs, members, member.id).slice(0, 3);
   const hasProfileRuns = memberRuns.length > 0;
@@ -2595,6 +2598,7 @@ function RunnerProfileModal({
         </div>
         <div>
           <p className="eyebrow">Recent trend</p>
+          <p className="profileTrendSummary">{recentTrendCopy(recentMileageTrend)}</p>
           <div className="profileTrend">
             {recent.map((day) => (
               <span className={day.ran ? "ran" : ""} title={day.date} key={day.date}>{day.label}</span>
@@ -2631,6 +2635,13 @@ function headToHeadCopy(status: "ahead" | "behind" | "tied", gap: number, milesT
   if (status === "ahead") return `${formatMiles(gap)} ahead`;
   if (status === "behind") return `${formatMiles(milesToPass || gap)} to pass`;
   return "Tied on miles";
+}
+
+function recentTrendCopy(trend: RecentMileageTrend) {
+  if (trend.recentMiles === 0 && trend.previousMiles === 0) return "No mileage in the last two weeks yet.";
+  if (trend.direction === "up") return `${formatMiles(trend.recentMiles)} in 7 days, up ${formatMiles(Math.abs(trend.deltaMiles))}.`;
+  if (trend.direction === "down") return `${formatMiles(trend.recentMiles)} in 7 days, down ${formatMiles(Math.abs(trend.deltaMiles))}.`;
+  return `${formatMiles(trend.recentMiles)} in 7 days, matching the prior week.`;
 }
 
 function comebackTitle(comeback: ComebackTarget) {

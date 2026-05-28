@@ -6,6 +6,7 @@ import {
   buildFeedEvents,
   buildHeadToHeadComparisons,
   buildHeatmapWeeks,
+  buildRecentMileageTrend,
   buildStats,
   buildStreakStrip,
   buildWeeklyRecap,
@@ -112,6 +113,32 @@ describe("run metrics", () => {
     expect(chart.at(-1)?.totals.shane).toBe(10);
     expect(chart.at(-1)?.heights.shane).toBe(100);
     expect(chart.at(-1)?.heights.molly).toBe(50);
+  });
+
+  it("compares recent mileage against the previous window", () => {
+    expect(
+      buildRecentMileageTrend(
+        [
+          { id: "1", memberId: "shane", miles: 3, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+          { id: "2", memberId: "shane", miles: 2, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+          { id: "3", memberId: "shane", miles: 1, date: "2026-05-14", createdAt: "2026-05-14T12:00:00Z" },
+          { id: "4", memberId: "molly", miles: 10, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+        ],
+        "shane",
+        now,
+      ),
+    ).toEqual({ recentMiles: 5, previousMiles: 1, deltaMiles: 4, direction: "up" });
+    expect(
+      buildRecentMileageTrend(
+        [
+          { id: "1", memberId: "shane", miles: 1, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+          { id: "2", memberId: "shane", miles: 4, date: "2026-05-14", createdAt: "2026-05-14T12:00:00Z" },
+        ],
+        "shane",
+        now,
+      ).direction,
+    ).toBe("down");
+    expect(buildRecentMileageTrend([], "shane", now)).toEqual({ recentMiles: 0, previousMiles: 0, deltaMiles: 0, direction: "flat" });
   });
 
   it("sorts newest run date first and then newest created time", () => {

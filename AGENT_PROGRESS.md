@@ -1258,3 +1258,24 @@
   - Extract runner management into a small tested component if more owner-row behavior is added.
 - Skipped ideas:
   - Did not change removal rules; this only makes the existing inactive-only rule clearer.
+
+### Increment 67: Runner Profile Recent Mileage Trend
+
+- What changed: Added a tested recent-vs-prior 7-day mileage trend helper and surfaced the summary in runner profiles above the activity strip.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - Added run-metrics coverage for up, down, and flat recent mileage trend windows.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Extract runner profiles into a smaller tested component if profile UI behavior grows.
+- Skipped ideas:
+  - Did not add a chart library or redesign the profile; this keeps the existing compact modal.

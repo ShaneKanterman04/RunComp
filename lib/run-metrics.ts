@@ -126,6 +126,13 @@ export type HeadToHeadComparison = {
   milesToPass?: number;
 };
 
+export type RecentMileageTrend = {
+  recentMiles: number;
+  previousMiles: number;
+  deltaMiles: number;
+  direction: "up" | "down" | "flat";
+};
+
 export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], memberId?: string, now = new Date()): AchievementBadge[] {
   const badges: AchievementBadge[] = [];
   const runnerRuns = memberId ? runs.filter((run) => run.memberId === memberId) : runs;
@@ -659,6 +666,25 @@ export function buildStreakStrip(runs: MetricRunEntry[], memberId: string, now =
   });
 }
 
+export function buildRecentMileageTrend(runs: MetricRunEntry[], memberId: string, now = new Date(), days = 7): RecentMileageTrend {
+  const currentEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const currentStart = new Date(currentEnd);
+  currentStart.setDate(currentEnd.getDate() - (days - 1));
+  const previousEnd = new Date(currentStart);
+  previousEnd.setDate(currentStart.getDate() - 1);
+  const previousStart = new Date(previousEnd);
+  previousStart.setDate(previousEnd.getDate() - (days - 1));
+  const recentMiles = sumMilesForRange(runs, memberId, currentStart, currentEnd);
+  const previousMiles = sumMilesForRange(runs, memberId, previousStart, previousEnd);
+  const deltaMiles = Math.round((recentMiles - previousMiles) * 100) / 100;
+  return {
+    recentMiles,
+    previousMiles,
+    deltaMiles,
+    direction: deltaMiles > 0 ? "up" : deltaMiles < 0 ? "down" : "flat",
+  };
+}
+
 export function buildHeatmapWeeks(runs: MetricRunEntry[], memberId: string, now = new Date(), weeks = 6) {
   const totals = new Map<string, number>();
   for (const run of runs.filter((row) => row.memberId === memberId)) {
@@ -730,6 +756,17 @@ export function sortRuns<T extends { date: string; createdAt: string }>(runs: T[
 
 export function sumMiles(runs: Pick<MetricRunEntry, "miles">[]) {
   return runs.reduce((total, run) => total + run.miles, 0);
+}
+
+function sumMilesForRange(runs: MetricRunEntry[], memberId: string, start: Date, end: Date) {
+  const total = runs
+    .filter((run) => run.memberId === memberId)
+    .filter((run) => {
+      const date = parseRunDate(run.date);
+      return date >= start && date <= end;
+    })
+    .reduce((sum, run) => sum + run.miles, 0);
+  return Math.round(total * 100) / 100;
 }
 
 function totalsByMember(runs: MetricRunEntry[]) {

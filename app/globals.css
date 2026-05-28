@@ -2073,6 +2073,13 @@ input:invalid:not(:placeholder-shown) {
   gap: 5px;
 }
 
+.profileTrendSummary {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .profileTrend span {
   display: grid;
   min-height: 30px;
