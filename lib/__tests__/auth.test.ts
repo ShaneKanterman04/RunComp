@@ -64,6 +64,7 @@ describe("auth invite tokens", () => {
 describe("auth sessions", () => {
   afterEach(() => {
     delete process.env.RUNCOMP_SECRET;
+    delete process.env.RUNCOMP_SECURE_COOKIES;
     jest.resetModules();
     jest.dontMock("next/headers");
     jest.dontMock("@/lib/store");
@@ -97,11 +98,50 @@ describe("auth sessions", () => {
     expect(cookieStore.set).toHaveBeenCalledWith(
       auth.SESSION_COOKIE,
       expect.any(String),
-      expect.objectContaining({ httpOnly: true, sameSite: "lax" }),
+      expect.objectContaining({ httpOnly: true, sameSite: "lax", secure: false }),
     );
     expect(getGroupContext).toHaveBeenCalledWith("group-1", "member-1");
     expect(session?.claims.role).toBe("owner");
     expect(session?.member.role).toBe("member");
+  });
+
+  it("marks session cookies secure only when configured", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    process.env.RUNCOMP_SECURE_COOKIES = "true";
+    const cookieStore = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext: jest.fn() }));
+    const auth = await import("../auth");
+
+    await auth.setSessionCookie({ groupId: "group-1", memberId: "member-1", role: "member" });
+
+    expect(cookieStore.set).toHaveBeenCalledWith(
+      auth.SESSION_COOKIE,
+      expect.any(String),
+      expect.objectContaining({ httpOnly: true, sameSite: "lax", secure: true }),
+    );
+  });
+
+  it("clears the session cookie by name", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    const cookieStore = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext: jest.fn() }));
+    const auth = await import("../auth");
+
+    await auth.clearSessionCookie();
+
+    expect(cookieStore.delete).toHaveBeenCalledWith(auth.SESSION_COOKIE);
   });
 
   it("ignores invalid session cookies before loading group context", async () => {

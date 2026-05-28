@@ -248,3 +248,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Forty-second increment added session-cookie hydration coverage for stale role claims.
 - 2026-05-28: Forty-third increment added invalid session cookie short-circuit coverage.
 - 2026-05-28: Forty-fourth increment added required-session failure coverage for invalid cookies.
+- 2026-05-28: Forty-fifth increment added session cookie option and clearing coverage.

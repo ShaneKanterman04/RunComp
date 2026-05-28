@@ -856,3 +856,21 @@
   - Add cookie clearing option coverage if cookie behavior changes or route tests need it.
 - Skipped ideas:
   - Did not alter auth implementation; this records the existing guard contract used by API routes.
+
+### Increment 45: Session Cookie Option Coverage
+
+- What changed: Added auth coverage for secure session-cookie configuration and logout cookie deletion.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Asserted session cookies default to non-secure for LAN HTTP, switch to secure when `RUNCOMP_SECURE_COOKIES=true`, and clear by the configured session cookie name.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep cookie behavior aligned with README deployment guidance if the auth/session model changes.
+- Skipped ideas:
+  - Did not change session TTL or cookie persistence behavior.
