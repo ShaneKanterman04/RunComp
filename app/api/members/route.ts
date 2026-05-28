@@ -21,6 +21,9 @@ export async function POST(request: Request) {
     if (typeof body.password !== "string" || !body.password.trim()) {
       return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
     }
+    if (body.password.trim().length < 8) {
+      return NextResponse.json({ error: "Passwords need at least 8 characters." }, { status: 400 });
+    }
     const member = await addMember(session.group.id, session.member.id, {
       name,
       password: body.password,
@@ -54,6 +57,9 @@ export async function PATCH(request: Request) {
     }
     if (hasPassword && !(body.password as string).trim()) {
       return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
+    }
+    if (hasPassword && (body.password as string).trim().length < 8) {
+      return NextResponse.json({ error: "Passwords need at least 8 characters." }, { status: 400 });
     }
     const member = hasPassword
       ? await resetMemberPassword(session.group.id, session.member.id, memberId, body.password as string)

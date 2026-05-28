@@ -79,13 +79,12 @@ describe("/api/groups", () => {
     expect(createGroup).toHaveBeenCalledWith({ groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: 100 });
   });
 
-  it("returns validation errors from group creation", async () => {
-    jest.mocked(createGroup).mockRejectedValue({ status: 400, message: "Passwords need at least 8 characters." });
-
+  it("rejects short owner passwords before group creation", async () => {
     const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "short" }));
 
     expect(response.status).toBe(400);
     expect(await readJson(response)).toEqual({ error: "Passwords need at least 8 characters." });
+    expect(createGroup).not.toHaveBeenCalled();
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 

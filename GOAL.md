@@ -340,3 +340,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred thirty-fourth increment clarified run mileage validation copy.
 - 2026-05-28: One hundred thirty-fifth increment documented the local validation gate.
 - 2026-05-28: One hundred thirty-sixth increment ignored non-positive legacy mileage in lead-change notifications.
+- 2026-05-28: One hundred thirty-seventh increment rejected short owner and runner passwords before store calls.

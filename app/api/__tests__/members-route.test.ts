@@ -100,6 +100,7 @@ describe("/api/members", () => {
     const blankName = await POST(jsonRequest("/api/members", { name: "  ", password: "password123" }));
     const missingPassword = await POST(jsonRequest("/api/members", { name: "Dad" }));
     const blankPassword = await POST(jsonRequest("/api/members", { name: "Dad", password: "  " }));
+    const shortPassword = await POST(jsonRequest("/api/members", { name: "Dad", password: "short" }));
 
     expect(missingName.status).toBe(400);
     expect(await readJson(missingName)).toEqual({ error: "Runner name is required." });
@@ -109,6 +110,8 @@ describe("/api/members", () => {
     expect(await readJson(missingPassword)).toEqual({ error: "Runner password is required." });
     expect(blankPassword.status).toBe(400);
     expect(await readJson(blankPassword)).toEqual({ error: "Runner password is required." });
+    expect(shortPassword.status).toBe(400);
+    expect(await readJson(shortPassword)).toEqual({ error: "Passwords need at least 8 characters." });
     expect(addMember).not.toHaveBeenCalled();
   });
 
@@ -186,6 +189,7 @@ describe("/api/members", () => {
     const ambiguousAction = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "Molly K", password: "newpassword" }, "PATCH"));
     const blankName = await PATCH(jsonRequest("/api/members", { memberId: "member-1", name: "  " }, "PATCH"));
     const blankPassword = await PATCH(jsonRequest("/api/members", { memberId: "member-1", password: "  " }, "PATCH"));
+    const shortPassword = await PATCH(jsonRequest("/api/members", { memberId: "member-1", password: "short" }, "PATCH"));
 
     expect(missingMember.status).toBe(400);
     expect(await readJson(missingMember)).toEqual({ error: "Missing runner id." });
@@ -199,6 +203,8 @@ describe("/api/members", () => {
     expect(await readJson(blankName)).toEqual({ error: "Runner name is required." });
     expect(blankPassword.status).toBe(400);
     expect(await readJson(blankPassword)).toEqual({ error: "Runner password is required." });
+    expect(shortPassword.status).toBe(400);
+    expect(await readJson(shortPassword)).toEqual({ error: "Passwords need at least 8 characters." });
     expect(updateMemberName).not.toHaveBeenCalled();
     expect(resetMemberPassword).not.toHaveBeenCalled();
   });

@@ -21,6 +21,9 @@ export async function POST(request: Request) {
     if (typeof body.password !== "string" || !body.password.trim()) {
       return NextResponse.json({ error: "Owner password is required." }, { status: 400 });
     }
+    if (body.password.trim().length < 8) {
+      return NextResponse.json({ error: "Passwords need at least 8 characters." }, { status: 400 });
+    }
     const goalMiles = parseGoalMiles(body.goalMiles, 100);
     if (goalMiles === null) return NextResponse.json({ error: "Goal miles must be a number." }, { status: 400 });
     const { group, member } = await createGroup({

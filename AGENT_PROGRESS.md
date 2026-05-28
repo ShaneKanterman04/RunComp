@@ -2686,3 +2686,27 @@
 - Remaining risks or recommended next steps:
   - Legacy invalid rows are now guarded in key displays, metrics, and lead notifications, but stored data is intentionally left unchanged.
   - Continue auditing older hand-edited data paths before adding any import/restore flow.
+
+### Increment 137: Password Length Route Validation
+
+- What changed: Added API-level short-password rejection for group creation, new runner creation, and runner password resets before calling store mutation methods.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/members/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+  - `app/api/__tests__/members-route.test.ts`
+- Tests added/updated:
+  - Updated group creation route coverage so short owner passwords are rejected before `createGroup`.
+  - Added member route coverage for short new-runner and reset passwords before store calls.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm test -- app/api/__tests__/members-route.test.ts`
+  - `pnpm test`
+  - `pnpm build`
+  - `pnpm lint`
+- Known follow-ups:
+  - Run `pnpm lint` separately from `pnpm build`; running them in parallel can race on `.next` generated type files.
+- Skipped ideas:
+  - Did not change the existing 8-character password policy.
