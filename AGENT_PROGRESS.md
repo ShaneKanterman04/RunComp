@@ -1702,3 +1702,22 @@
   - Keep first-run setup UI copy aligned with route-level required-field errors.
 - Skipped ideas:
   - Did not change setup behavior; this locks down the validation added in an earlier increment.
+
+### Increment 89: JSON Backup Filename Sanitization Coverage
+
+- What changed: Added export route coverage proving unsafe group codes are sanitized in JSON backup attachment filenames.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added a JSON backup filename sanitization test alongside existing CSV and fallback filename coverage.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep export download names predictable if group code rules ever change.
+- Skipped ideas:
+  - Did not expose filename sanitizer directly; route-level coverage matches the user-visible behavior.

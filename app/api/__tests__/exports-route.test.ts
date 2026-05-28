@@ -107,6 +107,26 @@ describe("/api/exports", () => {
     expect(response.headers.get("Content-Disposition")).toMatch(/^attachment; filename="runcomp-group-backup-\d{4}-\d{2}-\d{2}\.json"$/);
   });
 
+  it("sanitizes JSON backup filenames from group codes", async () => {
+    jest.mocked(requireSession).mockResolvedValue({
+      ...ownerSession,
+      group: { ...ownerSession.group, code: 'Family "../ Miles!' },
+    } as never);
+    jest.mocked(exportGroupBackup).mockResolvedValue({
+      exportedAt: "2026-05-28T12:00:00.000Z",
+      version: 1,
+      group: ownerSession.group,
+      members: [],
+      runs: [],
+      challengeCompletions: [],
+    });
+
+    const response = await GET(new Request("http://localhost/api/exports?type=json"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Disposition")).toMatch(/^attachment; filename="runcomp-family-miles-backup-\d{4}-\d{2}-\d{2}\.json"$/);
+  });
+
   it("returns structured store errors when CSV export generation fails", async () => {
     jest.mocked(requireSession).mockResolvedValue(memberSession as never);
     jest.mocked(exportRunsCsv).mockRejectedValue({ status: 404, message: "Group not found." });
