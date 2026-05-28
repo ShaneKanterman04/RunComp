@@ -69,3 +69,28 @@
   - Continue Settings polish around notification status and install/PWA status.
 - Skipped ideas:
   - Did not add persisted server-side backup timestamps; local request history is simpler, testable, and avoids changing the file-backed data shape.
+
+### Increment 4: Push Unsubscribe Hardening
+
+- What changed: Scoped push subscription removal to the signed-in member so one runner cannot remove another runner's subscription by submitting an endpoint. Expired-subscription cleanup now uses the subscription's stored member id.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/push/route.ts`
+  - `app/api/__tests__/push-route.test.ts`
+  - `lib/store.ts`
+  - `lib/push.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added push route tests for authenticated save/delete behavior.
+  - Added a store regression test proving another member cannot remove someone else's push subscription.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts app/api/__tests__/push-route.test.ts`
+  - `pnpm test`
+  - `pnpm build`
+  - `pnpm lint`
+- Known follow-ups:
+  - Add tests around expired push subscription cleanup if the push sender gets easier to mock cleanly.
+  - Continue notification settings clarity in the UI.
+- Skipped ideas:
+  - Did not add per-event notification toggles; the current push model is intentionally simple and the roadmap says to avoid expanding it unless the model already supports it cleanly.

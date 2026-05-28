@@ -355,7 +355,7 @@ export async function listPushSubscriptions(groupId: string) {
   return [...(group.pushSubscriptions || [])];
 }
 
-export async function removePushSubscription(groupId: string, endpoint: string) {
+export async function removePushSubscription(groupId: string, endpoint: string, memberId: string) {
   const clean = cleanEndpoint(endpoint);
 
   return withStoreLock(async () => {
@@ -363,7 +363,7 @@ export async function removePushSubscription(groupId: string, endpoint: string) 
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
     const before = group.pushSubscriptions?.length || 0;
-    group.pushSubscriptions = (group.pushSubscriptions || []).filter((subscription) => subscription.endpoint !== clean);
+    group.pushSubscriptions = (group.pushSubscriptions || []).filter((subscription) => subscription.endpoint !== clean || subscription.memberId !== memberId);
     await writeStore(store);
     return { removed: before - group.pushSubscriptions.length };
   });

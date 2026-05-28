@@ -218,8 +218,27 @@ describe("file-backed store", () => {
     await store.savePushSubscription(group.id, member.id, { endpoint, keys: { p256dh: "key-two", auth: "auth-two" } });
 
     expect(await store.listPushSubscriptions(group.id)).toMatchObject([{ endpoint, keys: { p256dh: "key-two", auth: "auth-two" } }]);
-    await expect(store.removePushSubscription(group.id, endpoint)).resolves.toEqual({ removed: 1 });
+    await expect(store.removePushSubscription(group.id, endpoint, member.id)).resolves.toEqual({ removed: 1 });
     await expect(store.listPushSubscriptions(group.id)).resolves.toHaveLength(0);
+  });
+
+  it("does not let one member remove another member's push subscription", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const endpoint = "https://push.example.test/subscription/owner";
+
+    await store.savePushSubscription(group.id, owner.id, { endpoint, keys: { p256dh: "key", auth: "auth" } });
+
+    await expect(store.removePushSubscription(group.id, endpoint, molly.id)).resolves.toEqual({ removed: 0 });
+    expect(await store.listPushSubscriptions(group.id)).toMatchObject([{ endpoint, memberId: owner.id }]);
   });
 
   it("claims challenge completions only once", async () => {

@@ -83,7 +83,7 @@ async function sendGroupPush(groupId: string, payload: string) {
         );
       } catch (error) {
         if (isExpiredSubscription(error)) {
-          await removePushSubscription(groupId, subscription.endpoint).catch(() => undefined);
+          await removePushSubscription(groupId, subscription.endpoint, subscription.memberId).catch(() => undefined);
         } else {
           console.warn("Could not send push notification", error);
         }

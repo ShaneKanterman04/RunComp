@@ -207,3 +207,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: First increment selected from 0.3.1 priorities: API route tests for owner-only runner management and full backup export boundaries.
 - 2026-05-28: Second increment extended API route coverage to group creation, owner-only race goal updates, and owner-generated runner login links.
 - 2026-05-28: Third increment improved owner Settings export visibility with local last-request tracking for JSON backup and CSV export.
+- 2026-05-28: Fourth increment hardened push unsubscribe cleanup so client-provided endpoints are scoped to the signed-in member.

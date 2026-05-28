@@ -34,7 +34,7 @@ export async function DELETE(request: Request) {
     const session = await requireSession();
     const body = (await request.json()) as Record<string, unknown>;
     const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
-    await removePushSubscription(session.group.id, endpoint);
+    await removePushSubscription(session.group.id, endpoint, session.member.id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof SyntaxError) return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
