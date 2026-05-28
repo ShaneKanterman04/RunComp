@@ -285,3 +285,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Seventy-ninth increment sanitized export attachment filenames from group codes.
 - 2026-05-28: Eightieth increment let blank invite tokens fall back to password login.
 - 2026-05-28: Eighty-first increment hardened auth token signature comparisons.
+- 2026-05-28: Eighty-second increment covered fallback export filenames for unusable group codes.

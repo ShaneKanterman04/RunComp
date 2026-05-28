@@ -1565,3 +1565,22 @@
   - Keep token verification rejecting malformed tokens before store context lookup.
 - Skipped ideas:
   - Did not change token format or session/invite lifetimes.
+
+### Increment 82: Export Filename Fallback Coverage
+
+- What changed: Added route coverage for the safe `group` filename fallback when a hand-edited group code has no usable filename characters.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added JSON backup filename coverage for unusable group-code characters.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep download filename tests aligned with future export endpoints.
+- Skipped ideas:
+  - Did not change the filename sanitizer behavior; this locks down the existing fallback.
