@@ -1112,3 +1112,21 @@
   - Keep owner-member route tests paired with store validation as management behavior evolves.
 - Skipped ideas:
   - Did not change member-management behavior; this locks the existing structured error paths.
+
+### Increment 59: Race Goal Store Error Coverage
+
+- What changed: Added route coverage proving owner race-goal update store failures return structured errors.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/groups` PATCH failure-path test for store validation of out-of-range goal miles.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep group route tests aligned with store-level goal validation.
+- Skipped ideas:
+  - Did not change goal update behavior; this locks the existing structured error path.

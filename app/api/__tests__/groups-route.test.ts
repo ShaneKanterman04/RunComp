@@ -106,6 +106,17 @@ describe("/api/groups", () => {
     expect(await readJson(response)).toMatchObject({ group: { goalMiles: 200 } });
   });
 
+  it("returns store errors from race goal updates", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+    jest.mocked(updateGroupGoal).mockRejectedValue({ status: 400, message: "Goal miles must be between 1 and 10000." });
+
+    const response = await PATCH(jsonRequest("/api/groups", { goalMiles: "10001" }, "PATCH"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Goal miles must be between 1 and 10000." });
+    expect(updateGroupGoal).toHaveBeenCalledWith("group-1", "owner-1", 10001);
+  });
+
   it("rejects malformed race goal updates before store mutation", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
 
