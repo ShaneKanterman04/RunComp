@@ -157,10 +157,13 @@ describe("/api/groups", () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
 
     const missing = await PATCH(jsonRequest("/api/groups", {}, "PATCH"));
+    const blank = await PATCH(jsonRequest("/api/groups", { goalMiles: "  " }, "PATCH"));
     const malformed = await PATCH(jsonRequest("/api/groups", { goalMiles: "many" }, "PATCH"));
 
     expect(missing.status).toBe(400);
     expect(await readJson(missing)).toEqual({ error: "Goal miles must be a number." });
+    expect(blank.status).toBe(400);
+    expect(await readJson(blank)).toEqual({ error: "Goal miles must be a number." });
     expect(malformed.status).toBe(400);
     expect(await readJson(malformed)).toEqual({ error: "Goal miles must be a number." });
     expect(updateGroupGoal).not.toHaveBeenCalled();

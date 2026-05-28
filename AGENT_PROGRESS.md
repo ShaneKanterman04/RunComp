@@ -1624,3 +1624,23 @@
   - Keep first-run setup UI copy aligned with these route-level errors.
 - Skipped ideas:
   - Did not change password length or race-goal validation rules; those still use existing policies.
+
+### Increment 85: Blank Race Goal Update Validation
+
+- What changed: Updated race-goal parsing so blank owner goal update strings are rejected before calling persistence.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Extended malformed race-goal update coverage for blank strings.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep owner goal form validation aligned with server-side empty-value handling.
+- Skipped ideas:
+  - Did not change valid default goal handling during group creation.

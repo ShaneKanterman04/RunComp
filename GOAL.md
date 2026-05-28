@@ -288,3 +288,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Eighty-second increment covered fallback export filenames for unusable group codes.
 - 2026-05-28: Eighty-third increment validated blank new-runner passwords before store calls.
 - 2026-05-28: Eighty-fourth increment validated required setup fields before group creation.
+- 2026-05-28: Eighty-fifth increment rejected blank race-goal updates before persistence.

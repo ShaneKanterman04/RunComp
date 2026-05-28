@@ -67,6 +67,7 @@ export async function PATCH(request: Request) {
 
 function parseGoalMiles(value: unknown, fallback?: number) {
   if ((value === undefined || value === null || value === "") && fallback !== undefined) return fallback;
+  if (typeof value === "string" && !value.trim()) return null;
   const goal = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
   return Number.isFinite(goal) ? goal : null;
 }
