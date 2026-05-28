@@ -405,21 +405,25 @@ describe("run metrics", () => {
       value: 9.5,
       target: 8,
       complete: true,
+      completedAt: "2026-05-23T12:00:00Z",
     });
     expect(challenges.find((challenge) => challenge.type === "beat-last-week")).toMatchObject({
       value: 9.5,
       target: 7,
       complete: true,
+      completedAt: "2026-05-20T12:00:00Z",
     });
     expect(challenges.find((challenge) => challenge.type === "everyone-logs")).toMatchObject({
       value: 2,
       target: 2,
       complete: true,
+      completedAt: "2026-05-20T12:00:00Z",
     });
     expect(challenges.find((challenge) => challenge.type === "weekend-participation")).toMatchObject({
       value: 2,
       target: 2,
       complete: true,
+      completedAt: "2026-05-24T12:00:00Z",
     });
   });
 

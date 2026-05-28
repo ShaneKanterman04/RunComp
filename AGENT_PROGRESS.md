@@ -715,3 +715,21 @@
   - Keep route body-shape validation focused on mutation endpoints; read-only export routes do not need JSON body guards.
 - Skipped ideas:
   - Did not add a schema library; the local helper keeps the app lightweight and dependency-free.
+
+### Increment 37: Challenge Completion Timestamp Coverage
+
+- What changed: Added regression coverage for challenge `completedAt` timestamps so notification de-duplication inputs stay stable.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Updated the weekly challenge test to assert completion timestamps for weekly mileage, beat-last-week, everyone-logs, and weekend participation challenges.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add a focused most-consistent completion timestamp case if that challenge behavior changes.
+- Skipped ideas:
+  - Did not change challenge calculation behavior; this increment only strengthens regression coverage.
