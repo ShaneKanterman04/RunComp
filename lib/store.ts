@@ -267,6 +267,7 @@ export async function listRuns(groupId: string, viewerMemberId?: string) {
 export async function addRun(groupId: string, memberId: string, input: { miles: number; date: string; note?: string; durationSeconds?: number }) {
   const miles = cleanRunMiles(input.miles);
   const date = cleanRunDate(input.date);
+  const note = cleanRunNote(input.note);
   const durationSeconds = input.durationSeconds === undefined ? undefined : roundDurationSeconds(input.durationSeconds);
   if (durationSeconds !== undefined && (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 172800)) {
     throw new StoreError("Run time must be between 1 second and 48 hours.", 400);
@@ -284,7 +285,7 @@ export async function addRun(groupId: string, memberId: string, input: { miles: 
       miles,
       ...(durationSeconds ? { durationSeconds } : {}),
       date,
-      note: (input.note || "").trim().slice(0, 180),
+      note,
       createdAt: new Date().toISOString(),
     };
     group.runs.push(run);
@@ -547,6 +548,12 @@ function cleanRunDate(value: string) {
     throw new StoreError("Date must be a valid YYYY-MM-DD value.", 400);
   }
   return date;
+}
+
+function cleanRunNote(value: string | undefined) {
+  const note = typeof value === "string" ? value.trim() : "";
+  if (note.length > 180) throw new StoreError("Run notes must be 180 characters or fewer.", 400);
+  return note;
 }
 
 function cleanName(value: string, maxLength: number) {

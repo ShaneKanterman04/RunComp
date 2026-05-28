@@ -270,6 +270,7 @@ describe("file-backed store", () => {
     await expect(store.addRun(group.id, member.id, { miles: 0, date: "2026-05-22" })).rejects.toMatchObject({ status: 400 });
     await expect(store.addRun(group.id, member.id, { miles: 3, date: "2026-02-31" })).rejects.toMatchObject({ status: 400 });
     await expect(store.addRun(group.id, member.id, { miles: 3, date: "2026-05-22", durationSeconds: 172801 })).rejects.toMatchObject({ status: 400 });
+    await expect(store.addRun(group.id, member.id, { miles: 3, date: "2026-05-22", note: "x".repeat(181) })).rejects.toMatchObject({ status: 400 });
     await expect(store.listRuns(group.id, member.id)).resolves.toEqual([]);
   });
 

@@ -1843,3 +1843,23 @@
   - Keep route and store password validation aligned if password policy changes.
 - Skipped ideas:
   - Did not change existing password hashes or add a migration; this only affects new and reset passwords.
+
+### Increment 96: Store Run Note Length Validation
+
+- What changed: Updated file-backed run creation to reject notes over 180 characters instead of silently truncating them.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended store run validation coverage for overlong notes.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep route and store run validation messages aligned.
+- Skipped ideas:
+  - Did not change the 180-character note limit; this only makes store behavior match the API contract.
