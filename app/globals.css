@@ -1447,10 +1447,19 @@ input:invalid:not(:placeholder-shown) {
   font-size: 18px;
 }
 
+.exportSettingsBlock {
+  margin-bottom: 12px;
+}
+
 .exportStatusGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  margin-bottom: 16px;
+}
+
+.exportStatusGrid--single {
+  grid-template-columns: 1fr;
 }
 
 .exportStatusGrid div {

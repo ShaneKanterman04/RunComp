@@ -750,3 +750,21 @@
   - Add component-level tests if notification controls are extracted from the page into a smaller client component.
 - Skipped ideas:
   - Did not expand notification settings or add per-event toggles.
+
+### Increment 39: Member-Visible CSV Export
+
+- What changed: Moved data export controls into the general settings area so every signed-in runner can download CSV runs, while JSON recovery backups remain owner-only.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No component test was added for the monolithic page; existing export route tests cover CSV access and owner-only JSON authorization.
+- Validation commands run:
+  - `pnpm lint && pnpm build`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add component-level settings tests if the settings panel is extracted into smaller components.
+- Skipped ideas:
+  - Did not add restore/import workflow; this only makes existing exports easier to reach.

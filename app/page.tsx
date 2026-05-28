@@ -1124,6 +1124,29 @@ export default function Home() {
               <span>{installSettings.body}</span>
             </div>
           </div>
+          <div className="settingsBlock exportSettingsBlock">
+            <div>
+              <p className="eyebrow">Data export</p>
+              <h3>Save a copy</h3>
+              <p className="muted">{isOwner ? "Owners can save a recovery backup. Everyone can download spreadsheet runs." : "Download spreadsheet-friendly runs for your group."}</p>
+            </div>
+            <div className="groupActions">
+              {isOwner && <button className="ghostButton" type="button" onClick={() => downloadExport("json")}>JSON backup</button>}
+              <button className="ghostButton" type="button" onClick={() => downloadExport("csv")}>CSV runs</button>
+            </div>
+          </div>
+          <div className={`exportStatusGrid ${isOwner ? "" : "exportStatusGrid--single"}`} aria-label="Export history">
+            {isOwner && (
+              <div>
+                <span>Last backup request</span>
+                <strong>{formatExportTimestamp(exportHistory.json)}</strong>
+              </div>
+            )}
+            <div>
+              <span>Last CSV request</span>
+              <strong>{formatExportTimestamp(exportHistory.csv)}</strong>
+            </div>
+          </div>
           <div className="memberGrid">
             <div className="memberList">
               {members.map((member) => (
@@ -1161,20 +1184,6 @@ export default function Home() {
                     <p className="eyebrow">Settings</p>
                     <h3>Owner controls</h3>
                     <p className="muted">Version {appVersion} · notifications {pushStatus === "subscribed" ? "on" : pushStatus}</p>
-                  </div>
-                  <div className="groupActions">
-                    <button className="ghostButton" type="button" onClick={() => downloadExport("json")}>JSON backup</button>
-                    <button className="ghostButton" type="button" onClick={() => downloadExport("csv")}>CSV runs</button>
-                  </div>
-                </div>
-                <div className="exportStatusGrid" aria-label="Export history">
-                  <div>
-                    <span>Last backup request</span>
-                    <strong>{formatExportTimestamp(exportHistory.json)}</strong>
-                  </div>
-                  <div>
-                    <span>Last CSV request</span>
-                    <strong>{formatExportTimestamp(exportHistory.csv)}</strong>
                   </div>
                 </div>
                 <form className="goalForm" onSubmit={updateGoal}>
