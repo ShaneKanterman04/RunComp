@@ -71,6 +71,16 @@ describe("/api/invites", () => {
     expect(createInviteToken).not.toHaveBeenCalled();
   });
 
+  it("rejects non-object invite requests before creating tokens", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+
+    const response = await POST(jsonRequest("/api/invites", null));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(createInviteToken).not.toHaveBeenCalled();
+  });
+
   it("creates a token for the selected runner and returns public member data", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
     jest.mocked(createInviteToken).mockResolvedValue("signed-invite-token");

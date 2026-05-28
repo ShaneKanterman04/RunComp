@@ -649,3 +649,22 @@
   - Consider extracting shared JSON object guards if more route handlers need the same hardening.
 - Skipped ideas:
   - Did not change run field validation messages; existing miles/date/duration/reaction checks remain intact.
+
+### Increment 34: Invite Route JSON Body Guard
+
+- What changed: Added object-shape validation for `/api/invites` POST requests so malformed owner invite-link payloads return a clear 400 before token creation logic.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/invites/route.ts`
+  - `app/api/__tests__/invites-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for null invite request bodies.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/invites-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider extracting shared JSON object guards after the remaining mutable JSON routes are hardened.
+- Skipped ideas:
+  - Did not change invite token content or expiration behavior.
