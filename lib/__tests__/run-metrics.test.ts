@@ -22,6 +22,7 @@ import {
   runnerTitle,
   shortDate,
   sortRuns,
+  sumMiles,
   toDateKey,
 } from "../run-metrics";
 
@@ -125,8 +126,20 @@ describe("run metrics", () => {
       now,
     );
 
-    expect(chart.at(-1)?.totals.shane).toBe(-2);
+    expect(chart.at(-1)?.totals.shane).toBe(0);
     expect(chart.at(-1)?.heights.shane).toBe(2);
+  });
+
+  it("ignores non-positive legacy mileage in aggregate totals", () => {
+    const runs = [
+      { id: "bad", memberId: "shane", miles: -4, date: "2026-05-22", createdAt: "2026-05-22T12:00:00Z" },
+      { id: "good", memberId: "shane", miles: 2, date: "2026-05-21", createdAt: "2026-05-21T12:00:00Z" },
+    ];
+
+    expect(sumMiles(runs)).toBe(2);
+    expect(buildStats(runs, members, now).shane.total).toBe(2);
+    expect(buildRecentMileageTrend(runs, "shane", now, 7).recentMiles).toBe(2);
+    expect(buildHeatmapWeeks(runs, "shane", now, 1).at(-1)?.miles).toBe(0);
   });
 
   it("compares recent mileage against the previous window", () => {

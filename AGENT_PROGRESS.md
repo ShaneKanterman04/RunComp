@@ -2584,3 +2584,24 @@
   - Consider clamping legacy negative mileage in aggregate calculations if old hand-edited data appears.
 - Skipped ideas:
   - Did not mutate stored runs; this is a display-only compatibility guard.
+
+### Increment 133: Aggregate Mileage Legacy Guard
+
+- What changed: Added a shared metric mileage normalizer so totals, trends, heatmaps, weekly recap sorting, and feed milestone totals ignore non-positive legacy mileage.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added aggregate coverage for negative legacy mileage in totals, stats, recent trends, and heatmaps.
+  - Updated chart coverage to expect non-positive legacy mileage to contribute zero total.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Continue keeping new run validation strict so this remains a legacy compatibility path.
+- Skipped ideas:
+  - Did not change run counts or streak logic for legacy rows; those still reflect logged run records.

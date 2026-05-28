@@ -193,18 +193,18 @@ export function buildWeeklyRecap(runs: MetricRunEntry[], members: MetricMember[]
   const counts = new Map<string, number>();
 
   for (const run of weekRuns) {
-    totals.set(run.memberId, (totals.get(run.memberId) || 0) + run.miles);
+    totals.set(run.memberId, (totals.get(run.memberId) || 0) + metricMiles(run.miles));
     counts.set(run.memberId, (counts.get(run.memberId) || 0) + 1);
   }
 
   const topRunnerEntry = [...totals.entries()].sort((a, b) => b[1] - a[1])[0];
   const mostConsistentEntry = [...counts.entries()].sort((a, b) => b[1] - a[1] || (totals.get(b[0]) || 0) - (totals.get(a[0]) || 0))[0];
-  const biggestRun = [...weekRuns].sort((a, b) => b.miles - a.miles)[0];
+  const biggestRun = [...weekRuns].sort((a, b) => metricMiles(b.miles) - metricMiles(a.miles))[0];
   const fastestRun = weekRuns.filter(hasRunTime).sort((a, b) => a.durationSeconds / a.miles - b.durationSeconds / b.miles)[0];
   const crowdFavorite = [...weekRuns]
     .map((run) => ({ run, reactionCount: reactionCount(run) }))
     .filter((row) => row.reactionCount > 0)
-    .sort((a, b) => b.reactionCount - a.reactionCount || b.run.miles - a.run.miles)[0];
+    .sort((a, b) => b.reactionCount - a.reactionCount || metricMiles(b.run.miles) - metricMiles(a.run.miles))[0];
   const previousWeekStart = new Date(weekStart);
   previousWeekStart.setDate(weekStart.getDate() - 7);
   const previousWeekRuns = runs.filter((run) => {
@@ -239,7 +239,7 @@ export function buildWeeklyRecap(runs: MetricRunEntry[], members: MetricMember[]
       ? { topRunner: { name: memberName.get(topRunnerEntry[0]) || "Unknown", miles: topRunnerEntry[1] } }
       : {}),
     ...(biggestRun
-      ? { biggestRun: { runner: memberName.get(biggestRun.memberId) || biggestRun.runner || "Unknown", miles: biggestRun.miles, note: biggestRun.note || "" } }
+      ? { biggestRun: { runner: memberName.get(biggestRun.memberId) || biggestRun.runner || "Unknown", miles: metricMiles(biggestRun.miles), note: biggestRun.note || "" } }
       : {}),
     ...(mostConsistentEntry
       ? { mostConsistent: { name: memberName.get(mostConsistentEntry[0]) || "Unknown", runCount: mostConsistentEntry[1] } }
@@ -302,7 +302,7 @@ export function buildFamilyChallenges(runs: MetricRunEntry[], members: MetricMem
       complete: totalMiles >= weeklyTarget,
       weekKey: week,
       tone: "gold",
-      completedAt: firstCompletionRun(weekRuns, weeklyTarget, (run) => run.miles)?.createdAt,
+      completedAt: firstCompletionRun(weekRuns, weeklyTarget, (run) => metricMiles(run.miles))?.createdAt,
     }),
     challenge({
       id: `${week}:weekend-participation`,
@@ -328,7 +328,7 @@ export function buildFamilyChallenges(runs: MetricRunEntry[], members: MetricMem
       complete: previousMiles > 0 && totalMiles > previousMiles,
       weekKey: week,
       tone: "green",
-      completedAt: previousMiles > 0 ? firstCompletionRun(weekRuns, previousMiles + 0.01, (run) => run.miles)?.createdAt : undefined,
+      completedAt: previousMiles > 0 ? firstCompletionRun(weekRuns, previousMiles + 0.01, (run) => metricMiles(run.miles))?.createdAt : undefined,
     }),
     challenge({
       id: `${week}:everyone-logs`,
@@ -421,7 +421,7 @@ export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[],
   for (const run of sorted) {
     const name = memberName.get(run.memberId) || run.runner || "Runner";
     const previousTotal = totals.get(run.memberId) || 0;
-    const nextTotal = previousTotal + run.miles;
+    const nextTotal = previousTotal + metricMiles(run.miles);
     totals.set(run.memberId, nextTotal);
 
     for (const milestone of [5, 10, 25, 50, 100, 250, 500, 1000]) {
@@ -613,7 +613,7 @@ export function buildStats(
         month: sumMiles(runnerRuns.filter((run) => parseRunDate(run.date) >= monthStart)),
         runCount: runnerRuns.length,
         average: runnerRuns.length ? total / runnerRuns.length : 0,
-        longest: Math.max(0, ...runnerRuns.map((run) => run.miles)),
+        longest: Math.max(0, ...runnerRuns.map((run) => metricMiles(run.miles))),
         timedRunCount: timedRuns.length,
         timedMiles,
         totalSeconds,
@@ -697,7 +697,7 @@ export function buildRecentMileageTrend(runs: MetricRunEntry[], memberId: string
 export function buildHeatmapWeeks(runs: MetricRunEntry[], memberId: string, now = new Date(), weeks = 6) {
   const totals = new Map<string, number>();
   for (const run of runs.filter((row) => row.memberId === memberId)) {
-    totals.set(run.date, (totals.get(run.date) || 0) + run.miles);
+    totals.set(run.date, (totals.get(run.date) || 0) + metricMiles(run.miles));
   }
   const days = Math.max(1, Math.floor(weeks)) * 7;
   return Array.from({ length: days }, (_, index) => {
@@ -764,7 +764,7 @@ export function sortRuns<T extends { date: string; createdAt: string }>(runs: T[
 }
 
 export function sumMiles(runs: Pick<MetricRunEntry, "miles">[]) {
-  return Math.round(runs.reduce((total, run) => total + run.miles, 0) * 100) / 100;
+  return Math.round(runs.reduce((total, run) => total + metricMiles(run.miles), 0) * 100) / 100;
 }
 
 function sumMilesForRange(runs: MetricRunEntry[], memberId: string, start: Date, end: Date) {
@@ -774,14 +774,14 @@ function sumMilesForRange(runs: MetricRunEntry[], memberId: string, start: Date,
       const date = parseRunDate(run.date);
       return date >= start && date <= end;
     })
-    .reduce((sum, run) => sum + run.miles, 0);
+    .reduce((sum, run) => sum + metricMiles(run.miles), 0);
   return Math.round(total * 100) / 100;
 }
 
 function totalsByMember(runs: MetricRunEntry[]) {
   const totals = new Map<string, number>();
   for (const run of runs) {
-    totals.set(run.memberId, (totals.get(run.memberId) || 0) + run.miles);
+    totals.set(run.memberId, (totals.get(run.memberId) || 0) + metricMiles(run.miles));
   }
   return totals;
 }
@@ -795,7 +795,11 @@ function buildRecapHeadline(input: { totalMiles: number; runCount: number; topRu
 }
 
 function hasRunTime(run: MetricRunEntry): run is MetricRunEntry & { durationSeconds: number } {
-  return typeof run.durationSeconds === "number" && Number.isFinite(run.durationSeconds) && run.durationSeconds > 0 && run.miles > 0;
+  return typeof run.durationSeconds === "number" && Number.isFinite(run.durationSeconds) && run.durationSeconds > 0 && Number.isFinite(run.miles) && run.miles > 0;
+}
+
+function metricMiles(value: number) {
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }
 
 function reactionCount(run: MetricRunEntry) {

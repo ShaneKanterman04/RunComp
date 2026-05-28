@@ -336,3 +336,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred thirtieth increment guarded challenge feed timestamps for invalid legacy values.
 - 2026-05-28: One hundred thirty-first increment hid invalid legacy run pace copy.
 - 2026-05-28: One hundred thirty-second increment clamped negative legacy mileage display.
+- 2026-05-28: One hundred thirty-third increment ignored non-positive legacy mileage in aggregate metrics.
