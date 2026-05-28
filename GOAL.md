@@ -213,3 +213,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Seventh increment added `/api/runs` route coverage and tightened run date validation to reject impossible calendar dates.
 - 2026-05-28: Eighth increment added a compact group settings notification status block for current-device alert clarity.
 - 2026-05-28: Ninth increment added `/api/session` route coverage for current session, password login, invite login, and logout flows.
+- 2026-05-28: Tenth increment added compact install/PWA status guidance to the group settings area.

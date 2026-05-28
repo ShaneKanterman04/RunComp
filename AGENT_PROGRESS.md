@@ -190,3 +190,21 @@
   - Consider extracting shared route-test fixtures if new route tests add more duplicate setup.
 - Skipped ideas:
   - Did not alter session token behavior; this increment pins current behavior for safer future changes.
+
+### Increment 10: Install Status In Settings
+
+- What changed: Added a compact install-status row to the group/settings area that tells users whether RunComp is opening like an installed app, running in browser mode, or needs iOS Home Screen install for app-style launch and push support.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No new automated tests; this is a presentational browser-state copy change using existing standalone/iOS detection helpers.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider extracting Settings rows into small components if the main page keeps growing.
+  - Consider adding component tests once the Settings area is easier to render in isolation.
+- Skipped ideas:
+  - Did not add custom install-prompt handling; browser install support varies and the existing local-first guidance is enough for the homelab/private-group scope.

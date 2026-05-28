@@ -275,6 +275,7 @@ export default function Home() {
       : "No miles logged yet. Add another runner or log your first run."
     : "No miles logged yet. Log your first run and your group will see it here.";
   const notificationSettings = notificationSettingsCopy(pushStatus);
+  const installSettings = installSettingsCopy();
 
   function switchMobileTab(tab: MobileTab) {
     setMobileTab(tab);
@@ -1107,6 +1108,13 @@ export default function Home() {
               </button>
             )}
           </div>
+          <div className="installSettingsBlock">
+            <div>
+              <p className="eyebrow">Install status</p>
+              <strong>{installSettings.title}</strong>
+              <span>{installSettings.body}</span>
+            </div>
+          </div>
           <div className="memberGrid">
             <div className="memberList">
               {members.map((member) => (
@@ -1870,6 +1878,27 @@ function notificationSettingsCopy(status: PushStatus) {
         body: "Turn on alerts on this device to hear about family runs and race changes.",
       };
   }
+}
+
+function installSettingsCopy() {
+  if (isStandaloneApp()) {
+    return {
+      title: "Opening like an app",
+      body: "RunComp is running from an installed app window on this device.",
+    };
+  }
+
+  if (isIosDevice()) {
+    return {
+      title: "Browser mode",
+      body: "Add RunComp to the Home Screen for app-style launch and iPhone push alerts.",
+    };
+  }
+
+  return {
+    title: "Browser mode",
+    body: "RunComp can be installed from this browser's app or install menu when supported.",
+  };
 }
 
 function buildInviteUrl(groupCode: string) {
