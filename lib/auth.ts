@@ -97,7 +97,9 @@ async function signInvite(claims: InviteClaims) {
 }
 
 async function verifySession(token: string): Promise<SessionClaims | null> {
-  const [payload, signature] = token.split(".");
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, signature] = parts;
   if (!payload || !signature) return null;
   const expected = createHmac("sha256", await getSecret()).update(payload).digest("base64url");
   if (!signaturesMatch(signature, expected)) return null;
@@ -120,7 +122,9 @@ async function verifySession(token: string): Promise<SessionClaims | null> {
 }
 
 async function verifyInvite(token: string): Promise<InviteClaims | null> {
-  const [payload, signature] = token.split(".");
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, signature] = parts;
   if (!payload || !signature) return null;
   const expected = createHmac("sha256", await getSecret()).update(payload).digest("base64url");
   if (!signaturesMatch(signature, expected)) return null;

@@ -1863,3 +1863,23 @@
   - Keep route and store run validation messages aligned.
 - Skipped ideas:
   - Did not change the 180-character note limit; this only makes store behavior match the API contract.
+
+### Increment 97: Strict Auth Token Shape
+
+- What changed: Updated session and invite token verification to reject tokens that do not have exactly two segments.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/auth.ts`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added invite and session coverage for valid tokens with extra trailing segments being rejected before trust or context loading.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep auth parser tests paired across session and invite token formats.
+- Skipped ideas:
+  - Did not change token signing format or TTLs; this only tightens verification.

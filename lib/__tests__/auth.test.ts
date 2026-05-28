@@ -48,6 +48,7 @@ describe("auth invite tokens", () => {
     await expect(auth.verifyInviteToken(`${tamperedPayload}.${signature}`)).resolves.toBeNull();
     await expect(auth.verifyInviteToken(`${payload}.bad-signature`)).resolves.toBeNull();
     await expect(auth.verifyInviteToken(`${payload}.${signature.slice(1)}`)).resolves.toBeNull();
+    await expect(auth.verifyInviteToken(`${payload}.${signature}.extra`)).resolves.toBeNull();
   });
 
   it("rejects expired, malformed, and wrong-kind invite tokens", async () => {
@@ -150,6 +151,24 @@ describe("auth sessions", () => {
     process.env.RUNCOMP_SECRET = "test-secret";
     const cookieStore = {
       get: jest.fn(() => ({ value: "not-a-token" })),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    const getGroupContext = jest.fn();
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext }));
+    const auth = await import("../auth");
+
+    await expect(auth.getCurrentSession()).resolves.toBeNull();
+    expect(getGroupContext).not.toHaveBeenCalled();
+  });
+
+  it("rejects session cookies with extra token segments before loading group context", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    const token = signPayload({ groupId: "group-1", memberId: "member-1", role: "member", exp: Date.now() + 100000 });
+    const cookieStore = {
+      get: jest.fn(() => ({ value: `${token}.extra` })),
       set: jest.fn(),
       delete: jest.fn(),
     };
