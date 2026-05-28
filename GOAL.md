@@ -273,3 +273,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Sixty-seventh increment added runner profile recent mileage trend summaries.
 - 2026-05-28: Sixty-eighth increment added empty CSV export header coverage.
 - 2026-05-28: Sixty-ninth increment validated missing invite runner ids before token creation.
+- 2026-05-28: Seventieth increment rejected incomplete push subscription payloads before persistence.

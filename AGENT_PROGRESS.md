@@ -1316,3 +1316,23 @@
   - Keep owner login-link validation aligned with member management validation.
 - Skipped ideas:
   - Did not change invite token semantics or expiration.
+
+### Increment 70: Push Payload Boundary Validation
+
+- What changed: Updated `/api/push` to reject missing subscription objects and missing endpoints before calling push subscription persistence.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/push/route.ts`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Added route tests for missing push subscription payloads, missing save endpoints, and missing delete endpoints.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep browser notification setup copy aligned with these clearer API errors.
+- Skipped ideas:
+  - Did not add push preference toggles or expand notification delivery behavior.

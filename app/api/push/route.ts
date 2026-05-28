@@ -20,12 +20,16 @@ export async function POST(request: Request) {
     const session = await requireSession();
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    const subscription = body.subscription as { endpoint?: unknown; keys?: { p256dh?: unknown; auth?: unknown } } | undefined;
+    const subscription = isJsonObject(body.subscription) ? body.subscription : undefined;
+    if (!subscription) return NextResponse.json({ error: "Missing push subscription." }, { status: 400 });
+    const endpoint = typeof subscription.endpoint === "string" ? subscription.endpoint : "";
+    if (!endpoint) return NextResponse.json({ error: "Missing push subscription endpoint." }, { status: 400 });
+    const keys = isJsonObject(subscription.keys) ? subscription.keys : {};
     await savePushSubscription(session.group.id, session.member.id, {
-      endpoint: typeof subscription?.endpoint === "string" ? subscription.endpoint : "",
+      endpoint,
       keys: {
-        p256dh: typeof subscription?.keys?.p256dh === "string" ? subscription.keys.p256dh : "",
-        auth: typeof subscription?.keys?.auth === "string" ? subscription.keys.auth : "",
+        p256dh: typeof keys.p256dh === "string" ? keys.p256dh : "",
+        auth: typeof keys.auth === "string" ? keys.auth : "",
       },
     });
     return NextResponse.json({ ok: true });
@@ -41,6 +45,7 @@ export async function DELETE(request: Request) {
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+    if (!endpoint) return NextResponse.json({ error: "Missing push subscription endpoint." }, { status: 400 });
     await removePushSubscription(session.group.id, endpoint, session.member.id);
     return NextResponse.json({ ok: true });
   } catch (error) {
