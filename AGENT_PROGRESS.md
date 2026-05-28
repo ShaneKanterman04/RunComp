@@ -1545,3 +1545,23 @@
   - Keep login-mode detection tolerant of empty URL params from shared links.
 - Skipped ideas:
   - Did not change nonblank invite-token behavior or invite validation rules.
+
+### Increment 81: Timing-Safe Auth Signature Checks
+
+- What changed: Updated session and invite token verification to compare HMAC signatures with `timingSafeEqual` behind a length guard.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/auth.ts`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Extended invite token tamper coverage for truncated signatures.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep token verification rejecting malformed tokens before store context lookup.
+- Skipped ideas:
+  - Did not change token format or session/invite lifetimes.

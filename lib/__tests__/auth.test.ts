@@ -47,6 +47,7 @@ describe("auth invite tokens", () => {
 
     await expect(auth.verifyInviteToken(`${tamperedPayload}.${signature}`)).resolves.toBeNull();
     await expect(auth.verifyInviteToken(`${payload}.bad-signature`)).resolves.toBeNull();
+    await expect(auth.verifyInviteToken(`${payload}.${signature.slice(1)}`)).resolves.toBeNull();
   });
 
   it("rejects expired, malformed, and wrong-kind invite tokens", async () => {

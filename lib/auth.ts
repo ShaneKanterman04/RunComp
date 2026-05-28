@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { cookies } from "next/headers";
@@ -100,7 +100,7 @@ async function verifySession(token: string): Promise<SessionClaims | null> {
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return null;
   const expected = createHmac("sha256", await getSecret()).update(payload).digest("base64url");
-  if (signature !== expected) return null;
+  if (!signaturesMatch(signature, expected)) return null;
 
   try {
     const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Partial<SessionClaims>;
@@ -123,7 +123,7 @@ async function verifyInvite(token: string): Promise<InviteClaims | null> {
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return null;
   const expected = createHmac("sha256", await getSecret()).update(payload).digest("base64url");
-  if (signature !== expected) return null;
+  if (!signaturesMatch(signature, expected)) return null;
 
   try {
     const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Partial<InviteClaims> & { kind?: string };
@@ -141,6 +141,12 @@ async function verifyInvite(token: string): Promise<InviteClaims | null> {
   } catch {
     return null;
   }
+}
+
+function signaturesMatch(actual: string, expected: string) {
+  const actualBuffer = Buffer.from(actual);
+  const expectedBuffer = Buffer.from(expected);
+  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
 async function getSecret() {
