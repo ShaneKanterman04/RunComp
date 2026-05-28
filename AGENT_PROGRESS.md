@@ -610,3 +610,23 @@
   - Keep store-level duplicate-name and password-strength checks as the source of truth for valid create-member payloads.
 - Skipped ideas:
   - Did not add field-specific UI messages; the existing client already displays API errors.
+
+### Increment 32: Group Goal Route Validation
+
+- What changed: Added explicit race-goal number parsing in `/api/groups` so malformed group creation and goal update requests return 400 before any store mutation.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for malformed group creation goal values.
+  - Added route coverage for missing and malformed race-goal update values.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Range limits remain enforced in the store so API and store behavior stay consistent.
+- Skipped ideas:
+  - Did not add new goal units or per-runner goals; this only tightens existing race-goal input handling.

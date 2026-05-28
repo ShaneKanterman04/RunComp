@@ -67,6 +67,15 @@ describe("/api/groups", () => {
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed group goal values before creating groups", async () => {
+    const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "many" }));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Goal miles must be a number." });
+    expect(createGroup).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("requires owners for race goal updates", async () => {
     jest.mocked(requireSession).mockResolvedValue({ group, member, members: [owner, member] } as never);
 
@@ -86,6 +95,19 @@ describe("/api/groups", () => {
     expect(response.status).toBe(200);
     expect(updateGroupGoal).toHaveBeenCalledWith("group-1", "owner-1", 200);
     expect(await readJson(response)).toMatchObject({ group: { goalMiles: 200 } });
+  });
+
+  it("rejects malformed race goal updates before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue({ group, member: owner, members: [owner, member] } as never);
+
+    const missing = await PATCH(jsonRequest("/api/groups", {}, "PATCH"));
+    const malformed = await PATCH(jsonRequest("/api/groups", { goalMiles: "many" }, "PATCH"));
+
+    expect(missing.status).toBe(400);
+    expect(await readJson(missing)).toEqual({ error: "Goal miles must be a number." });
+    expect(malformed.status).toBe(400);
+    expect(await readJson(malformed)).toEqual({ error: "Goal miles must be a number." });
+    expect(updateGroupGoal).not.toHaveBeenCalled();
   });
 
   it("returns auth errors for goal updates without a valid session", async () => {
