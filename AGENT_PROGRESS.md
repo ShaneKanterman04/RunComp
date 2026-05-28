@@ -1823,3 +1823,23 @@
   - Keep owner goal updates strict while first-run setup remains forgiving for optional fields.
 - Skipped ideas:
   - Did not change invalid numeric goal handling; malformed goal strings still return a clear validation error.
+
+### Increment 95: Store Blank Password Validation
+
+- What changed: Tightened file-backed store password validation so whitespace-only passwords are rejected even when store methods are called directly.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended store validation coverage for whitespace-only setup passwords.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep route and store password validation aligned if password policy changes.
+- Skipped ideas:
+  - Did not change existing password hashes or add a migration; this only affects new and reset passwords.

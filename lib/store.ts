@@ -502,7 +502,7 @@ async function hashPassword(password: string, salt: string) {
 }
 
 function validatePassword(password: string) {
-  if (password.length < 8) throw new StoreError("Passwords need at least 8 characters.", 400);
+  if (password.trim().length < 8) throw new StoreError("Passwords need at least 8 characters.", 400);
 }
 
 function cleanEndpoint(value: string) {

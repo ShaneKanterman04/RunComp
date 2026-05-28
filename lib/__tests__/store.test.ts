@@ -196,6 +196,7 @@ describe("file-backed store", () => {
 
     await expect(store.createGroup({ groupName: " ", ownerName: "Shane", password: "password123" })).rejects.toMatchObject({ status: 400 });
     await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "short" })).rejects.toMatchObject({ status: 400 });
+    await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "        " })).rejects.toMatchObject({ status: 400 });
     await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123", goalMiles: 0 })).rejects.toMatchObject({ status: 400 });
     await expect(store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123", goalMiles: 10001 })).rejects.toMatchObject({ status: 400 });
   });
