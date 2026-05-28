@@ -331,6 +331,30 @@ describe("file-backed store", () => {
     await expect(store.listPushSubscriptions(group.id)).resolves.toHaveLength(0);
   });
 
+  it("rejects push subscription changes for missing groups or members", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    const subscription = { endpoint: "https://push.example.test/subscription/1", keys: { p256dh: "key", auth: "auth" } };
+
+    await expect(store.savePushSubscription("missing-group", "member-1", subscription)).rejects.toMatchObject({
+      message: "Run group not found.",
+      status: 404,
+    });
+    await expect(store.savePushSubscription(group.id, "missing-member", subscription)).rejects.toMatchObject({
+      message: "Member not found.",
+      status: 404,
+    });
+    await expect(store.listPushSubscriptions("missing-group")).rejects.toMatchObject({ status: 404 });
+    await expect(store.removePushSubscription(group.id, "not-an-endpoint", "missing-member")).rejects.toMatchObject({ status: 400 });
+  });
+
   it("does not let one member remove another member's push subscription", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

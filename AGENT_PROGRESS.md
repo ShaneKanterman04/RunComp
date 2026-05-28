@@ -1221,3 +1221,21 @@
   - Keep challenge claim tests aligned if persisted completion ids change format.
 - Skipped ideas:
   - Did not change challenge claim behavior; this locks existing persistence normalization.
+
+### Increment 65: Push Subscription Persistence Error Coverage
+
+- What changed: Added store coverage for push subscription missing-group, missing-member, missing-list, and invalid-removal endpoint failures.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one push subscription regression test for store-level error paths around subscribe/list/unsubscribe persistence.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep push persistence tests aligned with notification settings behavior.
+- Skipped ideas:
+  - Did not add per-event notification settings or change push subscription storage.
