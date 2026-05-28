@@ -2483,3 +2483,23 @@
   - Keep UI pace displays routed through `formatPace`.
 - Skipped ideas:
   - Did not alter valid positive pace formatting.
+
+### Increment 128: CSV Duration Export Rounding
+
+- What changed: Rounded legacy decimal run durations to whole seconds in CSV exports and used the rounded value for exported pace.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added store export coverage for legacy decimal `durationSeconds` values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep normal run writes rounded so this remains a legacy-data compatibility path.
+- Skipped ideas:
+  - Did not change JSON backups; they preserve stored values for recovery inspection.

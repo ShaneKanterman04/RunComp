@@ -432,7 +432,7 @@ export async function exportRunsCsv(groupId: string) {
       run.date,
       group.members.find((member) => member.id === run.memberId)?.name || "Unknown",
       run.miles.toFixed(2),
-      run.durationSeconds ? String(run.durationSeconds) : "",
+      exportDurationSeconds(run),
       exportPaceSeconds(run),
       run.note,
       run.createdAt,
@@ -441,9 +441,15 @@ export async function exportRunsCsv(groupId: string) {
   return `${rows.map((row) => row.map(csvCell).join(",")).join("\n")}\n`;
 }
 
+function exportDurationSeconds(run: RunEntry) {
+  if (!run.durationSeconds) return "";
+  const duration = roundDurationSeconds(run.durationSeconds);
+  return Number.isFinite(duration) && duration > 0 ? String(duration) : "";
+}
+
 function exportPaceSeconds(run: RunEntry) {
   if (!run.durationSeconds || run.miles <= 0) return "";
-  const pace = Math.round(run.durationSeconds / run.miles);
+  const pace = Math.round(roundDurationSeconds(run.durationSeconds) / run.miles);
   return Number.isFinite(pace) && pace > 0 ? String(pace) : "";
 }
 
