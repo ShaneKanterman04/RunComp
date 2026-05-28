@@ -510,13 +510,14 @@ export function buildFeedEvents(runs: MetricRunEntry[], members: MetricMember[],
   }
 
   for (const item of buildFamilyChallenges(runs, members, now, goalMiles).filter((challenge) => challenge.complete && challenge.completedAt)) {
+    const completedAt = validIsoTimestamp(item.completedAt);
     events.push({
       id: `challenge-${item.id}`,
       type: "challenge",
       title: `${item.title} complete`,
       body: item.winner ? `${item.winner} sealed it. ${item.body}` : item.body,
-      date: item.completedAt ? toDateKey(new Date(item.completedAt)) : toDateKey(now),
-      createdAt: item.completedAt || new Date().toISOString(),
+      date: completedAt ? toDateKey(new Date(completedAt)) : toDateKey(now),
+      createdAt: completedAt || now.toISOString(),
       tone: item.tone,
     });
   }
@@ -890,4 +891,10 @@ export function shortDate(value: string) {
 function isDateKey(value: string) {
   const parsed = new Date(`${value}T00:00:00`);
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(parsed.getTime()) && toDateKey(parsed) === value;
+}
+
+function validIsoTimestamp(value?: string) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value ? value : "";
 }

@@ -554,6 +554,25 @@ describe("run metrics", () => {
     expect(events.some((event) => event.type === "weekly-recap" && event.title === "Weekly recap posted")).toBe(true);
   });
 
+  it("falls back challenge feed timestamps when legacy completion timestamps are invalid", () => {
+    const events = buildFeedEvents(
+      [
+        { id: "old-1", memberId: "shane", miles: 3, date: "2026-05-12", createdAt: "2026-05-12T12:00:00Z" },
+        { id: "old-2", memberId: "molly", miles: 3, date: "2026-05-13", createdAt: "2026-05-13T12:00:00Z" },
+        { id: "1", memberId: "shane", miles: 4, date: "2026-05-18", createdAt: "not-an-iso-date" },
+        { id: "2", memberId: "molly", miles: 4, date: "2026-05-19", createdAt: "2026-05-19T12:00:00Z" },
+      ],
+      members,
+      100,
+      now,
+    );
+
+    expect(events.find((event) => event.id === "challenge-2026-05-18:weekly-mileage")).toMatchObject({
+      date: "2026-05-22",
+      createdAt: "2026-05-22T12:00:00.000Z",
+    });
+  });
+
   it("emits family-week achievement only once per week", () => {
     const events = buildFeedEvents(
       [

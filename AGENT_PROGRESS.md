@@ -2523,3 +2523,23 @@
   - Keep API and store date validation strict for new runs.
 - Skipped ideas:
   - Did not migrate or rewrite legacy run dates.
+
+### Increment 130: Challenge Feed Timestamp Guard
+
+- What changed: Added ISO timestamp validation for challenge feed events and fallback dates when legacy completion timestamps are invalid.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added feed event coverage for invalid legacy challenge completion timestamps.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep run `createdAt` validation strict for newly written runs.
+- Skipped ideas:
+  - Did not mutate legacy run records; feed rendering now handles them safely.
