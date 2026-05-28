@@ -2383,3 +2383,23 @@
   - Keep `createGroup` and `updateGroupGoal` as the authoritative write-side validation.
 - Skipped ideas:
   - Did not migrate old files; this keeps reads safe without touching user data.
+
+### Increment 123: Export History Blank Code Fallback
+
+- What changed: Added a stable fallback local-storage key for export history when legacy group codes are blank.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/export-history.ts`
+  - `lib/__tests__/export-history.test.ts`
+- Tests added/updated:
+  - Added export history coverage for blank group code keys.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/export-history.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep real group codes validated by normal group creation.
+- Skipped ideas:
+  - Did not migrate existing browser local-storage entries.

@@ -6,7 +6,7 @@ const prefix = "runcomp:export-history:";
 const exportTypes: ExportType[] = ["json", "csv"];
 
 export function exportHistoryKey(groupCode: string) {
-  return `${prefix}${groupCode.trim().toLowerCase()}`;
+  return `${prefix}${groupCode.trim().toLowerCase() || "group"}`;
 }
 
 export function readExportHistory(storage: Pick<Storage, "getItem">, groupCode: string): ExportHistory {

@@ -13,6 +13,14 @@ describe("export history", () => {
     expect(window.localStorage.getItem(exportHistoryKey("123"))).toBe(JSON.stringify({ json: "2026-05-28T12:34:00.000Z" }));
   });
 
+  it("uses a stable fallback key for blank legacy group codes", () => {
+    const history = recordExportRequest(window.localStorage, "  ", "csv", new Date("2026-05-28T12:34:00.000Z"));
+
+    expect(history).toEqual({ csv: "2026-05-28T12:34:00.000Z" });
+    expect(exportHistoryKey("  ")).toBe("runcomp:export-history:group");
+    expect(readExportHistory(window.localStorage, "")).toEqual({ csv: "2026-05-28T12:34:00.000Z" });
+  });
+
   it("preserves the other export type when recording a new request", () => {
     recordExportRequest(window.localStorage, "123", "json", new Date("2026-05-28T12:34:00.000Z"));
     const history = recordExportRequest(window.localStorage, "123", "csv", new Date("2026-05-28T13:00:00.000Z"));
