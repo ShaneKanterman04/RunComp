@@ -380,6 +380,7 @@ export async function removePushSubscription(groupId: string, endpoint: string, 
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    if (!group.members.some((member) => member.id === memberId)) throw new StoreError("Member not found.", 404);
     const before = group.pushSubscriptions?.length || 0;
     group.pushSubscriptions = (group.pushSubscriptions || []).filter((subscription) => subscription.endpoint !== clean || subscription.memberId !== memberId);
     await writeStore(store);

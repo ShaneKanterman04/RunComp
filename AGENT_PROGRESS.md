@@ -1962,3 +1962,23 @@
   - Keep auth helper normalization aligned with route/store id handling.
 - Skipped ideas:
   - Did not change token shape, role semantics, or TTLs.
+
+### Increment 102: Push Unsubscribe Actor Validation
+
+- What changed: Updated `removePushSubscription` to reject missing member actors before mutating push subscription state.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended push subscription store coverage for valid endpoint removals by missing members.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep push store actor checks aligned with route session ownership.
+- Skipped ideas:
+  - Did not alter the existing same-group different-member behavior; that still returns no removals.

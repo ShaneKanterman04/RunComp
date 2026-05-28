@@ -362,6 +362,10 @@ describe("file-backed store", () => {
     });
     await expect(store.listPushSubscriptions("missing-group")).rejects.toMatchObject({ status: 404 });
     await expect(store.removePushSubscription(group.id, "not-an-endpoint", "missing-member")).rejects.toMatchObject({ status: 400 });
+    await expect(store.removePushSubscription(group.id, subscription.endpoint, "missing-member")).rejects.toMatchObject({
+      message: "Member not found.",
+      status: 404,
+    });
   });
 
   it("does not let one member remove another member's push subscription", async () => {
