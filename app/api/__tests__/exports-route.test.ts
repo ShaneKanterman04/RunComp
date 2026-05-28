@@ -69,6 +69,8 @@ describe("/api/exports", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe("text/csv; charset=utf-8");
     expect(response.headers.get("Content-Disposition")).toMatch(/^attachment; filename="runcomp-123-runs-\d{4}-\d{2}-\d{2}\.csv"$/);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(await response.text()).toContain("2026-05-22,Molly,3.00");
     expect(exportRunsCsv).toHaveBeenCalledWith("group-1");
     expect(exportGroupBackup).not.toHaveBeenCalled();
@@ -187,6 +189,8 @@ describe("/api/exports", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Disposition")).toMatch(/^attachment; filename="runcomp-123-backup-\d{4}-\d{2}-\d{2}\.json"$/);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(await readJson(response)).toMatchObject({ version: 1, group: { code: "123" } });
     expect(exportGroupBackup).toHaveBeenCalledWith("group-1");
   });

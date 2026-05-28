@@ -2180,3 +2180,23 @@
   - Keep deeper endpoint/key length validation in the store as the persistence boundary.
 - Skipped ideas:
   - Did not add browser push setup changes; this increment only improves API validation clarity.
+
+### Increment 113: Export Download Header Hardening
+
+- What changed: Added `Cache-Control: no-store` and `X-Content-Type-Options: nosniff` headers to CSV exports and owner JSON backups.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/exports/route.ts`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Extended export route tests to assert hardened download headers for CSV and JSON backup responses.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep export responses intentionally simple and file-backed for local deployments.
+- Skipped ideas:
+  - Did not add encrypted backups or external storage because the app should stay local-first and secret-free.

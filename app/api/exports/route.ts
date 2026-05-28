@@ -22,6 +22,8 @@ export async function GET(request: Request) {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
           "Content-Disposition": `attachment; filename="runcomp-${filenameCode}-runs-${stamp}.csv"`,
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
         },
       });
     }
@@ -32,6 +34,8 @@ export async function GET(request: Request) {
     return NextResponse.json(backup, {
       headers: {
         "Content-Disposition": `attachment; filename="runcomp-${filenameCode}-backup-${stamp}.json"`,
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {
