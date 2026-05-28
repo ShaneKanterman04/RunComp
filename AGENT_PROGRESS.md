@@ -1803,3 +1803,23 @@
   - Keep unsupported export format errors explicit if more formats are added.
 - Skipped ideas:
   - Did not add new export formats; this only makes the existing API more forgiving.
+
+### Increment 94: Blank Optional Setup Goal Default
+
+- What changed: Updated group creation goal parsing so a whitespace-only optional goal uses the default race goal instead of returning a validation error.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Added group route coverage for blank optional setup goals defaulting to 100 miles.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep owner goal updates strict while first-run setup remains forgiving for optional fields.
+- Skipped ideas:
+  - Did not change invalid numeric goal handling; malformed goal strings still return a clear validation error.
