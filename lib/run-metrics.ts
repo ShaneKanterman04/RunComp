@@ -132,7 +132,6 @@ export function buildBadges(stats: RunnerStats, runs: MetricRunEntry[] = [], mem
   const notes = runnerRuns.map((run) => run.note?.toLowerCase() || "");
   if (stats.runCount > 0) badges.push({ id: "first-run", label: "First run", tone: "green" });
   if (stats.longest >= 3.1) badges.push({ id: "five-k", label: "5K logged", tone: "green" });
-  if (stats.longest >= 3.1) badges.push({ id: "first-5k", label: "First 5K", tone: "green" });
   if (stats.week >= 10) badges.push({ id: "ten-mile-week", label: "10 mi week", tone: "blue" });
   if (stats.longest >= 6.2) badges.push({ id: "ten-k-pr", label: "10K run", tone: "rose" });
   if (stats.longest >= 7) badges.push({ id: "main-character", label: "Main character run", tone: "gold" });

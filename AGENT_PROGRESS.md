@@ -478,3 +478,22 @@
   - Consider reducing duplicate 5K achievement labels in a separate behavior-focused increment.
 - Skipped ideas:
   - Did not add a component-render test for the full page; the derivation logic is covered at the metrics layer.
+
+### Increment 25: Cleaner 5K Achievement Shelf
+
+- What changed: Removed the duplicate 5K achievement so runner shelves no longer show both `5K logged` and `First 5K` for the same longest-run threshold.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Updated badge expectation tests to assert a single 5K achievement.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Revisit rarity thresholds later if real groups feel too slow or too fast to progress after the duplicate badge removal.
+- Skipped ideas:
+  - Did not add new achievements; this was a focused cleanup of existing profile output.

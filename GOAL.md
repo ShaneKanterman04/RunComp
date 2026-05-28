@@ -228,3 +228,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Twenty-second increment removed trusted caller roles from store-level run deletion authorization.
 - 2026-05-28: Twenty-third increment required persisted members for store-level run reactions.
 - 2026-05-28: Twenty-fourth increment made runner profile titles and card rarity more prominent with tested shared metric helpers.
+- 2026-05-28: Twenty-fifth increment removed duplicate 5K achievement badges from runner shelves.

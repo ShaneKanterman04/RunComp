@@ -156,7 +156,6 @@ describe("run metrics", () => {
     expect(badges.map((badge) => badge.id)).toEqual([
       "first-run",
       "five-k",
-      "first-5k",
       "ten-mile-week",
       "ten-k-pr",
       "main-character",
@@ -196,7 +195,6 @@ describe("run metrics", () => {
     expect(badges.map((badge) => badge.id)).toEqual([
       "first-run",
       "five-k",
-      "first-5k",
       "suspiciously-fast",
       "weekend-warrior",
       "touched-grass",
