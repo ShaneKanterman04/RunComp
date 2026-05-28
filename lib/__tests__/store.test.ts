@@ -370,6 +370,27 @@ describe("file-backed store", () => {
     ]);
   });
 
+  it("normalizes challenge completion claims before writing", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+
+    await expect(
+      store.claimChallengeCompletions(group.id, [" 2026-05-18:weekly-mileage ", "", "2026-05-18:weekly-mileage"]),
+    ).resolves.toEqual(["2026-05-18:weekly-mileage"]);
+    await expect(store.claimChallengeCompletions(group.id, [" ", ""])).resolves.toEqual([]);
+    await expect(store.claimChallengeCompletions("missing-group", ["2026-05-18:weekly-mileage"])).rejects.toMatchObject({
+      message: "Run group not found.",
+      status: 404,
+    });
+  });
+
   it("exports sanitized JSON backups and spreadsheet-friendly runs CSV", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

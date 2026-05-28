@@ -1203,3 +1203,21 @@
   - Add similar focused notification tests only when route notification behavior changes.
 - Skipped ideas:
   - Did not change challenge calculation or notification behavior; this locks the existing duplicate-notification guard.
+
+### Increment 64: Challenge Claim Normalization Coverage
+
+- What changed: Added store coverage for challenge completion claim trimming, duplicate removal, blank input handling, and missing-group errors.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one `claimChallengeCompletions` regression test for normalized ids and 404 errors.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep challenge claim tests aligned if persisted completion ids change format.
+- Skipped ideas:
+  - Did not change challenge claim behavior; this locks existing persistence normalization.
