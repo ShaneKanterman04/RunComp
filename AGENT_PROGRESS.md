@@ -964,3 +964,21 @@
   - Extract Settings into smaller tested components if more UI-specific behavior is added.
 - Skipped ideas:
   - Did not duplicate logout controls inside the new row; existing switch-group and logout buttons remain in the same group/settings panel.
+
+### Increment 51: Login Response Sanitization Coverage
+
+- What changed: Added store coverage proving password login returns sanitized public group/member data without credential fields.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one store login regression test that checks the response shape and verifies `passwordHash`, `salt`, and the plaintext password are absent.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep session route tests aligned with store public data if the login response shape changes.
+- Skipped ideas:
+  - Did not change login behavior; this locks the existing public-data boundary.

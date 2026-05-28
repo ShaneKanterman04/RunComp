@@ -45,6 +45,26 @@ describe("file-backed store", () => {
     expect(raw.groups[0].members[0]).not.toHaveProperty("password");
   });
 
+  it("returns sanitized public group and member data after login", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({
+      groupName: "Shane vs Molly",
+      ownerName: "Shane",
+      password: "password123",
+    });
+
+    const login = await store.login({ groupCode: group.code, memberName: "Shane", password: "password123" });
+    const loginText = JSON.stringify(login);
+
+    expect(login).toMatchObject({ group: { code: group.code }, member: { name: "Shane", role: "owner" } });
+    expect(loginText).not.toContain("passwordHash");
+    expect(loginText).not.toContain("salt");
+    expect(loginText).not.toContain("password123");
+  });
+
   it("keeps group codes unique and rejects duplicate member names", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
