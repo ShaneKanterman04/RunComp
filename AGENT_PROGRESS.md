@@ -2818,3 +2818,19 @@
   - Keep route normalization explicit so store methods do not receive avoidable whitespace variants.
 - Skipped ideas:
   - Did not trim passwords; passwords remain exact user input except for blank validation.
+
+### Increment 144: Auth Form Submit Guards
+
+- What changed: Added client-side submit guards and disabled button states for join/create auth forms based on the same required fields, password length, and race-goal bounds enforced by the API.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+- Tests added/updated:
+  - Not practical in the current page-level test structure; covered by TypeScript and production build validation.
+- Validation commands run:
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider extracting auth/settings forms into smaller components with targeted interaction tests.
+- Skipped ideas:
+  - Did not change server-side validation or auth behavior.

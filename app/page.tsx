@@ -1465,6 +1465,16 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [busy, setBusy] = useState(false);
   const [localMessage, setLocalMessage] = useState(message);
+  const createGoalMiles = Number(createForm.goalMiles);
+  const canSubmitLogin = loginForm.groupCode.trim().length > 0 && loginForm.password.trim().length > 0;
+  const canSubmitCreate =
+    createForm.groupName.trim().length > 0 &&
+    createForm.ownerName.trim().length > 0 &&
+    createForm.password.trim().length >= 8 &&
+    Number.isFinite(createGoalMiles) &&
+    createGoalMiles >= 1 &&
+    createGoalMiles <= 10000;
+  const canSubmitAuth = mode === "login" ? canSubmitLogin : canSubmitCreate;
 
   useEffect(() => {
     setRecentGroups(readRecentGroups());
@@ -1521,7 +1531,7 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || !canSubmitAuth) return;
     setBusy(true);
     setLocalMessage("");
 
@@ -1648,7 +1658,7 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
                 Runner password
                 <input type="password" value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} required />
               </label>
-              <button className="primaryButton" disabled={busy}>{busy ? "Joining..." : "Join trail"}</button>
+              <button className="primaryButton" disabled={busy || !canSubmitLogin}>{busy ? "Joining..." : "Join trail"}</button>
             </>
           ) : (
             <>
@@ -1684,7 +1694,7 @@ function AuthScreen({ onAuthenticated, message }: { onAuthenticated: (data: Sess
                   required
                 />
               </label>
-              <button className="primaryButton" disabled={busy}>{busy ? "Creating..." : "Create run group"}</button>
+              <button className="primaryButton" disabled={busy || !canSubmitCreate}>{busy ? "Creating..." : "Create run group"}</button>
             </>
           )}
         </form>
