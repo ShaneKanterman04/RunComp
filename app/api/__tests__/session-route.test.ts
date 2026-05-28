@@ -62,11 +62,11 @@ describe("/api/session", () => {
     expect(await readJson(response)).toEqual({ error: "RunComp could not load sessions." });
   });
 
-  it("logs in with group code, member name, and password", async () => {
+  it("logs in with trimmed group code and member name plus exact password", async () => {
     jest.mocked(login).mockResolvedValue({ group, member });
     jest.mocked(getGroupContext).mockResolvedValue(context as never);
 
-    const response = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly", password: "password123" }));
+    const response = await POST(jsonRequest("/api/session", { groupCode: " 123 ", memberName: " Molly ", password: "password123" }));
 
     expect(response.status).toBe(200);
     expect(login).toHaveBeenCalledWith({ groupCode: "123", memberName: "Molly", password: "password123" });

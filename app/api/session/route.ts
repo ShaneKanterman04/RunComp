@@ -46,10 +46,12 @@ export async function POST(request: Request) {
     if (typeof body.password !== "string" || !body.password.trim()) {
       return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
     }
+    const groupCode = body.groupCode.trim();
+    const memberName = typeof body.memberName === "string" ? body.memberName.trim() : "";
 
     const { group, member } = await login({
-      groupCode: typeof body.groupCode === "string" ? body.groupCode : "",
-      memberName: typeof body.memberName === "string" ? body.memberName : "",
+      groupCode,
+      memberName,
       password: typeof body.password === "string" ? body.password : "",
     });
     await setSessionCookie({ groupId: group.id, memberId: member.id, role: member.role });

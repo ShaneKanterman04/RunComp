@@ -2800,3 +2800,21 @@
   - Continue moving profile-only calculations into tested metrics helpers when they carry data assumptions.
 - Skipped ideas:
   - Did not change profile layout or add new chart components.
+
+### Increment 143: Session Login Route Normalization
+
+- What changed: Trimmed group code and runner name at the session route boundary before password login while preserving the password exactly.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/session/route.ts`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Updated session route coverage to assert trimmed group code and runner name reach `login`.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/session-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep route normalization explicit so store methods do not receive avoidable whitespace variants.
+- Skipped ideas:
+  - Did not trim passwords; passwords remain exact user input except for blank validation.
