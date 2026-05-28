@@ -21,7 +21,8 @@ export async function POST(request: Request) {
   try {
     const session = await requireSession();
     const body = await request.json();
-    const payload = body as Record<string, unknown>;
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
+    const payload = body;
     const miles = typeof payload.miles === "number" ? payload.miles : Number(payload.miles);
     const durationSeconds =
       typeof payload.durationSeconds === "number"
@@ -84,7 +85,8 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const session = await requireSession();
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const id = typeof body.id === "string" ? body.id : "";
     const reaction = typeof body.reaction === "string" ? body.reaction : "";
     if (!id) return NextResponse.json({ error: "Missing run id." }, { status: 400 });
@@ -109,6 +111,10 @@ function leaderForRuns(runs: Array<{ memberId: string; runner: string; miles: nu
 
 function isReactionType(value: string): value is ReactionType {
   return value === "fire" || value === "nice" || value === "brutal" || value === "sus" || value === "respect" || value === "catching" || value === "monster" || value === "suspicious";
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export async function DELETE(request: Request) {

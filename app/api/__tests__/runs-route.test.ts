@@ -94,10 +94,13 @@ describe("/api/runs", () => {
   });
 
   it("validates run input before writing", async () => {
+    const badBody = await POST(jsonRequest("/api/runs", null));
     const badMiles = await POST(jsonRequest("/api/runs", { miles: 0, date: "2026-05-22" }));
     const badDate = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-02-31" }));
     const badDuration = await POST(jsonRequest("/api/runs", { miles: 3, date: "2026-05-22", durationSeconds: 172801 }));
 
+    expect(badBody.status).toBe(400);
+    expect(await readJson(badBody)).toEqual({ error: "Send a JSON object." });
     expect(badMiles.status).toBe(400);
     expect(await readJson(badMiles)).toEqual({ error: "Miles must be between 0 and 100." });
     expect(badDate.status).toBe(400);
@@ -136,10 +139,13 @@ describe("/api/runs", () => {
   it("toggles supported reactions and rejects malformed reaction requests", async () => {
     jest.mocked(toggleRunReaction).mockResolvedValue({ ...run, reactions: [{ type: "fire", count: 1, reactedByMe: true }] });
 
+    const badBody = await PATCH(jsonRequest("/api/runs", null, "PATCH"));
     const missingId = await PATCH(jsonRequest("/api/runs", { reaction: "fire" }, "PATCH"));
     const badReaction = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "sparkle" }, "PATCH"));
     const response = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "fire" }, "PATCH"));
 
+    expect(badBody.status).toBe(400);
+    expect(await readJson(badBody)).toEqual({ error: "Send a JSON object." });
     expect(missingId.status).toBe(400);
     expect(await readJson(missingId)).toEqual({ error: "Missing run id." });
     expect(badReaction.status).toBe(400);

@@ -630,3 +630,22 @@
   - Range limits remain enforced in the store so API and store behavior stay consistent.
 - Skipped ideas:
   - Did not add new goal units or per-runner goals; this only tightens existing race-goal input handling.
+
+### Increment 33: Run Route JSON Body Guards
+
+- What changed: Added object-shape validation for `/api/runs` POST and PATCH requests so non-object JSON payloads return a clear 400 instead of causing field access failures.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for null run-log and reaction request bodies.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider extracting shared JSON object guards if more route handlers need the same hardening.
+- Skipped ideas:
+  - Did not change run field validation messages; existing miles/date/duration/reaction checks remain intact.
