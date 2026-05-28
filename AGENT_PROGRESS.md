@@ -768,3 +768,21 @@
   - Add component-level settings tests if the settings panel is extracted into smaller components.
 - Skipped ideas:
   - Did not add restore/import workflow; this only makes existing exports easier to reach.
+
+### Increment 40: Most-Consistent Challenge Timestamp Coverage
+
+- What changed: Added regression coverage for the most-consistent challenge winner, target, completion state, and `completedAt` timestamp.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Added one focused run-metrics test for the most-consistent weekly challenge.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue adding calculation regression tests around challenge and feed behavior before changing those flows.
+- Skipped ideas:
+  - Did not change challenge calculation behavior; this only documents and locks the existing behavior.

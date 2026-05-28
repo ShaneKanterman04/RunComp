@@ -427,6 +427,27 @@ describe("run metrics", () => {
     });
   });
 
+  it("marks most-consistent challenges complete on the target run", () => {
+    const challenges = buildFamilyChallenges(
+      [
+        { id: "1", memberId: "shane", miles: 2, date: "2026-05-18", createdAt: "2026-05-18T12:00:00Z" },
+        { id: "2", memberId: "shane", miles: 2, date: "2026-05-19", createdAt: "2026-05-19T12:00:00Z" },
+        { id: "3", memberId: "shane", miles: 2, date: "2026-05-20", createdAt: "2026-05-20T12:00:00Z" },
+        { id: "4", memberId: "molly", miles: 2, date: "2026-05-21", createdAt: "2026-05-21T12:00:00Z" },
+      ],
+      members,
+      now,
+    );
+
+    expect(challenges.find((challenge) => challenge.type === "most-consistent")).toMatchObject({
+      value: 3,
+      target: 3,
+      complete: true,
+      winner: "Shane",
+      completedAt: "2026-05-20T12:00:00Z",
+    });
+  });
+
   it("adds completed challenge and weekly recap moments to the feed", () => {
     const events = buildFeedEvents(
       [
