@@ -83,6 +83,16 @@ describe("/api/push", () => {
     expect(await readJson(response)).toEqual({ ok: true });
   });
 
+  it("rejects non-object subscription save requests before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+
+    const response = await POST(jsonRequest("/api/push", null));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(savePushSubscription).not.toHaveBeenCalled();
+  });
+
   it("removes subscriptions only for the signed-in member", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
     jest.mocked(removePushSubscription).mockResolvedValue({ removed: 1 });
@@ -92,6 +102,16 @@ describe("/api/push", () => {
     expect(response.status).toBe(200);
     expect(removePushSubscription).toHaveBeenCalledWith("group-1", "https://push.example.test/1", "member-1");
     expect(await readJson(response)).toEqual({ ok: true });
+  });
+
+  it("rejects non-object subscription removal requests before store mutation", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+
+    const response = await DELETE(jsonRequest("/api/push", null, "DELETE"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Send a JSON object." });
+    expect(removePushSubscription).not.toHaveBeenCalled();
   });
 
   it("requires a signed-in session before removing subscriptions", async () => {

@@ -13,7 +13,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await requireSession();
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const subscription = body.subscription as { endpoint?: unknown; keys?: { p256dh?: unknown; auth?: unknown } } | undefined;
     await savePushSubscription(session.group.id, session.member.id, {
       endpoint: typeof subscription?.endpoint === "string" ? subscription.endpoint : "",
@@ -32,7 +33,8 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const session = await requireSession();
-    const body = (await request.json()) as Record<string, unknown>;
+    const body = await request.json();
+    if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
     await removePushSubscription(session.group.id, endpoint, session.member.id);
     return NextResponse.json({ ok: true });
@@ -48,4 +50,8 @@ function errorResponse(error: unknown) {
   }
   const storeError = storeErrorResponse(error);
   return NextResponse.json({ error: storeError.message }, { status: storeError.status });
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }

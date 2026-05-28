@@ -668,3 +668,22 @@
   - Consider extracting shared JSON object guards after the remaining mutable JSON routes are hardened.
 - Skipped ideas:
   - Did not change invite token content or expiration behavior.
+
+### Increment 35: Push Route JSON Body Guards
+
+- What changed: Added object-shape validation for `/api/push` POST and DELETE requests so malformed push subscription payloads return clear 400 responses before store calls.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/push/route.ts`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Added route coverage for null push subscription save and removal request bodies.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Push subscription field validation still lives in the store, which keeps endpoint/key constraints centralized.
+- Skipped ideas:
+  - Did not expand the push system or add per-event toggles.
