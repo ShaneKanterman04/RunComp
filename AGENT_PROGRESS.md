@@ -2665,3 +2665,24 @@
   - Keep list and metric calculations aligned on legacy mileage normalization.
 - Skipped ideas:
   - Did not alter persisted legacy runs.
+
+## Session Summary: 2026-05-28 Increments 131-136
+
+- Commits made:
+  - `9e63603 fix: hide invalid run pace copy`
+  - `72a7993 fix: clamp negative mileage display`
+  - `e37c115 fix: ignore invalid mileage in metrics`
+  - `6ee4615 fix: clarify run mileage validation`
+  - `6570394 docs: document validation gate`
+  - `f473e76 fix: guard lead notifications against invalid mileage`
+- Features/fixes completed:
+  - Added a shared run pace formatter and hid unavailable pace copy for malformed legacy timed runs.
+  - Clamped negative mileage display and aggregate metric totals for non-positive legacy mileage.
+  - Kept lead-change notifications from being suppressed by old negative-mileage rows.
+  - Clarified run mileage validation copy in both route and store layers.
+  - Documented the local validation gate in the README.
+- Validation status:
+  - Latest full gate after code changes passed: `pnpm lint`, `pnpm test`, and `pnpm build`.
+- Remaining risks or recommended next steps:
+  - Legacy invalid rows are now guarded in key displays, metrics, and lead notifications, but stored data is intentionally left unchanged.
+  - Continue auditing older hand-edited data paths before adding any import/restore flow.
