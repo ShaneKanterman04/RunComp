@@ -40,6 +40,12 @@ export async function POST(request: Request) {
         members: context.members,
       });
     }
+    if (typeof body.groupCode !== "string" || !body.groupCode.trim()) {
+      return NextResponse.json({ error: "Trail code is required." }, { status: 400 });
+    }
+    if (typeof body.password !== "string" || !body.password.trim()) {
+      return NextResponse.json({ error: "Runner password is required." }, { status: 400 });
+    }
 
     const { group, member } = await login({
       groupCode: typeof body.groupCode === "string" ? body.groupCode : "",

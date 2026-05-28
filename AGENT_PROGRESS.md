@@ -1644,3 +1644,23 @@
   - Keep owner goal form validation aligned with server-side empty-value handling.
 - Skipped ideas:
   - Did not change valid default goal handling during group creation.
+
+### Increment 86: Password Login Required Field Validation
+
+- What changed: Updated `/api/session` password login to reject missing trail codes and runner passwords before calling store login.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/session/route.ts`
+  - `app/api/__tests__/session-route.test.ts`
+- Tests added/updated:
+  - Added session route coverage for missing trail codes and missing runner passwords.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/session-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep member name optional for unique-password login.
+- Skipped ideas:
+  - Did not change login semantics for valid invite tokens or password-only member lookup.

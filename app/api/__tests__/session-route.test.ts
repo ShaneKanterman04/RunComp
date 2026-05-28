@@ -106,6 +106,19 @@ describe("/api/session", () => {
     expect(setSessionCookie).not.toHaveBeenCalled();
   });
 
+  it("rejects missing password-login fields before auth work", async () => {
+    const missingCode = await POST(jsonRequest("/api/session", { password: "password123" }));
+    const missingPassword = await POST(jsonRequest("/api/session", { groupCode: "123", memberName: "Molly" }));
+
+    expect(missingCode.status).toBe(400);
+    expect(await readJson(missingCode)).toEqual({ error: "Trail code is required." });
+    expect(missingPassword.status).toBe(400);
+    expect(await readJson(missingPassword)).toEqual({ error: "Runner password is required." });
+    expect(login).not.toHaveBeenCalled();
+    expect(verifyInviteToken).not.toHaveBeenCalled();
+    expect(setSessionCookie).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed login JSON before auth work", async () => {
     const response = await POST(malformedJsonRequest("/api/session"));
 
