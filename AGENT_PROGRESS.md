@@ -928,3 +928,21 @@
   - Keep backup secrecy tests updated if recovery exports intentionally change shape.
 - Skipped ideas:
   - Did not add restore/import behavior; this only strengthens backup output regression coverage.
+
+### Increment 49: Missing-Group Export Store Coverage
+
+- What changed: Added store coverage proving backup and CSV export helpers return the expected 404 store error for stale or missing group ids.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one export helper regression test covering both `exportGroupBackup` and `exportRunsCsv` missing-group failures.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep route and store export error coverage aligned if export behavior changes.
+- Skipped ideas:
+  - Did not change export helper behavior; this documents the existing error contract.

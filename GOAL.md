@@ -252,3 +252,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Forty-sixth increment added export route store-error coverage.
 - 2026-05-28: Forty-seventh increment added JSON backup export error coverage.
 - 2026-05-28: Forty-eighth increment added backup push subscription secrecy coverage.
+- 2026-05-28: Forty-ninth increment added missing-group export store coverage.

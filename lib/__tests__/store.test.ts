@@ -366,6 +366,21 @@ describe("file-backed store", () => {
     expect(backupText).not.toContain("private-auth-key");
   });
 
+  it("rejects exports for missing groups", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    await expect(store.exportGroupBackup("missing-group")).rejects.toMatchObject({
+      message: "Run group not found.",
+      status: 404,
+    });
+    await expect(store.exportRunsCsv("missing-group")).rejects.toMatchObject({
+      message: "Run group not found.",
+      status: 404,
+    });
+  });
+
   it("neutralizes spreadsheet formulas in CSV exports", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
