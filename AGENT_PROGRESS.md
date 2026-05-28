@@ -2282,3 +2282,24 @@
   - Keep normal run creation strict so this remains a recovery/legacy-data guard.
 - Skipped ideas:
   - Did not clamp displayed totals, preserving visibility into bad imported or manually edited data.
+
+### Increment 118: Notification Copy Helper Coverage
+
+- What changed: Moved notification and install status copy into a tested helper and fixed the top notification prompt so subscribed devices read as enabled instead of off.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `lib/notification-copy.ts`
+  - `lib/__tests__/notification-copy.test.ts`
+- Tests added/updated:
+  - Added notification copy tests for subscribed, unsupported iOS browser, unsupported browser, and install status states.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/notification-copy.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider a browser-level notification settings test if app-shell tests expand.
+- Skipped ideas:
+  - Did not add per-event notification toggles because the current push model is intentionally simple.

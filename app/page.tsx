@@ -8,6 +8,13 @@ import { AnimatedMiles } from "./components/AnimatedCounter";
 import packageInfo from "@/package.json";
 import { formatExportTimestamp, readExportHistory, recordExportRequest, type ExportHistory } from "@/lib/export-history";
 import {
+  installSettingsCopy,
+  notificationPromptCopy,
+  notificationSettingsCopy,
+  pushButtonLabel,
+  type PushStatus,
+} from "@/lib/notification-copy";
+import {
   buildChartDays,
   buildBadges,
   buildComebackTargets,
@@ -91,7 +98,6 @@ type RunReaction = {
 };
 
 type AuthPayload = SessionData | { authenticated: false; error?: string };
-type PushStatus = "checking" | "unsupported" | "off" | "subscribed" | "denied" | "busy";
 type MobileTab = "home" | "log" | "feed" | "group";
 type CalledShot = {
   miles: number;
@@ -279,8 +285,9 @@ export default function Home() {
       ? "No miles logged yet. Share login links or add the first run yourself."
       : "No miles logged yet. Add another runner or log your first run."
     : "No miles logged yet. Log your first run and your group will see it here.";
-  const notificationSettings = notificationSettingsCopy(pushStatus);
-  const installSettings = installSettingsCopy();
+  const deviceContext = { isIosDevice: isIosDevice(), isStandaloneApp: isStandaloneApp() };
+  const notificationSettings = notificationSettingsCopy(pushStatus, deviceContext);
+  const installSettings = installSettingsCopy(deviceContext);
 
   function switchMobileTab(tab: MobileTab) {
     setMobileTab(tab);
@@ -1797,7 +1804,7 @@ function FirstRunEmptyState({
 }
 
 function NotificationPrompt({ status, groupName, onToggle }: { status: PushStatus; groupName: string; onToggle: () => void }) {
-  const copy = notificationPromptCopy(status, groupName);
+  const copy = notificationPromptCopy(status, groupName, { isIosDevice: isIosDevice(), isStandaloneApp: isStandaloneApp() });
   const canToggle = status === "off";
   const isWorking = status === "busy" || status === "checking";
 
@@ -1826,116 +1833,6 @@ function NotificationPrompt({ status, groupName, onToggle }: { status: PushStatu
       </div>
     </section>
   );
-}
-
-function notificationPromptCopy(status: PushStatus, groupName: string) {
-  if (status === "checking") {
-    return {
-      eyebrow: "Run alerts",
-      title: "Checking this device",
-      body: "RunComp is checking whether this device can receive group run notifications.",
-      status: "Checking",
-      action: "Checking...",
-    };
-  }
-
-  if (status === "busy") {
-    return {
-      eyebrow: "Run alerts",
-      title: "Turning alerts on",
-      body: "Approve the browser prompt to get notified when your group logs runs.",
-      status: "Working",
-      action: "Turning on...",
-    };
-  }
-
-  if (status === "denied") {
-    return {
-      eyebrow: "Run alerts",
-      title: "Notifications are blocked",
-      body: "RunComp cannot ask again from here. Allow notifications for this site in device or browser settings, then return to this screen.",
-      status: "Blocked",
-      action: "Blocked in settings",
-    };
-  }
-
-  if (status === "unsupported") {
-    const onIosBrowser = isIosDevice() && !isStandaloneApp();
-    return {
-      eyebrow: "Run alerts",
-      title: onIosBrowser ? "Open RunComp from your Home Screen" : "Notifications are not available here",
-      body: onIosBrowser
-        ? "iPhone push alerts work from the installed Home Screen app. Add RunComp there, open that icon, then enable alerts."
-        : "This browser or device does not expose web push notifications to RunComp.",
-      status: onIosBrowser ? "Home Screen needed" : "Unavailable",
-      action: onIosBrowser ? "Needs Home Screen app" : "Unavailable",
-      steps: onIosBrowser ? ["Tap Share in Safari.", "Choose Add to Home Screen.", "Open RunComp from the new icon."] : undefined,
-    };
-  }
-
-  return {
-    eyebrow: "Run alerts",
-    title: "Turn on group notifications",
-    body: `Get a notification on this device when anyone in ${groupName} logs a run.`,
-    status: "Off",
-    action: "Turn on notifications",
-  };
-}
-
-function notificationSettingsCopy(status: PushStatus) {
-  switch (status) {
-    case "checking":
-      return {
-        title: "Checking this device",
-        body: "RunComp is checking this browser's alert subscription.",
-      };
-    case "busy":
-      return {
-        title: "Updating alerts",
-        body: "RunComp is updating this device's push subscription.",
-      };
-    case "subscribed":
-      return {
-        title: "Alerts are on",
-        body: "This device is subscribed to run, lead-change, close-call, and challenge alerts.",
-      };
-    case "denied":
-      return {
-        title: "Alerts are blocked",
-        body: "Allow notifications in browser or device settings, then return to RunComp.",
-      };
-    case "unsupported":
-      return {
-        title: "Alerts are unavailable",
-        body: isIosDevice() && !isStandaloneApp() ? "Install RunComp to the Home Screen, then open that icon to enable iPhone alerts." : "This browser or device does not support RunComp push alerts.",
-      };
-    default:
-      return {
-        title: "Alerts are off",
-        body: "Turn on alerts on this device to hear about family runs and race changes.",
-      };
-  }
-}
-
-function installSettingsCopy() {
-  if (isStandaloneApp()) {
-    return {
-      title: "Opening like an app",
-      body: "RunComp is running from an installed app window on this device.",
-    };
-  }
-
-  if (isIosDevice()) {
-    return {
-      title: "Browser mode",
-      body: "Add RunComp to the Home Screen for app-style launch and iPhone push alerts.",
-    };
-  }
-
-  return {
-    title: "Browser mode",
-    body: "RunComp can be installed from this browser's app or install menu when supported.",
-  };
 }
 
 function buildInviteUrl(groupCode: string) {
@@ -2056,25 +1953,6 @@ function isStandaloneApp() {
 
 function supportsPushNotifications() {
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
-}
-
-function pushButtonLabel(status: PushStatus) {
-  switch (status) {
-    case "checking":
-      return "Checking alerts...";
-    case "busy":
-      return "Updating alerts...";
-    case "subscribed":
-      return "Alerts on";
-    case "denied":
-      return "Alerts blocked";
-    case "unsupported":
-      return "Alerts unavailable";
-    case "off":
-      return "Turn on alerts";
-    default:
-      return "Turn on alerts";
-  }
 }
 
 function urlBase64ToUint8Array(value: string) {

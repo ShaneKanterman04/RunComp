@@ -321,3 +321,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: One hundred fifteenth increment added head-to-head profile totals and run counts.
 - 2026-05-28: One hundred sixteenth increment rounded aggregate mileage before head-to-head comparison.
 - 2026-05-28: One hundred seventeenth increment kept chart bars empty for non-positive legacy mileage.
+- 2026-05-28: One hundred eighteenth increment fixed subscribed notification prompt copy.
