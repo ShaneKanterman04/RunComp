@@ -81,6 +81,24 @@ describe("file-backed store", () => {
     });
   });
 
+  it("rejects duplicate or missing runner management changes", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    await store.addMember(group.id, { name: "Dad", password: "password789" });
+
+    await expect(store.updateMemberName(group.id, molly.id, " dad ")).rejects.toMatchObject({ status: 409 });
+    await expect(store.updateMemberName(group.id, "missing", "New Name")).rejects.toMatchObject({ status: 404 });
+    await expect(store.resetMemberPassword(group.id, "missing", "newpassword")).rejects.toMatchObject({ status: 404 });
+    await expect(store.resetMemberPassword(group.id, molly.id, "short")).rejects.toMatchObject({ status: 400 });
+    await expect(store.login({ groupCode: group.code, memberName: "Molly", password: "password456" })).resolves.toMatchObject({
+      member: { id: molly.id },
+    });
+  });
+
   it("removes only inactive non-owner runners", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

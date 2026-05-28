@@ -341,3 +341,20 @@
   - Add challenge notification payload tests if challenge copy changes become more frequent.
 - Skipped ideas:
   - Did not change push behavior; this increment pins existing cleanup and payload behavior.
+
+### Increment 18: Member Management Store Regression Tests
+
+- What changed: Added store regression coverage for duplicate display-name edits, missing runner edits, missing runner password resets, invalid password resets, and preserving existing credentials after rejected changes.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added 1 focused store test covering multiple owner member-management failure paths.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add UI-level tests only if member-management controls get split into a renderable component.
+- Skipped ideas:
+  - Did not change member-management behavior; the existing store checks were correct and now have stronger regression coverage.
