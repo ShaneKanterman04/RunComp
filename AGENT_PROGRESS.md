@@ -820,3 +820,21 @@
   - Add cookie clear/set option tests only if session cookie behavior changes.
 - Skipped ideas:
   - Did not change auth behavior; this documents the existing server-side identity boundary.
+
+### Increment 43: Invalid Session Cookie Coverage
+
+- What changed: Added auth coverage proving malformed session cookies return no session before loading group context.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/auth.test.ts`
+- Tests added/updated:
+  - Added one session-cookie test that mocks `next/headers` and confirms invalid cookies short-circuit before store context lookup.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/auth.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue adding narrow auth/session regression tests around cookie clearing and required-session failures if those paths change.
+- Skipped ideas:
+  - Did not change auth behavior; this increment only locks the existing invalid-cookie handling.

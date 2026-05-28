@@ -103,4 +103,21 @@ describe("auth sessions", () => {
     expect(session?.claims.role).toBe("owner");
     expect(session?.member.role).toBe("member");
   });
+
+  it("ignores invalid session cookies before loading group context", async () => {
+    jest.resetModules();
+    process.env.RUNCOMP_SECRET = "test-secret";
+    const cookieStore = {
+      get: jest.fn(() => ({ value: "not-a-token" })),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    const getGroupContext = jest.fn();
+    jest.doMock("next/headers", () => ({ cookies: jest.fn(async () => cookieStore) }));
+    jest.doMock("@/lib/store", () => ({ getGroupContext }));
+    const auth = await import("../auth");
+
+    await expect(auth.getCurrentSession()).resolves.toBeNull();
+    expect(getGroupContext).not.toHaveBeenCalled();
+  });
 });
