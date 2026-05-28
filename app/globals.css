@@ -1391,6 +1391,33 @@ input:invalid:not(:placeholder-shown) {
   font-size: 12px;
 }
 
+.notificationSettingsBlock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ebe4d7;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 12px;
+}
+
+.notificationSettingsBlock > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.notificationSettingsBlock strong {
+  font-size: 15px;
+}
+
+.notificationSettingsBlock span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .memberGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
@@ -2871,6 +2898,11 @@ input:invalid:not(:placeholder-shown) {
   }
 
   .inviteBox {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notificationSettingsBlock {
     align-items: stretch;
     flex-direction: column;
   }

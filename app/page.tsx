@@ -274,6 +274,7 @@ export default function Home() {
       ? "No miles logged yet. Share login links or add the first run yourself."
       : "No miles logged yet. Add another runner or log your first run."
     : "No miles logged yet. Log your first run and your group will see it here.";
+  const notificationSettings = notificationSettingsCopy(pushStatus);
 
   function switchMobileTab(tab: MobileTab) {
     setMobileTab(tab);
@@ -1089,6 +1090,23 @@ export default function Home() {
               </button>
             </div>
           )}
+          <div className="notificationSettingsBlock">
+            <div>
+              <p className="eyebrow">Notifications</p>
+              <strong>{notificationSettings.title}</strong>
+              <span>{notificationSettings.body}</span>
+            </div>
+            {pushStatus !== "unsupported" && (
+              <button
+                className={`ghostButton alertButton ${pushStatus === "subscribed" ? "alertButtonOn" : ""}`}
+                type="button"
+                onClick={togglePushNotifications}
+                disabled={pushStatus === "busy" || pushStatus === "checking" || pushStatus === "denied"}
+              >
+                {pushButtonLabel(pushStatus)}
+              </button>
+            )}
+          </div>
           <div className="memberGrid">
             <div className="memberList">
               {members.map((member) => (
@@ -1819,6 +1837,41 @@ function notificationPromptCopy(status: PushStatus, groupName: string) {
   };
 }
 
+function notificationSettingsCopy(status: PushStatus) {
+  switch (status) {
+    case "checking":
+      return {
+        title: "Checking this device",
+        body: "RunComp is checking this browser's alert subscription.",
+      };
+    case "busy":
+      return {
+        title: "Updating alerts",
+        body: "RunComp is updating this device's push subscription.",
+      };
+    case "subscribed":
+      return {
+        title: "Alerts are on",
+        body: "This device is subscribed to run, lead-change, close-call, and challenge alerts.",
+      };
+    case "denied":
+      return {
+        title: "Alerts are blocked",
+        body: "Allow notifications in browser or device settings, then return to RunComp.",
+      };
+    case "unsupported":
+      return {
+        title: "Alerts are unavailable",
+        body: isIosDevice() && !isStandaloneApp() ? "Install RunComp to the Home Screen, then open that icon to enable iPhone alerts." : "This browser or device does not support RunComp push alerts.",
+      };
+    default:
+      return {
+        title: "Alerts are off",
+        body: "Turn on alerts on this device to hear about family runs and race changes.",
+      };
+  }
+}
+
 function buildInviteUrl(groupCode: string) {
   if (typeof window === "undefined") return "";
   const url = new URL(window.location.href);
@@ -1949,6 +2002,10 @@ function pushButtonLabel(status: PushStatus) {
       return "Alerts on";
     case "denied":
       return "Alerts blocked";
+    case "unsupported":
+      return "Alerts unavailable";
+    case "off":
+      return "Turn on alerts";
     default:
       return "Turn on alerts";
   }

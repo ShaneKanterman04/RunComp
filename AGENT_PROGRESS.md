@@ -152,3 +152,23 @@
   - Consider moving shared route-test fixture helpers into a small local test utility if route tests grow much more.
 - Skipped ideas:
   - Did not refactor `/api/runs` notification orchestration; the route is still understandable, and this increment focused on pinning behavior before any structural change.
+
+### Increment 8: Notification Status In Group Settings
+
+- What changed: Added a compact notification status block to the group/settings area so users can see the current device state for alerts: checking, updating, on, off, blocked, or unavailable. The block reuses the existing enable/disable flow and keeps unsupported/blocked states explanatory.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No new automated tests; this is a presentational state/copy change using existing push status state and controls.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Add focused component coverage if the main app UI gets split into smaller testable pieces.
+  - Consider a similarly compact install/PWA status row for Settings.
+- Skipped ideas:
+  - Did not add per-event notification toggles; the current push system remains intentionally simple.
