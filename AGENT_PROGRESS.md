@@ -1783,3 +1783,23 @@
   - Keep notification settings copy aligned with API endpoint validation.
 - Skipped ideas:
   - Did not add per-event notification settings; this only tightens the existing push model.
+
+### Increment 93: Export Type Normalization
+
+- What changed: Updated `/api/exports` to trim and lowercase the `type` query parameter so obvious CSV/JSON requests with casing or spaces still work.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/exports/route.ts`
+  - `app/api/__tests__/exports-route.test.ts`
+- Tests added/updated:
+  - Added export route coverage for normalized `type` parameters.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/exports-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep unsupported export format errors explicit if more formats are added.
+- Skipped ideas:
+  - Did not add new export formats; this only makes the existing API more forgiving.

@@ -296,3 +296,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Ninetieth increment rejected blank run ids before reaction and delete store calls.
 - 2026-05-28: Ninety-first increment rejected blank runner ids in invite and member owner routes.
 - 2026-05-28: Ninety-second increment rejected blank push subscription endpoints before store calls.
+- 2026-05-28: Ninety-third increment normalized export type parameters.

@@ -74,6 +74,18 @@ describe("/api/exports", () => {
     expect(exportGroupBackup).not.toHaveBeenCalled();
   });
 
+  it("normalizes export type parameters", async () => {
+    jest.mocked(requireSession).mockResolvedValue(memberSession as never);
+    jest.mocked(exportRunsCsv).mockResolvedValue("date,runner,miles\n");
+
+    const response = await GET(new Request("http://localhost/api/exports?type=%20CSV%20"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toBe("text/csv; charset=utf-8");
+    expect(exportRunsCsv).toHaveBeenCalledWith("group-1");
+    expect(exportGroupBackup).not.toHaveBeenCalled();
+  });
+
   it("sanitizes export filenames from group codes", async () => {
     jest.mocked(requireSession).mockResolvedValue({
       ...memberSession,
