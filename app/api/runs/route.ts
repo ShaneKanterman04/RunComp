@@ -91,7 +91,7 @@ export async function PATCH(request: Request) {
     const session = await requireSession();
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    const id = typeof body.id === "string" ? body.id : "";
+    const id = typeof body.id === "string" ? body.id.trim() : "";
     const reaction = typeof body.reaction === "string" ? body.reaction : "";
     if (!id) return NextResponse.json({ error: "Missing run id." }, { status: 400 });
     if (!isReactionType(reaction)) return NextResponse.json({ error: "Reaction is not supported." }, { status: 400 });
@@ -120,7 +120,7 @@ function isReactionType(value: string): value is ReactionType {
 export async function DELETE(request: Request) {
   try {
     const session = await requireSession();
-    const id = new URL(request.url).searchParams.get("id");
+    const id = new URL(request.url).searchParams.get("id")?.trim();
     if (!id) return NextResponse.json({ error: "Missing run id." }, { status: 400 });
 
     const deleted = await deleteRun(session.group.id, session.member.id, id);

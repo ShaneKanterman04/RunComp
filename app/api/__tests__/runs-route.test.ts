@@ -195,6 +195,7 @@ describe("/api/runs", () => {
     const badBody = await PATCH(jsonRequest("/api/runs", null, "PATCH"));
     const badJson = await PATCH(malformedJsonRequest("/api/runs", "PATCH"));
     const missingId = await PATCH(jsonRequest("/api/runs", { reaction: "fire" }, "PATCH"));
+    const blankId = await PATCH(jsonRequest("/api/runs", { id: "  ", reaction: "fire" }, "PATCH"));
     const badReaction = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "sparkle" }, "PATCH"));
     const response = await PATCH(jsonRequest("/api/runs", { id: "run-1", reaction: "fire" }, "PATCH"));
 
@@ -204,6 +205,8 @@ describe("/api/runs", () => {
     expect(await readJson(badJson)).toEqual({ error: "Send a JSON body." });
     expect(missingId.status).toBe(400);
     expect(await readJson(missingId)).toEqual({ error: "Missing run id." });
+    expect(blankId.status).toBe(400);
+    expect(await readJson(blankId)).toEqual({ error: "Missing run id." });
     expect(badReaction.status).toBe(400);
     expect(await readJson(badReaction)).toEqual({ error: "Reaction is not supported." });
     expect(response.status).toBe(200);
@@ -242,11 +245,16 @@ describe("/api/runs", () => {
     jest.mocked(deleteRun).mockResolvedValue(false);
 
     const missing = await DELETE(new Request("http://localhost/api/runs", { method: "DELETE" }));
+    const blank = await DELETE(new Request("http://localhost/api/runs?id=%20%20", { method: "DELETE" }));
     const unknown = await DELETE(new Request("http://localhost/api/runs?id=missing", { method: "DELETE" }));
 
     expect(missing.status).toBe(400);
     expect(await readJson(missing)).toEqual({ error: "Missing run id." });
+    expect(blank.status).toBe(400);
+    expect(await readJson(blank)).toEqual({ error: "Missing run id." });
     expect(unknown.status).toBe(404);
     expect(await readJson(unknown)).toEqual({ error: "Run not found." });
+    expect(deleteRun).toHaveBeenCalledTimes(1);
+    expect(deleteRun).toHaveBeenCalledWith("group-1", "member-1", "missing");
   });
 });

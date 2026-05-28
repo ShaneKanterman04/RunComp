@@ -1721,3 +1721,23 @@
   - Keep export download names predictable if group code rules ever change.
 - Skipped ideas:
   - Did not expose filename sanitizer directly; route-level coverage matches the user-visible behavior.
+
+### Increment 90: Blank Run Id Validation
+
+- What changed: Updated run reaction and delete routes to trim run ids and reject whitespace-only ids before calling store methods.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Extended run route coverage for blank reaction ids and blank delete ids.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep route-level id validation consistent if additional run mutation endpoints are added.
+- Skipped ideas:
+  - Did not change store-level run id semantics; this increment only blocks malformed route inputs earlier.
