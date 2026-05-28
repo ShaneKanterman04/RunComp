@@ -147,6 +147,8 @@ describe("file-backed store", () => {
     await expect(store.updateMemberName(group.id, owner.id, "missing", "New Name")).rejects.toMatchObject({ status: 404 });
     await expect(store.resetMemberPassword(group.id, owner.id, "missing", "newpassword")).rejects.toMatchObject({ status: 404 });
     await expect(store.resetMemberPassword(group.id, owner.id, molly.id, "short")).rejects.toMatchObject({ status: 400 });
+    await expect(store.addMember(group.id, owner.id, { name: "Mom", password: "        " })).rejects.toMatchObject({ status: 400 });
+    await expect(store.resetMemberPassword(group.id, owner.id, molly.id, "        ")).rejects.toMatchObject({ status: 400 });
     await expect(store.login({ groupCode: group.code, memberName: "Molly", password: "password456" })).resolves.toMatchObject({
       member: { id: molly.id },
     });

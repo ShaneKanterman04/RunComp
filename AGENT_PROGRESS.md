@@ -1883,3 +1883,22 @@
   - Keep auth parser tests paired across session and invite token formats.
 - Skipped ideas:
   - Did not change token signing format or TTLs; this only tightens verification.
+
+### Increment 98: Member Management Blank Password Coverage
+
+- What changed: Added file-backed store coverage proving blank runner passwords are rejected for owner-created runners and password resets.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended owner member-management store validation coverage for whitespace-only passwords.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep route and store password validation coverage paired for future password policy changes.
+- Skipped ideas:
+  - Did not change store behavior; this locks down the stricter validation added in the prior store increment.
