@@ -121,6 +121,8 @@ export type HeadToHeadComparison = {
   opponentName: string;
   runnerTotal: number;
   opponentTotal: number;
+  runnerRunCount: number;
+  opponentRunCount: number;
   gap: number;
   status: "ahead" | "behind" | "tied";
   milesToPass?: number;
@@ -381,12 +383,14 @@ export function buildComebackTargets(runs: MetricRunEntry[], members: MetricMemb
 
 export function buildHeadToHeadComparisons(runs: MetricRunEntry[], members: MetricMember[], memberId: string): HeadToHeadComparison[] {
   if (!members.some((member) => member.id === memberId)) return [];
-  const runnerTotal = sumMiles(runs.filter((run) => run.memberId === memberId));
+  const runnerRuns = runs.filter((run) => run.memberId === memberId);
+  const runnerTotal = sumMiles(runnerRuns);
 
   return members
     .filter((opponent) => opponent.id !== memberId)
     .map((opponent) => {
-      const opponentTotal = sumMiles(runs.filter((run) => run.memberId === opponent.id));
+      const opponentRuns = runs.filter((run) => run.memberId === opponent.id);
+      const opponentTotal = sumMiles(opponentRuns);
       const rawGap = runnerTotal - opponentTotal;
       const gap = Math.round(Math.abs(rawGap) * 100) / 100;
       return {
@@ -394,6 +398,8 @@ export function buildHeadToHeadComparisons(runs: MetricRunEntry[], members: Metr
         opponentName: opponent.name,
         runnerTotal,
         opponentTotal,
+        runnerRunCount: runnerRuns.length,
+        opponentRunCount: opponentRuns.length,
         gap,
         status: rawGap > 0 ? "ahead" : rawGap < 0 ? "behind" : "tied",
         ...(rawGap < 0 ? { milesToPass: Math.round((Math.abs(rawGap) + 0.01) * 100) / 100 } : {}),

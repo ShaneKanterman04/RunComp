@@ -2115,9 +2115,22 @@ input:invalid:not(:placeholder-shown) {
 }
 
 .profileMatchup strong {
-  min-width: 0;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileMatchup > div {
+  min-width: 0;
+}
+
+.profileMatchup small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
   white-space: nowrap;
 }
 

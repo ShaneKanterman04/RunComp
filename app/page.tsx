@@ -2612,7 +2612,12 @@ function RunnerProfileModal({
               <div className="profileMatchups">
                 {headToHead.map((comparison) => (
                   <div className={`profileMatchup profileMatchup--${comparison.status}`} key={comparison.opponentId}>
-                    <strong>{comparison.opponentName}</strong>
+                    <div>
+                      <strong>{comparison.opponentName}</strong>
+                      <small>
+                        {formatMiles(comparison.runnerTotal)} vs {formatMiles(comparison.opponentTotal)} · {comparison.runnerRunCount}/{comparison.opponentRunCount} runs
+                      </small>
+                    </div>
                     <span>{headToHeadCopy(comparison.status, comparison.gap, comparison.milesToPass)}</span>
                   </div>
                 ))}

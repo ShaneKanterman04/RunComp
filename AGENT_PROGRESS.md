@@ -2220,3 +2220,25 @@
   - Add migration-style cleanup only if legacy data issues appear in real deployments.
 - Skipped ideas:
   - Did not loosen normal run creation validation; new runs still require positive mileage.
+
+### Increment 115: Head-To-Head Profile Detail
+
+- What changed: Added runner/opponent run counts to head-to-head comparisons and surfaced compact total-vs-total context in runner profile matchup rows.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+  - `lib/run-metrics.ts`
+  - `lib/__tests__/run-metrics.test.ts`
+- Tests added/updated:
+  - Updated head-to-head metric coverage to assert run counts alongside totals and gaps.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/run-metrics.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider a rendered profile modal test if app-level component tests are introduced.
+- Skipped ideas:
+  - Did not add a larger comparison table; the profile stays compact for mobile use.
