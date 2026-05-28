@@ -148,13 +148,13 @@ describe("/api/runs", () => {
     expect(toggleRunReaction).toHaveBeenCalledWith("group-1", "member-1", "run-1", "fire");
   });
 
-  it("deletes runs using the signed-in member id and role", async () => {
+  it("deletes runs using the signed-in member id", async () => {
     jest.mocked(deleteRun).mockResolvedValue(true);
 
     const response = await DELETE(new Request("http://localhost/api/runs?id=run-1", { method: "DELETE" }));
 
     expect(response.status).toBe(200);
-    expect(deleteRun).toHaveBeenCalledWith("group-1", "member-1", "member", "run-1");
+    expect(deleteRun).toHaveBeenCalledWith("group-1", "member-1", "run-1");
     expect(await readJson(response)).toEqual({ ok: true });
   });
 

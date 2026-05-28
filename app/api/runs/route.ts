@@ -117,7 +117,7 @@ export async function DELETE(request: Request) {
     const id = new URL(request.url).searchParams.get("id");
     if (!id) return NextResponse.json({ error: "Missing run id." }, { status: 400 });
 
-    const deleted = await deleteRun(session.group.id, session.member.id, session.member.role, id);
+    const deleted = await deleteRun(session.group.id, session.member.id, id);
     if (!deleted) return NextResponse.json({ error: "Run not found." }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch (error) {

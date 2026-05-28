@@ -195,8 +195,9 @@ describe("file-backed store", () => {
     expect(ownerRun.note).toBe("tempo");
     expect(ownerRun.reactions).toHaveLength(8);
     expect(runs.map((run) => run.id)).toEqual([mollyRun.id, ownerRun.id]);
-    await expect(store.deleteRun(group.id, molly.id, "member", ownerRun.id)).rejects.toMatchObject({ status: 403 });
-    await expect(store.deleteRun(group.id, owner.id, "owner", mollyRun.id)).resolves.toBe(true);
+    await expect(store.deleteRun(group.id, molly.id, ownerRun.id)).rejects.toMatchObject({ status: 403 });
+    await expect(store.deleteRun(group.id, "missing", ownerRun.id)).rejects.toMatchObject({ status: 404 });
+    await expect(store.deleteRun(group.id, owner.id, mollyRun.id)).resolves.toBe(true);
   });
 
   it("validates run miles, dates, and durations before writing", async () => {

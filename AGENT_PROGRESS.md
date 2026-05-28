@@ -418,3 +418,24 @@
   - Owner-only store operations now consistently take explicit owner actors.
 - Skipped ideas:
   - Did not change the Settings UI for goal updates; this was a store authorization hardening increment.
+
+### Increment 22: Store-Derived Run Delete Authorization
+
+- What changed: Updated run deletion so the store derives the actor role from persisted group membership instead of trusting a caller-provided role. The runs API now passes only the signed-in member id and run id.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+  - `app/api/runs/route.ts`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Updated route coverage for the slimmer delete call.
+  - Added a store assertion that missing actors cannot delete runs.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Consider validating reaction actors in `toggleRunReaction` so removed or unknown members cannot leave reactions.
+- Skipped ideas:
+  - Did not change the runs UI; this increment only tightens server/store authorization.
