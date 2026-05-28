@@ -281,3 +281,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Seventy-fifth increment hardened malformed JSON handling across API routes.
 - 2026-05-28: Seventy-sixth increment expanded malformed JSON coverage across mutable API routes.
 - 2026-05-28: Seventy-seventh increment made export history storage failures non-blocking.
+- 2026-05-28: Seventy-eighth increment covered exports with missing persisted runner references.

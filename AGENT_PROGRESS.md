@@ -1486,3 +1486,22 @@
   - Consider surfacing export start feedback in Settings if download navigation is delayed by the browser.
 - Skipped ideas:
   - Did not add a server-side export audit log; local-only history remains enough for this private deployment.
+
+### Increment 78: Missing Runner Export Fallback Coverage
+
+- What changed: Added store coverage proving JSON backups and CSV exports remain readable when persisted run data references a missing runner.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added one file-backed export regression test that edits persisted data to remove the runner for an existing run and verifies `Unknown` fallback output.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep export paths tolerant of old or imperfect file-backed data.
+- Skipped ideas:
+  - Did not introduce repair or import tooling; this only protects current export readability.

@@ -457,6 +457,30 @@ describe("file-backed store", () => {
     await expect(store.exportRunsCsv(group.id)).resolves.toBe("date,runner,miles,duration_seconds,pace_seconds_per_mile,note,created_at\n");
   });
 
+  it("keeps backups and CSV exports readable when a run references a missing runner", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group, member: owner } = await store.createGroup({
+      groupName: "Family Miles",
+      ownerName: "Shane",
+      password: "password123",
+    });
+    await store.addRun(group.id, owner.id, { miles: 3.1, durationSeconds: 1550, date: "2026-05-22", note: "tempo" });
+
+    const dataFile = path.join(dataDir, "runcomp.json");
+    const raw = JSON.parse(await fs.readFile(dataFile, "utf8"));
+    raw.groups[0].members = [];
+    await fs.writeFile(dataFile, `${JSON.stringify(raw, null, 2)}\n`, "utf8");
+
+    const backup = await store.exportGroupBackup(group.id);
+    const csv = await store.exportRunsCsv(group.id);
+
+    expect(backup.runs).toEqual([expect.objectContaining({ runner: "Unknown", miles: 3.1 })]);
+    expect(csv).toContain("2026-05-22,Unknown,3.10,1550,500,tempo");
+  });
+
   it("excludes push subscription secrets from JSON backups", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;
