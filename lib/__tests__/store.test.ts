@@ -65,6 +65,23 @@ describe("file-backed store", () => {
     expect(loginText).not.toContain("password123");
   });
 
+  it("defaults invalid legacy public group goals", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({
+      groupName: "Shane vs Molly",
+      ownerName: "Shane",
+      password: "password123",
+      goalMiles: 150,
+    });
+
+    expect(store.publicGroup({ ...group, goalMiles: -25 } as never).goalMiles).toBe(100);
+    expect(store.publicGroup({ ...group, goalMiles: Number.NaN } as never).goalMiles).toBe(100);
+    expect(store.publicGroup({ ...group, goalMiles: 75 } as never).goalMiles).toBe(75);
+  });
+
   it("returns sanitized group context with public member data", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

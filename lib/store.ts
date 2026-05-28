@@ -452,9 +452,13 @@ export function publicGroup(group: Group): PublicGroup {
     id: group.id,
     name: group.name,
     code: group.code,
-    goalMiles: group.goalMiles || 100,
+    goalMiles: cleanPublicGoalMiles(group.goalMiles),
     createdAt: group.createdAt,
   };
+}
+
+function cleanPublicGoalMiles(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 100;
 }
 
 export function publicMember(member: Member, group?: Group): PublicMember {

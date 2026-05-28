@@ -2323,3 +2323,23 @@
   - Keep normal run creation validation strict so new runs continue to require positive mileage.
 - Skipped ideas:
   - Did not change notification titles for legacy mileage; the goal is to avoid invalid pace text without hiding the stored value.
+
+### Increment 120: Public Goal Legacy Guard
+
+- What changed: Defaulted invalid legacy public race goals to 100 miles before exposing group data to the UI.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added store coverage for negative, non-finite, and valid public group goal values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep persisted goal writes strict through `createGroup` and `updateGroupGoal`.
+- Skipped ideas:
+  - Did not rewrite existing files; this is a backward-compatible read-side guard.
