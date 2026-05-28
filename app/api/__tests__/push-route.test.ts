@@ -92,6 +92,16 @@ describe("/api/push", () => {
     expect(await readJson(response)).toEqual({ ok: true });
   });
 
+  it("returns structured store errors when saving subscriptions fails", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+    jest.mocked(savePushSubscription).mockRejectedValue({ status: 400, message: "Push subscription endpoint is invalid." });
+
+    const response = await POST(jsonRequest("/api/push", { subscription: { endpoint: "https://push.example.test/1", keys: { p256dh: "key", auth: "auth" } } }));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Push subscription endpoint is invalid." });
+  });
+
   it("rejects non-object subscription save requests before store mutation", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
 
@@ -111,6 +121,16 @@ describe("/api/push", () => {
     expect(response.status).toBe(200);
     expect(removePushSubscription).toHaveBeenCalledWith("group-1", "https://push.example.test/1", "member-1");
     expect(await readJson(response)).toEqual({ ok: true });
+  });
+
+  it("returns structured store errors when removing subscriptions fails", async () => {
+    jest.mocked(requireSession).mockResolvedValue(session as never);
+    jest.mocked(removePushSubscription).mockRejectedValue({ status: 400, message: "Push subscription endpoint is invalid." });
+
+    const response = await DELETE(jsonRequest("/api/push", { endpoint: "https://push.example.test/1" }, "DELETE"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({ error: "Push subscription endpoint is invalid." });
   });
 
   it("rejects non-object subscription removal requests before store mutation", async () => {

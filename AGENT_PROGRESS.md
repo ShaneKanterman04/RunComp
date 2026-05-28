@@ -1057,3 +1057,21 @@
   - Extract runner management into a small tested component if invite/status interactions grow.
 - Skipped ideas:
   - Did not persist invite status; login links are signed on demand and the UI reflects the current browser session.
+
+### Increment 56: Push Mutation Store Error Coverage
+
+- What changed: Added route coverage proving push subscription save and removal failures return structured store errors to the client.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Added `/api/push` POST and DELETE failure-path tests for store error status/message handling.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Continue pairing route coverage with store validation when push subscription behavior changes.
+- Skipped ideas:
+  - Did not change push mutation behavior; this locks the existing structured error contract.
