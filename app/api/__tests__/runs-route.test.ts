@@ -73,6 +73,10 @@ describe("/api/runs", () => {
     jest.mocked(claimChallengeCompletions).mockResolvedValue([]);
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("lists runs for the signed-in viewer", async () => {
     jest.mocked(listRuns).mockResolvedValue([run]);
 
@@ -154,6 +158,29 @@ describe("/api/runs", () => {
     await POST(jsonRequest("/api/runs", { miles: 3.25, date: "2026-05-22" }));
 
     expect(notifyLeadChanged).toHaveBeenCalledWith("group-1", "Molly", 3.25);
+  });
+
+  it("sends challenge notifications only for freshly claimed completions", async () => {
+    jest.useFakeTimers({ now: new Date("2026-05-28T12:00:00Z") });
+    const challengeRun = { ...run, miles: 5, date: "2026-05-27", createdAt: "2026-05-27T12:00:00Z" };
+    jest.mocked(listRuns).mockResolvedValueOnce([]).mockResolvedValueOnce([challengeRun]);
+    jest.mocked(addRun).mockResolvedValue(challengeRun);
+    jest.mocked(getGroupContext).mockResolvedValue({
+      group,
+      member,
+      members: [member],
+    } as never);
+    jest.mocked(claimChallengeCompletions).mockResolvedValue(["2026-05-25:weekly-mileage"]);
+
+    const response = await POST(jsonRequest("/api/runs", { miles: 5, date: "2026-05-27" }));
+
+    expect(response.status).toBe(201);
+    expect(claimChallengeCompletions).toHaveBeenCalledWith(
+      "group-1",
+      expect.arrayContaining(["2026-05-25:weekly-mileage", "2026-05-25:everyone-logs"]),
+    );
+    expect(notifyChallengeCompleted).toHaveBeenCalledTimes(1);
+    expect(notifyChallengeCompleted).toHaveBeenCalledWith("group-1", expect.objectContaining({ id: "2026-05-25:weekly-mileage" }));
   });
 
   it("toggles supported reactions and rejects malformed reaction requests", async () => {

@@ -1185,3 +1185,21 @@
   - Keep export UI copy aligned with backup/export behavior if restore/import is added.
 - Skipped ideas:
   - Did not add restore/import or expand export formats.
+
+### Increment 63: Challenge Notification Gating Coverage
+
+- What changed: Added route coverage proving completed challenge notifications are sent only for freshly claimed challenge ids after logging a run.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/runs-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/runs` POST test with a fixed system date for challenge completion claim and notification behavior.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/runs-route.test.ts`
+  - `pnpm lint`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Add similar focused notification tests only when route notification behavior changes.
+- Skipped ideas:
+  - Did not change challenge calculation or notification behavior; this locks the existing duplicate-notification guard.
