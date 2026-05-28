@@ -1336,3 +1336,22 @@
   - Keep browser notification setup copy aligned with these clearer API errors.
 - Skipped ideas:
   - Did not add push preference toggles or expand notification delivery behavior.
+
+### Increment 71: Group Creation Context Fallback Coverage
+
+- What changed: Added route coverage for the group creation fallback that returns the newly created owner when the fresh group context is unavailable.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Added one `/api/groups` POST test for context lookup returning `null` after group creation.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Consider a clearer route-level error if session cookie setup itself fails after group creation.
+- Skipped ideas:
+  - Did not change group creation behavior; this increment only locks down the existing fallback.

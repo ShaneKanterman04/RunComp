@@ -57,6 +57,18 @@ describe("/api/groups", () => {
     expect(await readJson(response)).toMatchObject({ authenticated: true, group: { id: "group-1" }, member: { id: "owner-1" }, members: [{ id: "owner-1" }] });
   });
 
+  it("falls back to the created owner when fresh group context is unavailable", async () => {
+    jest.mocked(createGroup).mockResolvedValue({ group, member: owner });
+    jest.mocked(getGroupContext).mockResolvedValue(null);
+
+    const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123" }));
+
+    expect(response.status).toBe(201);
+    expect(setSessionCookie).toHaveBeenCalledWith({ groupId: "group-1", memberId: "owner-1", role: "owner" });
+    expect(getGroupContext).toHaveBeenCalledWith("group-1", "owner-1");
+    expect(await readJson(response)).toMatchObject({ authenticated: true, group: { id: "group-1" }, member: { id: "owner-1" }, members: [{ id: "owner-1" }] });
+  });
+
   it("returns validation errors from group creation", async () => {
     jest.mocked(createGroup).mockRejectedValue({ status: 400, message: "Passwords need at least 8 characters." });
 
