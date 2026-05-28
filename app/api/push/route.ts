@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
     const subscription = isJsonObject(body.subscription) ? body.subscription : undefined;
     if (!subscription) return NextResponse.json({ error: "Missing push subscription." }, { status: 400 });
-    const endpoint = typeof subscription.endpoint === "string" ? subscription.endpoint : "";
+    const endpoint = typeof subscription.endpoint === "string" ? subscription.endpoint.trim() : "";
     if (!endpoint) return NextResponse.json({ error: "Missing push subscription endpoint." }, { status: 400 });
     const keys = isJsonObject(subscription.keys) ? subscription.keys : {};
     await savePushSubscription(session.group.id, session.member.id, {
@@ -44,7 +44,7 @@ export async function DELETE(request: Request) {
     const session = await requireSession();
     const body = await request.json();
     if (!isJsonObject(body)) return NextResponse.json({ error: "Send a JSON object." }, { status: 400 });
-    const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+    const endpoint = typeof body.endpoint === "string" ? body.endpoint.trim() : "";
     if (!endpoint) return NextResponse.json({ error: "Missing push subscription endpoint." }, { status: 400 });
     await removePushSubscription(session.group.id, endpoint, session.member.id);
     return NextResponse.json({ ok: true });

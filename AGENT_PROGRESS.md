@@ -1763,3 +1763,23 @@
   - Keep owner-control route validation consistent with store actor checks.
 - Skipped ideas:
   - Did not alter member-id storage rules; the route now rejects malformed ids earlier.
+
+### Increment 92: Blank Push Endpoint Validation
+
+- What changed: Updated push subscription save and removal routes to trim endpoints and reject whitespace-only endpoints before store calls.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/push/route.ts`
+  - `app/api/__tests__/push-route.test.ts`
+- Tests added/updated:
+  - Extended push route coverage for blank subscription endpoints on save and removal.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/push-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep notification settings copy aligned with API endpoint validation.
+- Skipped ideas:
+  - Did not add per-event notification settings; this only tightens the existing push model.

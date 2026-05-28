@@ -135,10 +135,13 @@ describe("/api/push", () => {
   it("rejects missing push subscription endpoints before saving", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
 
-    const response = await POST(jsonRequest("/api/push", { subscription: { keys: { p256dh: "key", auth: "auth" } } }));
+    const missing = await POST(jsonRequest("/api/push", { subscription: { keys: { p256dh: "key", auth: "auth" } } }));
+    const blank = await POST(jsonRequest("/api/push", { subscription: { endpoint: "  ", keys: { p256dh: "key", auth: "auth" } } }));
 
-    expect(response.status).toBe(400);
-    expect(await readJson(response)).toEqual({ error: "Missing push subscription endpoint." });
+    expect(missing.status).toBe(400);
+    expect(await readJson(missing)).toEqual({ error: "Missing push subscription endpoint." });
+    expect(blank.status).toBe(400);
+    expect(await readJson(blank)).toEqual({ error: "Missing push subscription endpoint." });
     expect(savePushSubscription).not.toHaveBeenCalled();
   });
 
@@ -186,10 +189,13 @@ describe("/api/push", () => {
   it("rejects missing push subscription endpoints before removing", async () => {
     jest.mocked(requireSession).mockResolvedValue(session as never);
 
-    const response = await DELETE(jsonRequest("/api/push", {}, "DELETE"));
+    const missing = await DELETE(jsonRequest("/api/push", {}, "DELETE"));
+    const blank = await DELETE(jsonRequest("/api/push", { endpoint: "  " }, "DELETE"));
 
-    expect(response.status).toBe(400);
-    expect(await readJson(response)).toEqual({ error: "Missing push subscription endpoint." });
+    expect(missing.status).toBe(400);
+    expect(await readJson(missing)).toEqual({ error: "Missing push subscription endpoint." });
+    expect(blank.status).toBe(400);
+    expect(await readJson(blank)).toEqual({ error: "Missing push subscription endpoint." });
     expect(removePushSubscription).not.toHaveBeenCalled();
   });
 
