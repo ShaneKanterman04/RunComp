@@ -1239,3 +1239,22 @@
   - Keep push persistence tests aligned with notification settings behavior.
 - Skipped ideas:
   - Did not add per-event notification settings or change push subscription storage.
+
+### Increment 66: Inactive Runner Removal Clarity
+
+- What changed: Added a compact owner-facing hint in runner management rows showing whether a non-owner runner can be removed or is kept because they have run history.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/page.tsx`
+  - `app/globals.css`
+- Tests added/updated:
+  - No component test was added for static row copy in the monolithic page; server-side removal rules remain covered by route and store tests.
+- Validation commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Extract runner management into a small tested component if more owner-row behavior is added.
+- Skipped ideas:
+  - Did not change removal rules; this only makes the existing inactive-only rule clearer.

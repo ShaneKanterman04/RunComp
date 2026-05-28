@@ -1246,6 +1246,9 @@ export default function Home() {
                         <div>
                           <strong>{member.name}</strong>
                           <span>{member.role === "owner" ? "Owner" : `${member.runCount || 0} run${member.runCount === 1 ? "" : "s"}`}</span>
+                          {member.role !== "owner" && (
+                            <span className="runnerRemovalHint">{member.runCount ? "Keep history: cannot remove" : "No runs: can remove"}</span>
+                          )}
                         </div>
                         <input
                           value={edit.name}
