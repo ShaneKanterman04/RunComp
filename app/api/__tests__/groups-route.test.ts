@@ -49,7 +49,7 @@ describe("/api/groups", () => {
     jest.mocked(createGroup).mockResolvedValue({ group, member: owner });
     jest.mocked(getGroupContext).mockResolvedValue({ group, member: owner, members: [owner] } as never);
 
-    const response = await POST(jsonRequest("/api/groups", { groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: "150" }));
+    const response = await POST(jsonRequest("/api/groups", { groupName: " Family Miles ", ownerName: " Shane ", password: "password123", goalMiles: "150" }));
 
     expect(response.status).toBe(201);
     expect(createGroup).toHaveBeenCalledWith({ groupName: "Family Miles", ownerName: "Shane", password: "password123", goalMiles: 150 });

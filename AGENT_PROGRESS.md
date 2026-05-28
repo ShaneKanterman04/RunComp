@@ -2041,3 +2041,23 @@
   - Keep member route normalization aligned with store name cleanup.
 - Skipped ideas:
   - Did not trim password values; password text semantics remain unchanged except blank-password rejection.
+
+### Increment 106: Setup Route Name Normalization
+
+- What changed: Updated group creation to trim group and owner names before calling `createGroup`.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `app/api/groups/route.ts`
+  - `app/api/__tests__/groups-route.test.ts`
+- Tests added/updated:
+  - Extended group creation route coverage for padded setup names being normalized before store calls.
+- Validation commands run:
+  - `pnpm test -- app/api/__tests__/groups-route.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep setup route normalization aligned with store name cleanup.
+- Skipped ideas:
+  - Did not trim owner password values; password text semantics remain unchanged except blank-password rejection.
