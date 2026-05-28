@@ -222,3 +222,4 @@ At the end of the session, leave the repo in a clean, validated state and summar
 - 2026-05-28: Sixteenth increment cleaned up repeated Settings status-row styling for notification and install state.
 - 2026-05-28: Seventeenth increment added push sender tests for notification payloads and expired-subscription cleanup.
 - 2026-05-28: Eighteenth increment added owner member-management store regression tests for duplicate names, missing runners, and invalid password resets.
+- 2026-05-28: Nineteenth increment enforced owner actor checks inside `removeInactiveMember` at the store layer.

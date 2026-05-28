@@ -115,6 +115,22 @@ describe("file-backed store", () => {
     await expect(store.login({ groupCode: group.code, memberName: "Dad", password: "password789" })).rejects.toMatchObject({ status: 401 });
   });
 
+  it("requires an owner actor when removing inactive runners", async () => {
+    const loaded = await loadStore();
+    const store: StoreModule = loaded.store;
+    dataDir = loaded.dataDir;
+
+    const { group } = await store.createGroup({ groupName: "Run Group", ownerName: "Shane", password: "password123" });
+    const molly = await store.addMember(group.id, { name: "Molly", password: "password456" });
+    const dad = await store.addMember(group.id, { name: "Dad", password: "password789" });
+
+    await expect(store.removeInactiveMember(group.id, dad.id, molly.id)).rejects.toMatchObject({ status: 403 });
+    await expect(store.removeInactiveMember(group.id, dad.id, "missing-owner")).rejects.toMatchObject({ status: 403 });
+    await expect(store.login({ groupCode: group.code, memberName: "Dad", password: "password789" })).resolves.toMatchObject({
+      member: { id: dad.id },
+    });
+  });
+
   it("validates names, passwords, and goal limits before writing", async () => {
     const loaded = await loadStore();
     const store: StoreModule = loaded.store;

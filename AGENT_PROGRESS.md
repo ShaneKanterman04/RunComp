@@ -358,3 +358,21 @@
   - Add UI-level tests only if member-management controls get split into a renderable component.
 - Skipped ideas:
   - Did not change member-management behavior; the existing store checks were correct and now have stronger regression coverage.
+
+### Increment 19: Store Owner Check For Runner Removal
+
+- What changed: Hardened `removeInactiveMember` so the file-backed store verifies the actor exists and has the owner role before removing an inactive runner, matching the server route authorization boundary.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Added a store regression test for non-owner and missing-actor removal attempts.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint && pnpm test && pnpm build`
+- Known follow-ups:
+  - Keep store methods explicit about actor identity for future owner-only operations.
+- Skipped ideas:
+  - Did not change the route handler; it already checks owner role before calling the store.

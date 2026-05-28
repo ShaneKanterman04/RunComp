@@ -181,6 +181,8 @@ export async function removeInactiveMember(groupId: string, memberId: string, ow
     const store = await readStore();
     const group = findGroup(store, groupId);
     if (!group) throw new StoreError("Run group not found.", 404);
+    const owner = group.members.find((row) => row.id === ownerMemberId);
+    if (!owner || owner.role !== "owner") throw new StoreError("Only the group owner can remove runners.", 403);
     const member = group.members.find((row) => row.id === memberId);
     if (!member) return false;
     if (member.id === ownerMemberId) throw new StoreError("You cannot remove yourself.", 400);
