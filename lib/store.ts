@@ -458,7 +458,7 @@ export function publicGroup(group: Group): PublicGroup {
 }
 
 function cleanPublicGoalMiles(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 && value <= 10000 ? value : 100;
+  return typeof value === "number" && Number.isFinite(value) && value > 0 && value <= 10000 ? roundMiles(value) : 100;
 }
 
 export function publicMember(member: Member, group?: Group): PublicMember {

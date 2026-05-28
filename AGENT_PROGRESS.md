@@ -2403,3 +2403,23 @@
   - Keep real group codes validated by normal group creation.
 - Skipped ideas:
   - Did not migrate existing browser local-storage entries.
+
+### Increment 124: Public Goal Rounding Guard
+
+- What changed: Rounded valid legacy public race goals to two decimals before exposing group data, matching normal write-side goal behavior.
+- Files touched:
+  - `GOAL.md`
+  - `AGENT_PROGRESS.md`
+  - `lib/store.ts`
+  - `lib/__tests__/store.test.ts`
+- Tests added/updated:
+  - Extended public group goal coverage for decimal legacy values.
+- Validation commands run:
+  - `pnpm test -- lib/__tests__/store.test.ts`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Known follow-ups:
+  - Keep public read guards aligned with store write validation.
+- Skipped ideas:
+  - Did not alter persisted legacy values.
